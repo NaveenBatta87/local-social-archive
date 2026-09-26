@@ -499,6 +499,15 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
 
     public async Task DeletePostAsync(string postId)
     {
+        await DeletePostsAsync(new[] { postId });
+    }
+
+    public async Task DeletePostsAsync(IEnumerable<string> postIds)
+    {
+        var idList = postIds.Where(id => !string.IsNullOrWhiteSpace(id)).ToList();
+        if (idList.Count == 0) return;
+        var idSet = new HashSet<string>(idList, StringComparer.OrdinalIgnoreCase);
+
         await _lock.WaitAsync();
         try
         {
@@ -517,12 +526,15 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                     try
                     {
                         Api.JetSetCurrentIndex(session, postsTableId, "PK_Posts");
-                        Api.MakeKey(session, postsTableId, postId, Encoding.Unicode, MakeKeyGrbit.NewKey);
-                        if (Api.TrySeek(session, postsTableId, SeekGrbit.SeekEQ))
+                        foreach (var id in idSet)
                         {
-                            using var tx = new Transaction(session);
-                            Api.JetDelete(session, postsTableId);
-                            tx.Commit(CommitTransactionGrbit.LazyFlush);
+                            Api.MakeKey(session, postsTableId, id, Encoding.Unicode, MakeKeyGrbit.NewKey);
+                            if (Api.TrySeek(session, postsTableId, SeekGrbit.SeekEQ))
+                            {
+                                using var tx = new Transaction(session);
+                                Api.JetDelete(session, postsTableId);
+                                tx.Commit(CommitTransactionGrbit.LazyFlush);
+                            }
                         }
                     }
                     finally
@@ -540,7 +552,7 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                             do
                             {
                                 var currentPostId = Api.RetrieveColumnAsString(session, mediaTableId, mediaColDict["PostId"], Encoding.Unicode);
-                                if (string.Equals(currentPostId, postId, StringComparison.OrdinalIgnoreCase))
+                                if (!string.IsNullOrEmpty(currentPostId) && idSet.Contains(currentPostId))
                                 {
                                     using var tx = new Transaction(session);
                                     Api.JetDelete(session, mediaTableId);

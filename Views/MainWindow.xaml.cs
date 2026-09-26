@@ -40,6 +40,26 @@ public partial class MainWindow : Window
             await _viewModel.InitializeAsync();
         };
 
+        _viewModel.RequestClearSelection += () =>
+        {
+            FeedListControl.SelectedItems.Clear();
+            FeedGridControl.SelectedItems.Clear();
+        };
+
+        _viewModel.RequestSelectAll += () =>
+        {
+            if (FeedListControl.IsVisible)
+            {
+                FeedListControl.SelectAll();
+                _viewModel.UpdateSelectedPosts(FeedListControl.SelectedItems.Cast<Post>().ToList());
+            }
+            else if (FeedGridControl.IsVisible)
+            {
+                FeedGridControl.SelectAll();
+                _viewModel.UpdateSelectedPosts(FeedGridControl.SelectedItems.Cast<Post>().ToList());
+            }
+        };
+
         // When Theater mode or media changes, manage video player lifecycle
         _viewModel.PropertyChanged += (s, e) =>
         {
@@ -55,7 +75,44 @@ public partial class MainWindow : Window
                     PlayVideo();
                 }
             }
+            else if (e.PropertyName == nameof(MainViewModel.IsGridView))
+            {
+                // Synchronize selection between List view and Grid view
+                var currentSelected = _viewModel.SelectedPosts.ToList();
+                var targetList = _viewModel.IsGridView ? FeedGridControl : FeedListControl;
+                targetList.SelectedItems.Clear();
+                foreach (var item in currentSelected)
+                {
+                    targetList.SelectedItems.Add(item);
+                }
+            }
         };
+    }
+
+    private void FeedListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ListView lv)
+        {
+            var selected = lv.SelectedItems.Cast<Post>().ToList();
+            _viewModel.UpdateSelectedPosts(selected);
+        }
+    }
+
+    private void FeedListView_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete)
+        {
+            if (_viewModel.DeleteSelectedPostsCommand.CanExecute(null))
+            {
+                _viewModel.DeleteSelectedPostsCommand.Execute(null);
+                e.Handled = true;
+            }
+        }
+        else if (e.Key == Key.Escape)
+        {
+            _viewModel.ClearSelection();
+            e.Handled = true;
+        }
     }
 
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
@@ -246,6 +303,51 @@ public partial class MainWindow : Window
                 }
                 InsertMediaIntoFlowDocument(imgPath);
                 return;
+            }
+
+            // 3. Check if HTML from web/forum with embedded images was pasted
+            if (HtmlClipboardHelper.HasHtml(e.DataObject))
+            {
+                string? html = HtmlClipboardHelper.GetHtml(e.DataObject);
+                if (!string.IsNullOrWhiteSpace(html))
+                {
+                    var imgSources = HtmlClipboardHelper.ExtractImageSources(html);
+                    if (imgSources.Count > 0)
+                    {
+                        e.CancelCommand();
+                        e.Handled = true;
+
+                        string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                        string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "CanvasStaging");
+                        Directory.CreateDirectory(stagingDir);
+
+                        string text = HtmlClipboardHelper.ConvertHtmlToFormattedText(html);
+                        if (!string.IsNullOrWhiteSpace(text))
+                        {
+                            var para = new Paragraph(new Run(text))
+                            {
+                                FontSize = 14.5,
+                                LineHeight = 22,
+                                Margin = new Thickness(0, 0, 0, 12)
+                            };
+                            DocRichTextBox.Document.Blocks.Add(para);
+                        }
+
+                        _ = Task.Run(async () =>
+                        {
+                            var localImages = await HtmlClipboardHelper.DownloadHtmlImagesAsync(html, stagingDir);
+                            Dispatcher.Invoke(() =>
+                            {
+                                foreach (var img in localImages)
+                                {
+                                    InsertMediaIntoFlowDocument(img);
+                                }
+                            });
+                        });
+
+                        return;
+                    }
+                }
             }
         }
         catch { }

@@ -49,6 +49,65 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private Post? _selectedPost;
 
+    // ========== MULTI-SELECTION STATE ==========
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedPostsCount))]
+    [NotifyPropertyChangedFor(nameof(HasMultipleSelection))]
+    [NotifyPropertyChangedFor(nameof(SelectionStatusText))]
+    [NotifyPropertyChangedFor(nameof(DeleteSingleMenuHeader))]
+    private ObservableCollection<Post> _selectedPosts = new();
+
+    public int SelectedPostsCount => SelectedPosts.Count;
+    public bool HasMultipleSelection => SelectedPosts.Count > 1;
+    public string SelectionStatusText => SelectedPosts.Count switch
+    {
+        0 => string.Empty,
+        1 => "1 post selected",
+        _ => $"{SelectedPosts.Count} posts selected"
+    };
+    public string DeleteSingleMenuHeader => HasMultipleSelection ? "🗑️ Delete Only This Post" : "🗑️ Delete Entry";
+
+    public event Action? RequestClearSelection;
+    public event Action? RequestSelectAll;
+
+    public void UpdateSelectedPosts(IEnumerable<Post> selected)
+    {
+        SelectedPosts.Clear();
+        foreach (var p in selected)
+        {
+            SelectedPosts.Add(p);
+        }
+        if (SelectedPosts.Count == 1)
+        {
+            SelectedPost = SelectedPosts[0];
+        }
+        else if (SelectedPosts.Count > 1 && (SelectedPost == null || !SelectedPosts.Contains(SelectedPost)))
+        {
+            SelectedPost = SelectedPosts.LastOrDefault();
+        }
+        OnPropertyChanged(nameof(SelectedPostsCount));
+        OnPropertyChanged(nameof(HasMultipleSelection));
+        OnPropertyChanged(nameof(SelectionStatusText));
+        OnPropertyChanged(nameof(DeleteSingleMenuHeader));
+    }
+
+    [RelayCommand]
+    public void ClearSelection()
+    {
+        SelectedPosts.Clear();
+        RequestClearSelection?.Invoke();
+        OnPropertyChanged(nameof(SelectedPostsCount));
+        OnPropertyChanged(nameof(HasMultipleSelection));
+        OnPropertyChanged(nameof(SelectionStatusText));
+        OnPropertyChanged(nameof(DeleteSingleMenuHeader));
+    }
+
+    [RelayCommand]
+    public void SelectAllPosts()
+    {
+        RequestSelectAll?.Invoke();
+    }
+
     // ========== TOP-LEVEL COLLECTIONS (Each contains a group of Folders) ==========
     [ObservableProperty]
     private ObservableCollection<CollectionGroup> _collections = new();
@@ -143,6 +202,12 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isThreadModeActive;
+
+    [ObservableProperty]
+    private bool _canvasAutoSplitPages = true;
+
+    [ObservableProperty]
+    private int _canvasPageCharacterLimit = 3500;
 
     public List<Helpers.EmojiCategory> EmojiCategories => Helpers.EmojiPacks.Categories;
 
@@ -1282,8 +1347,73 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public async Task DeleteSelectedPostsAsync()
+    {
+        var toDelete = SelectedPosts.ToList();
+        if (toDelete.Count == 0 && SelectedPost != null)
+        {
+            toDelete.Add(SelectedPost);
+        }
+
+        if (toDelete.Count == 0) return;
+
+        if (toDelete.Count == 1)
+        {
+            await DeletePostAsync(toDelete[0]);
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"Are you sure you want to permanently delete {toDelete.Count} selected posts?\n\nThis will remove them from the database and free up storage.",
+            $"Confirm Delete ({toDelete.Count} Posts)",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result != MessageBoxResult.Yes) return;
+
+        try
+        {
+            var ids = toDelete.Select(p => p.Id).ToList();
+            await _dbService.DeletePostsAsync(ids);
+
+            foreach (var p in toDelete)
+            {
+                Posts.Remove(p);
+                FilteredPosts.Remove(p);
+                if (TheaterPost == p)
+                {
+                    CloseTheaterMode();
+                }
+            }
+
+            SelectedPosts.Clear();
+            RequestClearSelection?.Invoke();
+            OnPropertyChanged(nameof(SelectedPostsCount));
+            OnPropertyChanged(nameof(HasMultipleSelection));
+            OnPropertyChanged(nameof(SelectionStatusText));
+            OnPropertyChanged(nameof(DeleteSingleMenuHeader));
+
+            await UpdateCountsAndSizeAsync();
+
+            SelectedPost = FilteredPosts.FirstOrDefault();
+            StatusMessage = $"Deleted {toDelete.Count} posts successfully.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Delete Error: {ex.Message}";
+            MessageBox.Show($"Failed to delete selected posts:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    [RelayCommand]
     public async Task DeletePostAsync(Post? post)
     {
+        if (post == null && HasMultipleSelection)
+        {
+            await DeleteSelectedPostsAsync();
+            return;
+        }
+
         var target = post ?? TheaterPost ?? SelectedPost;
         if (target == null) return;
 
@@ -1300,6 +1430,16 @@ public partial class MainViewModel : ObservableObject
             await _dbService.DeletePostAsync(target.Id);
             Posts.Remove(target);
             FilteredPosts.Remove(target);
+
+            if (SelectedPosts.Contains(target))
+            {
+                SelectedPosts.Remove(target);
+                OnPropertyChanged(nameof(SelectedPostsCount));
+                OnPropertyChanged(nameof(HasMultipleSelection));
+                OnPropertyChanged(nameof(SelectionStatusText));
+                OnPropertyChanged(nameof(DeleteSingleMenuHeader));
+            }
+
             await UpdateCountsAndSizeAsync();
 
             if (TheaterPost == target)
@@ -1470,11 +1610,10 @@ public partial class MainViewModel : ObservableObject
         try
         {
             string targetFolder = string.IsNullOrWhiteSpace(folder) ? "Coding" : folder.Trim();
-            string finalContent = content;
-            if (!string.IsNullOrWhiteSpace(title) && title != "Untitled Document" && title != "New Twitter / X Thread")
-            {
-                finalContent = $"# {title}\n\n{content}".Trim();
-            }
+            string finalContent = content ?? string.Empty;
+            string cleanTitle = string.IsNullOrWhiteSpace(title) || title == "Untitled Document" || title == "New Twitter / X Thread"
+                ? "Document"
+                : title.Trim();
 
             if (string.IsNullOrWhiteSpace(finalContent) && (mediaPaths == null || mediaPaths.Count == 0))
             {
@@ -1482,10 +1621,59 @@ public partial class MainViewModel : ObservableObject
                 return null;
             }
 
+            // Check if page size overflow split is enabled and content exceeds page limit
+            if (CanvasAutoSplitPages && finalContent.Length > CanvasPageCharacterLimit)
+            {
+                var pages = SplitContentIntoPages(finalContent, CanvasPageCharacterLimit);
+                if (pages.Count > 1)
+                {
+                    string threadId = Guid.NewGuid().ToString("N");
+                    Post? firstPost = null;
+                    int total = pages.Count;
+
+                    for (int i = 0; i < total; i++)
+                    {
+                        int pageNum = i + 1;
+                        string partTitle = $"{cleanTitle} (Doc {pageNum} of {total})";
+                        string partContent = $"# {partTitle}\n\n{pages[i]}";
+                        var partMedia = (i == 0) ? mediaPaths : new List<string>();
+
+                        var partPost = await _clipboardService.CreateManualPostAsync(
+                            string.IsNullOrWhiteSpace(authorName) ? "Offline User" : authorName.Trim(),
+                            string.IsNullOrWhiteSpace(authorHandle) ? "@offline" : authorHandle.Trim(),
+                            partContent,
+                            targetFolder,
+                            tags ?? "#archive",
+                            partMedia,
+                            comment: $"🔗 Doc {pageNum} of {total} (Linked)",
+                            threadId: threadId,
+                            threadIndex: pageNum
+                        );
+
+                        if (partPost != null)
+                        {
+                            Posts.Insert(0, partPost);
+                            if (firstPost == null) firstPost = partPost;
+                        }
+                    }
+
+                    if (firstPost != null)
+                    {
+                        await UpdateCountsAndSizeAsync();
+                        ApplyFilter();
+                        SelectedPost = firstPost;
+                        StatusMessage = $"Document exceeded page size: Generated {total} linked documents (Doc 1 to Doc {total}) in '{targetFolder}'!";
+                        return firstPost;
+                    }
+                }
+            }
+
+            // Standard Single Document
+            string singleContent = cleanTitle != "Document" ? $"# {cleanTitle}\n\n{finalContent}".Trim() : finalContent;
             var post = await _clipboardService.CreateManualPostAsync(
                 string.IsNullOrWhiteSpace(authorName) ? "Offline User" : authorName.Trim(),
                 string.IsNullOrWhiteSpace(authorHandle) ? "@offline" : authorHandle.Trim(),
-                string.IsNullOrWhiteSpace(finalContent) ? "Archived Canvas Note" : finalContent,
+                string.IsNullOrWhiteSpace(singleContent) ? "Archived Canvas Note" : singleContent,
                 targetFolder,
                 tags ?? "#archive",
                 mediaPaths
@@ -1511,6 +1699,65 @@ public partial class MainViewModel : ObservableObject
             IsLoading = false;
         }
         return null;
+    }
+
+    private static List<string> SplitContentIntoPages(string content, int maxCharsPerPage)
+    {
+        var pages = new List<string>();
+        if (string.IsNullOrWhiteSpace(content)) return pages;
+        if (content.Length <= maxCharsPerPage)
+        {
+            pages.Add(content);
+            return pages;
+        }
+
+        var paragraphs = content.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.None);
+        var currentChunk = new StringBuilder();
+
+        foreach (var p in paragraphs)
+        {
+            if (currentChunk.Length > 0 && (currentChunk.Length + p.Length + 2) > maxCharsPerPage)
+            {
+                pages.Add(currentChunk.ToString().Trim());
+                currentChunk.Clear();
+            }
+
+            if (currentChunk.Length > 0) currentChunk.Append("\n\n");
+            currentChunk.Append(p);
+        }
+
+        if (currentChunk.Length > 0)
+        {
+            pages.Add(currentChunk.ToString().Trim());
+        }
+
+        return pages;
+    }
+
+    [RelayCommand]
+    public void SelectNextLinkedPart()
+    {
+        if (SelectedPost == null || !SelectedPost.IsPartOfThread) return;
+        var next = FilteredPosts.FirstOrDefault(p => p.ThreadId == SelectedPost.ThreadId && p.ThreadIndex == SelectedPost.ThreadIndex + 1)
+                   ?? Posts.FirstOrDefault(p => p.ThreadId == SelectedPost.ThreadId && p.ThreadIndex == SelectedPost.ThreadIndex + 1);
+        if (next != null)
+        {
+            SelectedPost = next;
+            StatusMessage = $"Navigated to Part {next.ThreadIndex}.";
+        }
+    }
+
+    [RelayCommand]
+    public void SelectPreviousLinkedPart()
+    {
+        if (SelectedPost == null || !SelectedPost.IsPartOfThread) return;
+        var prev = FilteredPosts.FirstOrDefault(p => p.ThreadId == SelectedPost.ThreadId && p.ThreadIndex == SelectedPost.ThreadIndex - 1)
+                   ?? Posts.FirstOrDefault(p => p.ThreadId == SelectedPost.ThreadId && p.ThreadIndex == SelectedPost.ThreadIndex - 1);
+        if (prev != null)
+        {
+            SelectedPost = prev;
+            StatusMessage = $"Navigated to Part {prev.ThreadIndex}.";
+        }
     }
 
     [RelayCommand]

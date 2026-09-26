@@ -10,7 +10,7 @@
         Title="Local Social Archive" Height="820" Width="1320"
         MinHeight="620" MinWidth="980"
         WindowStartupLocation="CenterScreen"
-        Background="#000000"
+        Background="#0D1117"
         Foreground="#E7E9EA"
         FontFamily="Segoe UI Variable Text, Segoe UI, Segoe UI Emoji, sans-serif"
         TextOptions.TextFormattingMode="Display"
@@ -32,13 +32,13 @@
         <converters:NullToVisibilityConverter x:Key="NullToVis"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <!-- Colors -->
-        <SolidColorBrush x:Key="BgDarkBrush" Color="#000000"/>
-        <SolidColorBrush x:Key="SidebarBgBrush" Color="#0C1017"/>
-        <SolidColorBrush x:Key="RailBgBrush" Color="#080B0F"/>
+        <!-- Curated Slate Palette (Matching Mockup) -->
+        <SolidColorBrush x:Key="BgDarkBrush" Color="#0D1117"/>
+        <SolidColorBrush x:Key="SidebarBgBrush" Color="#090D13"/>
+        <SolidColorBrush x:Key="RailBgBrush" Color="#06090E"/>
         <SolidColorBrush x:Key="CardBgBrush" Color="#161B22"/>
-        <SolidColorBrush x:Key="CardBorderBrush" Color="#2F3336"/>
-        <SolidColorBrush x:Key="CardBorderHoverBrush" Color="#3F464E"/>
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#21262D"/>
+        <SolidColorBrush x:Key="CardBorderHoverBrush" Color="#30363D"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#1D9BF0"/>
         <SolidColorBrush x:Key="AccentHoverBrush" Color="#1A8CD8"/>
         <SolidColorBrush x:Key="AccentBadgeBgBrush" Color="#1A3B5C"/>
@@ -46,7 +46,7 @@
         <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8B949E"/>
         <SolidColorBrush x:Key="TextMutedBrush" Color="#6E7681"/>
         <SolidColorBrush x:Key="BadgeBgBrush" Color="#21262D"/>
-        <SolidColorBrush x:Key="InspectorBgBrush" Color="#0D1117"/>
+        <SolidColorBrush x:Key="InspectorBgBrush" Color="#090D13"/>
 
         <!-- Custom ScrollBar Style -->
         <Style TargetType="{x:Type ScrollBar}">
@@ -248,11 +248,11 @@
         <Style x:Key="InspectorActionButton" TargetType="Button">
             <Setter Property="Background" Value="#161B22"/>
             <Setter Property="Foreground" Value="#E7E9EA"/>
-            <Setter Property="BorderBrush" Value="#2F3336"/>
+            <Setter Property="BorderBrush" Value="#21262D"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="40"/>
+            <Setter Property="Height" Value="38"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -261,13 +261,13 @@
                         <Border x:Name="border" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="8" Padding="14,0">
+                                CornerRadius="10" Padding="14,0">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#212836"/>
-                                <Setter Property="BorderBrush" Value="#485363"/>
+                                <Setter TargetName="border" Property="Background" Value="#21262D"/>
+                                <Setter Property="BorderBrush" Value="#30363D"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -296,7 +296,7 @@
     </Window.InputBindings>
 
     <!-- Main Container Frame -->
-    <Border BorderBrush="#1C212A" BorderThickness="1" Background="{StaticResource BgDarkBrush}">
+    <Border BorderBrush="#21262D" BorderThickness="1" Background="{StaticResource BgDarkBrush}">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="54"/> <!-- Titlebar / Top Header (Spacious) -->
@@ -304,11 +304,11 @@
             </Grid.RowDefinitions>
 
             <!-- ================= TOP HEADER / TITLEBAR ================= -->
-            <Border Grid.Row="0" Background="#0A0D13" BorderBrush="#1C212A" BorderThickness="0,0,0,1"
+            <Border Grid.Row="0" Background="#0A0E14" BorderBrush="#21262D" BorderThickness="0,0,0,1"
                     MouseDown="TitleBar_MouseDown">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="280"/> <!-- Brand / Logo Area -->
+                        <ColumnDefinition Width="260"/> <!-- Brand / Logo Area -->
                         <ColumnDefinition Width="*"/>   <!-- Search and Quick Actions -->
                         <ColumnDefinition Width="Auto"/> <!-- Window Min/Max/Close Buttons -->
                     </Grid.ColumnDefinitions>
@@ -324,22 +324,22 @@
                                 <TextBlock Text="✦" Foreground="#FFFFFF" FontSize="15" FontWeight="Bold"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0"/>
                             </Border>
-                            <TextBlock Text="Local Social Archive" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            <TextBlock Text="Local Social Archive" FontSize="14.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
                     <!-- Top Bar Search & Actions -->
-                    <Grid Grid.Column="1" Margin="12,0,12,0"
+                    <Grid Grid.Column="1" Margin="8,0,12,0"
                           WindowChrome.IsHitTestVisibleInChrome="True">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>    <!-- Search (fills available space) -->
                             <ColumnDefinition Width="Auto"/> <!-- Compact Action Buttons -->
                         </Grid.ColumnDefinitions>
 
-                        <!-- Search Box (Stretches to fill available space) -->
-                        <Border Grid.Column="0" Height="34" Background="#111820" BorderBrush="#21262D" BorderThickness="1"
-                                CornerRadius="10" Margin="0,0,10,0">
-                            <Grid Margin="12,0">
+                        <!-- Search Box (Pill-shaped, expands smoothly) -->
+                        <Border Grid.Column="0" Height="36" Background="#161B22" BorderBrush="#21262D" BorderThickness="1"
+                                CornerRadius="18" Margin="0,0,10,0">
+                            <Grid Margin="14,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="22"/>
                                     <ColumnDefinition Width="*"/>
@@ -355,7 +355,7 @@
                                             <Style.Resources>
                                                 <VisualBrush x:Key="HintBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
                                                     <VisualBrush.Visual>
-                                                        <TextBlock Text="Search tweets, folders, #tags..." Foreground="#6E7681" FontSize="12.5"/>
+                                                        <TextBlock Text="Search..." Foreground="#6E7681" FontSize="12.5"/>
                                                     </VisualBrush.Visual>
                                                 </VisualBrush>
                                             </Style.Resources>
@@ -378,42 +378,41 @@
 
                         <!-- Compact Action Buttons -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <!-- Quick Paste — Ghost/Outline Style (not solid cyan) -->
+                            <!-- Quick Paste — Pill Style like mockup -->
                             <Button Command="{Binding PasteFromClipboardCommand}"
-                                    Height="34" Margin="0,0,8,0" Cursor="Hand">
+                                    Height="36" Margin="0,0,8,0" Cursor="Hand">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="btnBorder" Background="Transparent"
-                                                BorderBrush="#2F3336" BorderThickness="1" CornerRadius="10" Padding="14,0">
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock Text="📥" FontSize="12" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Paste (Ctrl+V)" FontSize="12" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
-                                            </StackPanel>
+                                                BorderBrush="#21262D" BorderThickness="1" CornerRadius="18" Padding="16,0">
+                                            <TextBlock Text="Quick Paste (Ctrl+V)" FontSize="12" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="btnBorder" Property="Background" Value="#161B22"/>
-                                                <Setter TargetName="btnBorder" Property="BorderBrush" Value="#1D9BF0"/>
+                                                <Setter TargetName="btnBorder" Property="BorderBrush" Value="#30363D"/>
+                                                <Setter Property="Foreground" Value="#FFFFFF"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
 
-                            <!-- Compose — Small Circle "+" Button -->
+                            <!-- Compose — Circle "+" Button -->
                             <Button Command="{Binding CreateNewPostCommand}"
-                                    ToolTip="Add Tweet (Ctrl+N)" Cursor="Hand" Margin="0,0,10,0">
+                                    ToolTip="Add Tweet (Ctrl+N)" Cursor="Hand" Margin="0,0,8,0">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
-                                        <Border x:Name="btnCompose" Width="34" Height="34" CornerRadius="17"
-                                                Background="#161B22" BorderBrush="#2F3336" BorderThickness="1">
-                                            <TextBlock Text="+" FontSize="18" FontWeight="Light" Foreground="#8B949E"
+                                        <Border x:Name="btnCompose" Width="36" Height="36" CornerRadius="18"
+                                                Background="#161B22" BorderBrush="#21262D" BorderThickness="1">
+                                            <TextBlock Text="+" FontSize="20" FontWeight="Light" Foreground="#8B949E"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="btnCompose" Property="Background" Value="#1A3B5C"/>
-                                                <Setter TargetName="btnCompose" Property="BorderBrush" Value="#1D9BF0"/>
+                                                <Setter TargetName="btnCompose" Property="Background" Value="#21262D"/>
+                                                <Setter TargetName="btnCompose" Property="BorderBrush" Value="#30363D"/>
+                                                <Setter Property="Foreground" Value="#FFFFFF"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
@@ -424,7 +423,7 @@
                             <ComboBox Style="{StaticResource DarkComboBoxStyle}"
                                       ItemsSource="{Binding FilterDropdownOptions}"
                                       SelectedItem="{Binding SelectedFilterDropdownText}"
-                                      Height="34" Width="170">
+                                      Height="36" Width="160">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding}" FontSize="12"/>
@@ -759,18 +758,19 @@
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Background" Value="Transparent"/>
+                                                                <Setter Property="BorderThickness" Value="1"/>
+                                                                <Setter Property="BorderBrush" Value="Transparent"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                                        <Setter Property="Background" Value="#161B22"/>
-                                                                        <Setter Property="BorderBrush" Value="#2F3336"/>
-                                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                                        <Setter Property="Background" Value="#1A3B5C"/>
+                                                                        <Setter Property="BorderBrush" Value="#1D9BF0"/>
                                                                     </DataTrigger>
                                                                     <MultiDataTrigger>
                                                                         <MultiDataTrigger.Conditions>
                                                                             <Condition Binding="{Binding IsSelected}" Value="False"/>
                                                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
                                                                         </MultiDataTrigger.Conditions>
-                                                                        <Setter Property="Background" Value="#12161F"/>
+                                                                        <Setter Property="Background" Value="#161B22"/>
                                                                     </MultiDataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -808,8 +808,29 @@
                                                             </TextBlock>
 
                                                             <!-- Post Count Badge -->
-                                                            <Border Grid.Column="2" Background="#0C1017" CornerRadius="6" Padding="6,2" VerticalAlignment="Center" Margin="4,0,0,0">
-                                                                <TextBlock Text="{Binding Count, StringFormat='{}{0:N0}'}" FontSize="11" FontWeight="SemiBold" Foreground="#8B949E"/>
+                                                            <Border Grid.Column="2" CornerRadius="6" Padding="6,2" VerticalAlignment="Center" Margin="4,0,0,0">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Background" Value="#161B22"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                <Setter Property="Background" Value="#1D9BF0"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <TextBlock Text="{Binding Count, StringFormat='{}{0:N0}'}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Setter Property="Foreground" Value="#8B949E"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
                                                             </Border>
 
                                                             <!-- Delete Folder Button — visible on row hover -->
@@ -950,6 +971,7 @@
                             </Grid.Style>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/> <!-- Feed Toolbar (Title, View Switcher, Inspector Toggle) -->
+                                <RowDefinition Height="Auto"/> <!-- Multi-Selection Bulk Action Bar -->
                                 <RowDefinition Height="*"/>    <!-- Feed Items (List or Grid View) -->
                                 <RowDefinition Height="Auto"/> <!-- Status Bar -->
                             </Grid.RowDefinitions>
@@ -1093,10 +1115,76 @@
                                 </Grid>
                             </Border>
 
+                            <!-- ================= MULTI-SELECTION BULK ACTION BAR ================= -->
+                            <Border Grid.Row="1" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,0,0,1" Padding="22,10"
+                                    Visibility="{Binding HasMultipleSelection, Converter={StaticResource BoolToVis}}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Left Count Badge & Keyboard Shortcuts Tip -->
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Background="#1D9BF0" CornerRadius="12" Padding="12,4" Margin="0,0,14,0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="✓" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding SelectedPostsCount, StringFormat='{}{0} Selected'}" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <TextBlock Text="Ctrl+Click to toggle • Shift+Click to range • Press Del to remove" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- Right Actions: [ ☑ Select All ] [ ✕ Clear ] [ 🗑️ Delete Selected (N) ] -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- Select All Button -->
+                                        <Button Command="{Binding SelectAllPostsCommand}" Margin="0,0,8,0" Padding="12,6"
+                                                Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Foreground="#C9D1D9" Cursor="Hand" ToolTip="Select All Posts (Ctrl+A)">
+                                            <Button.Resources>
+                                                <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
+                                            </Button.Resources>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="☑" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Select All" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- Clear Selection Button -->
+                                        <Button Command="{Binding ClearSelectionCommand}" Margin="0,0,12,0" Padding="12,6"
+                                                Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Foreground="#C9D1D9" Cursor="Hand" ToolTip="Deselect All (Esc)">
+                                            <Button.Resources>
+                                                <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
+                                            </Button.Resources>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="✕" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Clear" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- Delete Selected Button (Prominent Crimson Warning) -->
+                                        <Button Command="{Binding DeleteSelectedPostsCommand}" Padding="16,6"
+                                                Background="#DA3633" BorderBrush="#F85149" BorderThickness="1" Foreground="#FFFFFF" Cursor="Hand"
+                                                ToolTip="Permanently delete all selected posts from database (Delete key)">
+                                            <Button.Resources>
+                                                <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
+                                            </Button.Resources>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🗑️" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding SelectedPostsCount, StringFormat='{}Delete Selected ({0})'}" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
                             <!-- ================= 1. LIST VIEW (Full Width Timeline Cards) ================= -->
-                            <ListView Grid.Row="1"
+                            <ListView Grid.Row="2"
+                                      x:Name="FeedListControl"
                                       ItemsSource="{Binding FilteredPosts}"
                                       SelectedItem="{Binding SelectedPost, Mode=TwoWay}"
+                                      SelectionMode="Extended"
+                                      SelectionChanged="FeedListView_SelectionChanged"
+                                      KeyDown="FeedListView_KeyDown"
                                       Visibility="{Binding IsGridView, Converter={StaticResource InverseBoolToVis}}"
                                       Background="Transparent"
                                       BorderThickness="0"
@@ -1154,7 +1242,11 @@
                                                               Command="{Binding DataContext.CopyPostTextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               CommandParameter="{Binding}"/>
                                                     <Separator Background="#2F3336"/>
-                                                    <MenuItem Header="🗑️ Delete Entry"
+                                                    <MenuItem Header="{Binding DataContext.SelectedPostsCount, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='🗑️ Delete {0} Selected Posts'}"
+                                                              Foreground="#F87171" FontWeight="Bold"
+                                                              Command="{Binding DataContext.DeleteSelectedPostsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Visibility="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
+                                                    <MenuItem Header="{Binding DataContext.DeleteSingleMenuHeader, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               Foreground="#F87171"
                                                               Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               CommandParameter="{Binding}"/>
@@ -1192,79 +1284,76 @@
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="46"/> <!-- Avatar -->
                                                         <ColumnDefinition Width="*"/>  <!-- Names & Date -->
-                                                        <ColumnDefinition Width="Auto"/> <!-- Actions & Folder Badge -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Actions -->
                                                     </Grid.ColumnDefinitions>
 
                                                     <!-- Avatar Circle -->
-                                                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="19"
-                                                            Background="#252D38" BorderBrush="#2F3336" BorderThickness="1"
+                                                    <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
+                                                            Background="#21262D" BorderBrush="#30363D" BorderThickness="1"
                                                             HorizontalAlignment="Left" VerticalAlignment="Top">
-                                                        <TextBlock Text="{Binding AvatarInitial}" FontSize="14" FontWeight="Bold"
-                                                                   Foreground="#E7E9EA" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding AvatarInitial}" FontSize="15" FontWeight="Bold"
+                                                                   Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Border>
 
-                                                    <!-- Name, Handle & Timestamp -->
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                                    <!-- Name, Handle, Timestamp & Folder Badge -->
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
                                                         <TextBlock Text="{Binding AuthorName}" FontSize="14.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding AuthorHandle}" FontSize="12" Foreground="#8B949E"/>
-                                                            <TextBlock Text=" • " FontSize="12" Foreground="#8B949E"/>
+                                                            <TextBlock Text=" · " FontSize="12" Foreground="#6E7681"/>
                                                             <TextBlock Text="{Binding RelativeTime}" FontSize="12" Foreground="#8B949E"/>
+                                                            <Border Background="#21262D" CornerRadius="6"
+                                                                    Padding="7,2" BorderBrush="#30363D" BorderThickness="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding FolderName}" FontSize="11" FontWeight="SemiBold" Foreground="#1D9BF0"/>
+                                                            </Border>
                                                         </StackPanel>
                                                     </StackPanel>
 
-                                                    <!-- Folder Badge & Quick Buttons -->
+                                                    <!-- Inline Action Buttons (Edit, Delete, Theater) — reveal on card hover -->
                                                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
-                                                        <Border Background="{StaticResource BadgeBgBrush}" CornerRadius="8"
-                                                                Padding="12,4" BorderBrush="#30363D" BorderThickness="1" Margin="0,0,8,0">
-                                                            <TextBlock Text="{Binding FolderName}" FontSize="11.5" FontWeight="SemiBold" Foreground="#9EACB9"/>
-                                                        </Border>
-                                                        <!-- Action buttons — hidden until card hover -->
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <StackPanel.Style>
-                                                                <Style TargetType="StackPanel">
-                                                                    <Setter Property="Opacity" Value="0"/>
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border, AncestorLevel=2}}" Value="True">
-                                                                            <Setter Property="Opacity" Value="1"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
+                                                        <StackPanel.Style>
+                                                            <Style TargetType="StackPanel">
+                                                                <Setter Property="Opacity" Value="0"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border, AncestorLevel=2}}" Value="True">
+                                                                        <Setter Property="Opacity" Value="1"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </StackPanel.Style>
+                                                        <!-- Edit Button -->
+                                                        <Button Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}" ToolTip="Edit Post"
+                                                                Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" Width="28" Height="28" Margin="0,0,4,0">
+                                                            <Button.Resources>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="CornerRadius" Value="6"/>
                                                                 </Style>
-                                                            </StackPanel.Style>
-                                                            <!-- Edit Button -->
-                                                            <Button Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                    CommandParameter="{Binding}" ToolTip="Edit Post"
-                                                                    Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" Cursor="Hand" Width="28" Height="28" Margin="0,0,4,0">
-                                                                <Button.Resources>
-                                                                    <Style TargetType="Border">
-                                                                        <Setter Property="CornerRadius" Value="6"/>
-                                                                    </Style>
-                                                                </Button.Resources>
-                                                                <TextBlock Text="✏️" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </Button>
-                                                            <!-- Delete Button -->
-                                                            <Button Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                    CommandParameter="{Binding}" ToolTip="Delete Post (Del)"
-                                                                    Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" Cursor="Hand" Width="28" Height="28" Margin="0,0,4,0">
-                                                                <Button.Resources>
-                                                                    <Style TargetType="Border">
-                                                                        <Setter Property="CornerRadius" Value="6"/>
-                                                                    </Style>
-                                                                </Button.Resources>
-                                                                <TextBlock Text="🗑️" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </Button>
-                                                            <!-- Theater View Button -->
-                                                            <Button Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                    CommandParameter="{Binding}" ToolTip="Open Split Theater View"
-                                                                    Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" Cursor="Hand" Width="28" Height="28">
-                                                                <Button.Resources>
-                                                                    <Style TargetType="Border">
-                                                                        <Setter Property="CornerRadius" Value="6"/>
-                                                                    </Style>
-                                                                </Button.Resources>
-                                                                <TextBlock Text="⤢" FontSize="13" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </Button>
-                                                        </StackPanel>
+                                                            </Button.Resources>
+                                                            <TextBlock Text="✏️" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Button>
+                                                        <!-- Delete Button -->
+                                                        <Button Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}" ToolTip="Delete Post (Del)"
+                                                                Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" Width="28" Height="28" Margin="0,0,4,0">
+                                                            <Button.Resources>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="CornerRadius" Value="6"/>
+                                                                </Style>
+                                                            </Button.Resources>
+                                                            <TextBlock Text="🗑️" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Button>
+                                                        <!-- Theater View Button -->
+                                                        <Button Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}" ToolTip="Open Split Theater View"
+                                                                Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Cursor="Hand" Width="28" Height="28">
+                                                            <Button.Resources>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="CornerRadius" Value="6"/>
+                                                                </Style>
+                                                            </Button.Resources>
+                                                            <TextBlock Text="⤢" FontSize="13" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Button>
                                                     </StackPanel>
                                                 </Grid>
 
@@ -1359,9 +1448,13 @@
                             </ListView>
 
                             <!-- ================= 2. GRID VIEW (Card Tiles Multi-Column Layout - Spacious & Rounded) ================= -->
-                            <ListView Grid.Row="1"
+                            <ListView Grid.Row="2"
+                                      x:Name="FeedGridControl"
                                       ItemsSource="{Binding FilteredPosts}"
                                       SelectedItem="{Binding SelectedPost, Mode=TwoWay}"
+                                      SelectionMode="Extended"
+                                      SelectionChanged="FeedListView_SelectionChanged"
+                                      KeyDown="FeedListView_KeyDown"
                                       Visibility="{Binding IsGridView, Converter={StaticResource BoolToVis}}"
                                       Background="Transparent"
                                       BorderThickness="0"
@@ -1424,7 +1517,11 @@
                                                               Command="{Binding DataContext.CopyPostTextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               CommandParameter="{Binding}"/>
                                                     <Separator Background="#2F3336"/>
-                                                    <MenuItem Header="🗑️ Delete Entry"
+                                                    <MenuItem Header="{Binding DataContext.SelectedPostsCount, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='🗑️ Delete {0} Selected Posts'}"
+                                                              Foreground="#F87171" FontWeight="Bold"
+                                                              Command="{Binding DataContext.DeleteSelectedPostsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Visibility="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
+                                                    <MenuItem Header="{Binding DataContext.DeleteSingleMenuHeader, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               Foreground="#F87171"
                                                               Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               CommandParameter="{Binding}"/>
@@ -1559,7 +1656,7 @@
                             </ListView>
 
                             <!-- Empty State — shown when feed is empty -->
-                            <Border Grid.Row="1"
+                            <Border Grid.Row="2"
                                     Visibility="{Binding IsEmptyFeed, Converter={StaticResource BoolToVis}}"
                                     VerticalAlignment="Center" HorizontalAlignment="Center" Padding="40">
                                 <StackPanel HorizontalAlignment="Center">
@@ -1570,7 +1667,7 @@
                             </Border>
 
                             <!-- Status Bar -->
-                            <Border Grid.Row="2" Background="#0A0D13" BorderBrush="#1C212A" BorderThickness="0,1,0,0" Padding="14,6">
+                            <Border Grid.Row="3" Background="#0A0D13" BorderBrush="#1C212A" BorderThickness="0,1,0,0" Padding="14,6">
                                 <Grid>
                                     <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="#8B949E"/>
                                     <TextBlock Text="{Binding FilteredPosts.Count, StringFormat='Showing {0} entries'}" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Right"/>
@@ -1958,6 +2055,33 @@
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                             <!-- Actions for Doc Mode -->
                                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsThreadModeActive, Converter={StaticResource InverseBoolToVis}}">
+                                                <!-- Auto-Split Page Overflow Toggle Option -->
+                                                <CheckBox IsChecked="{Binding CanvasAutoSplitPages}"
+                                                          ToolTip="When enabled, documents exceeding ~1 page (3,500 chars) automatically generate linked multi-part documents (Doc 1, Doc 2, etc.)"
+                                                          VerticalAlignment="Center" Margin="0,0,8,0" Cursor="Hand">
+                                                    <CheckBox.Template>
+                                                        <ControlTemplate TargetType="CheckBox">
+                                                            <Border x:Name="chkBorder" Background="#161B22" BorderBrush="#21262D" BorderThickness="1"
+                                                                    CornerRadius="6" Padding="9,5">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock x:Name="chkIcon" Text="📄 " FontSize="11" VerticalAlignment="Center"/>
+                                                                    <TextBlock x:Name="chkText" Text="Auto-Split Pages" FontSize="11.5" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsChecked" Value="True">
+                                                                    <Setter TargetName="chkBorder" Property="Background" Value="#1A3B5C"/>
+                                                                    <Setter TargetName="chkBorder" Property="BorderBrush" Value="#1D9BF0"/>
+                                                                    <Setter TargetName="chkText" Property="Foreground" Value="#1D9BF0"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="chkBorder" Property="BorderBrush" Value="#30363D"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </CheckBox.Template>
+                                                </CheckBox>
+
                                                 <Button Click="BtnArchiveDoc_Click" ToolTip="Save Document &amp; All Embedded Media to Database"
                                                         Padding="14,7" Background="#10B981" Foreground="#FFFFFF" FontWeight="Bold"
                                                         BorderThickness="0" Cursor="Hand" Margin="0,0,8,0">
@@ -2497,18 +2621,118 @@
                       Visibility="{Binding IsInspectorVisible, Converter={StaticResource BoolToVis}}">
                     
                     <!-- 1. EMPTY STATE (When NO post is selected) -->
-                    <Border Visibility="{Binding SelectedPost, Converter={StaticResource NullToVis}, ConverterParameter=invert}"
-                            VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20">
+                    <Border VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding SelectedPost}" Value="{x:Null}"/>
+                                            <Condition Binding="{Binding HasMultipleSelection}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Text="✦" FontSize="36" Foreground="#2F3336" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                             <TextBlock Text="Select a post to inspect details" FontSize="13" Foreground="#8B949E" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- 2. SELECTED POST INSPECTOR CONTENT -->
+                    <!-- 2. MULTI-SELECTION STATE (When > 1 post is selected) -->
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                                  Visibility="{Binding SelectedPost, Converter={StaticResource NullToVis}}"
+                                  Visibility="{Binding HasMultipleSelection, Converter={StaticResource BoolToVis}}"
                                   Padding="20,18">
+                        <StackPanel>
+                            <!-- Header -->
+                            <Grid Margin="0,0,0,18">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Multi-Selection" FontSize="17" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                                    <TextBlock Text="{Binding SelectedPostsCount, StringFormat='{}{0} posts selected'}" FontSize="12" Foreground="#38BDF8" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <Button Command="{Binding CloseInspectorCommand}" ToolTip="Close Inspector Panel"
+                                        Background="Transparent" Foreground="#8B949E" BorderThickness="0"
+                                        Cursor="Hand" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <TextBlock Text="✕" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                            </Grid>
+
+                            <!-- Primary Action Card -->
+                            <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,18">
+                                <StackPanel>
+                                    <TextBlock Text="BULK ACTIONS" FontSize="11" FontWeight="Bold" Foreground="#8B949E" Margin="0,0,0,12"/>
+                                    <Button Command="{Binding DeleteSelectedPostsCommand}"
+                                            Background="#DA3633" BorderBrush="#F85149" BorderThickness="1" Foreground="#FFFFFF"
+                                            Padding="14,10" Cursor="Hand" Margin="0,0,0,8">
+                                        <Button.Resources>
+                                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
+                                        </Button.Resources>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="🗑️" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding SelectedPostsCount, StringFormat='{}Delete All {0} Posts'}" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Command="{Binding ClearSelectionCommand}"
+                                            Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Foreground="#C9D1D9"
+                                            Padding="14,8" Cursor="Hand">
+                                        <Button.Resources>
+                                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
+                                        </Button.Resources>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="✕" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Deselect All" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Selected Items List Preview -->
+                            <TextBlock Text="SELECTED POSTS" FontSize="11" FontWeight="Bold" Foreground="#8B949E" Margin="0,0,0,8"/>
+                            <ItemsControl ItemsSource="{Binding SelectedPosts}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#161B22" BorderBrush="#252D38" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding AuthorName}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding ContentSnippet}" FontSize="11.5" Foreground="#8B949E" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
+                                                </StackPanel>
+                                                <Border Grid.Column="1" Background="#1A3B5C" CornerRadius="4" Padding="6,2" VerticalAlignment="Top" Margin="6,0,0,0">
+                                                    <TextBlock Text="{Binding FolderName}" FontSize="10" Foreground="#38BDF8" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- 3. SINGLE SELECTED POST INSPECTOR CONTENT -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  Padding="20,18">
+                        <ScrollViewer.Style>
+                            <Style TargetType="ScrollViewer">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding HasMultipleSelection}" Value="False"/>
+                                            <Condition Binding="{Binding SelectedPost, Converter={StaticResource NullToVis}}" Value="Visible"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ScrollViewer.Style>
                         <StackPanel>
                             <!-- Panel Title, Theater Mode Button, and Close Button -->
                             <Grid Margin="0,0,0,20">
@@ -2517,14 +2741,14 @@
                                     <Button Command="{Binding OpenTheaterModeCommand}"
                                             CommandParameter="{Binding SelectedPost}"
                                             Padding="10,4" Margin="0,0,8,0"
-                                            Background="#161B22" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
+                                            Background="Transparent" Foreground="#1D9BF0" BorderBrush="#21262D" BorderThickness="1"
                                             Cursor="Hand">
                                         <Button.Resources>
-                                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
+                                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
                                         </Button.Resources>
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="⤢" FontSize="11" Margin="0,0,4,0"/>
-                                            <TextBlock Text="Theater" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="↗" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Theater" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
 
@@ -2575,6 +2799,30 @@
                                 <Border Grid.Column="1" Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="8" Padding="10,7">
                                     <TextBlock Text="{Binding SelectedPost.Comment}" FontSize="12.5" LineHeight="17" Foreground="#F0883E" TextWrapping="Wrap"/>
                                 </Border>
+                            </Grid>
+
+                            <!-- 3.5 Linked Multi-Part Document Navigation -->
+                            <Grid Margin="0,0,0,14" Visibility="{Binding SelectedPost.IsPartOfThread, Converter={StaticResource BoolToVis}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Linked" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A3B5C" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,8,0">
+                                        <TextBlock Text="{Binding SelectedPost.ThreadIndex, StringFormat='Part {0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="#1D9BF0"/>
+                                    </Border>
+                                    <Button Command="{Binding SelectPreviousLinkedPartCommand}" ToolTip="Jump to Previous Linked Document"
+                                            Background="#161B22" BorderBrush="#21262D" BorderThickness="1" Foreground="#8B949E"
+                                            Cursor="Hand" Padding="8,3" Margin="0,0,5,0">
+                                        <TextBlock Text="◀ Prev" FontSize="11"/>
+                                    </Button>
+                                    <Button Command="{Binding SelectNextLinkedPartCommand}" ToolTip="Jump to Next Linked Document"
+                                            Background="#161B22" BorderBrush="#21262D" BorderThickness="1" Foreground="#8B949E"
+                                            Cursor="Hand" Padding="8,3">
+                                        <TextBlock Text="Next ▶" FontSize="11"/>
+                                    </Button>
+                                </StackPanel>
                             </Grid>
 
                             <!-- 4. Date -->
@@ -2634,7 +2882,7 @@
                                         CommandParameter="{Binding SelectedPost}"
                                         Background="Transparent" Foreground="#1D9BF0" BorderBrush="#1D9BF0" BorderThickness="1">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⤢ " FontSize="13"/>
+                                        <TextBlock Text="↗ " FontSize="13"/>
                                         <TextBlock Text="Open Split Media View"/>
                                     </StackPanel>
                                 </Button>
@@ -2659,25 +2907,21 @@
                                     </StackPanel>
                                 </Button>
 
-                                <!-- Delete Entry Button — dim gray, red on hover -->
+                                <!-- Delete Entry Button — subtle muted text, red on hover -->
                                 <Button Command="{Binding DeletePostCommand}"
                                         CommandParameter="{Binding SelectedPost}"
-                                        Height="40" Margin="0,6,0,0" Cursor="Hand">
+                                        Height="36" Margin="0,4,0,0" Cursor="Hand">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Border x:Name="btnBorder" Background="Transparent"
                                                     BorderBrush="Transparent" BorderThickness="1"
                                                     CornerRadius="8" Padding="14,0">
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <TextBlock x:Name="delIcon" Text="🗑️ " FontSize="12" Foreground="#6E7681"/>
-                                                    <TextBlock x:Name="delText" Text="Delete Entry (Del)" FontSize="13" FontWeight="SemiBold" Foreground="#6E7681"/>
-                                                </StackPanel>
+                                                <TextBlock x:Name="delText" Text="Delete Entry" FontSize="12" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="btnBorder" Property="Background" Value="#332B1818"/>
-                                                    <Setter TargetName="btnBorder" Property="BorderBrush" Value="#66DC2626"/>
-                                                    <Setter TargetName="delIcon" Property="Foreground" Value="#F87171"/>
+                                                    <Setter TargetName="btnBorder" Property="Background" Value="#2A1B1D"/>
+                                                    <Setter TargetName="btnBorder" Property="BorderBrush" Value="#4C2328"/>
                                                     <Setter TargetName="delText" Property="Foreground" Value="#F87171"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>

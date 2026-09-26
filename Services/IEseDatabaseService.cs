@@ -14,6 +14,7 @@ public interface IEseDatabaseService
     Task InsertPostAsync(Post post);
     Task UpdatePostAsync(Post post);
     Task DeletePostAsync(string postId);
+    Task DeletePostsAsync(IEnumerable<string> postIds);
     Task<long> GetDatabaseSizeBytesAsync();
     Task<Dictionary<string, int>> GetFolderCountsAsync();
     Task<Dictionary<string, int>> GetTagCountsAsync();

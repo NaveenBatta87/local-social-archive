@@ -26,6 +26,7 @@ public class ClipboardService : IClipboardService
     public async Task<Post?> ProcessClipboardAsync(string targetFolder = "Coding")
     {
         string? textContent = null;
+        string? htmlContent = null;
         BitmapSource? imageContent = null;
         List<string>? fileList = null;
 
@@ -51,10 +52,15 @@ public class ClipboardService : IClipboardService
                 {
                     textContent = Clipboard.GetText();
                 }
+
+                if (HtmlClipboardHelper.HasHtml(data))
+                {
+                    htmlContent = HtmlClipboardHelper.GetHtml(data);
+                }
             }
         });
 
-        if (string.IsNullOrWhiteSpace(textContent) && imageContent == null && (fileList == null || fileList.Count == 0))
+        if (string.IsNullOrWhiteSpace(textContent) && string.IsNullOrWhiteSpace(htmlContent) && imageContent == null && (fileList == null || fileList.Count == 0))
         {
             return null;
         }
@@ -185,6 +191,29 @@ public class ClipboardService : IClipboardService
                         CreatedAt = DateTime.Now
                     });
                 }
+            }
+        }
+
+        // 2.5 Process Embedded Images from HTML (Forum/Web threads)
+        if (!string.IsNullOrWhiteSpace(htmlContent))
+        {
+            var downloadedHtmlImages = await HtmlClipboardHelper.DownloadHtmlImagesAsync(htmlContent, postDirectory);
+            foreach (var imgPath in downloadedHtmlImages)
+            {
+                mediaItems.Add(new MediaItem
+                {
+                    Id = Guid.NewGuid().ToString("N"),
+                    PostId = postId,
+                    FilePath = imgPath,
+                    MediaType = "Image",
+                    CreatedAt = DateTime.Now
+                });
+            }
+
+            // If textContent was empty or generic, extract clean readable text from HTML
+            if (string.IsNullOrWhiteSpace(textContent))
+            {
+                textContent = HtmlClipboardHelper.ConvertHtmlToFormattedText(htmlContent);
             }
         }
 
@@ -347,7 +376,9 @@ public class ClipboardService : IClipboardService
         string folder,
         string tags,
         IEnumerable<string>? mediaPaths = null,
-        string? comment = null)
+        string? comment = null,
+        string? threadId = null,
+        int threadIndex = 0)
     {
         string postId = Guid.NewGuid().ToString("N");
         string folderDatePrefix = DateTime.Now.ToString("yyyyMMdd");
@@ -403,6 +434,8 @@ public class ClipboardService : IClipboardService
             FolderName = string.IsNullOrWhiteSpace(folder) ? "Coding" : folder.Trim(),
             Tags = tags ?? string.Empty,
             Comment = comment,
+            ThreadId = threadId,
+            ThreadIndex = threadIndex,
             FolderPath = postDirectory,
             CreatedAt = DateTime.Now,
             MediaItems = new ObservableCollection<MediaItem>(mediaItems)
