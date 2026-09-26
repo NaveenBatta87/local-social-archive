@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace LocalSocialArchive.Models;
 
@@ -26,12 +27,27 @@ public partial class ThreadNode : ObservableObject
     [ObservableProperty]
     private ObservableCollection<string> _attachedImagePaths = new();
 
+    public bool HasAttachedImages => AttachedImagePaths.Count > 0;
     public bool HasMedia => AttachedImagePaths.Count > 0;
     public int MediaCount => AttachedImagePaths.Count;
     public string? FirstMedia => AttachedImagePaths.Count > 0 ? AttachedImagePaths[0] : null;
 
+    [RelayCommand]
+    public void InsertEmoji(string emoji)
+    {
+        if (string.IsNullOrEmpty(Content))
+        {
+            Content = emoji;
+        }
+        else
+        {
+            Content += " " + emoji;
+        }
+    }
+
     public void NotifyMediaChanged()
     {
+        OnPropertyChanged(nameof(HasAttachedImages));
         OnPropertyChanged(nameof(HasMedia));
         OnPropertyChanged(nameof(MediaCount));
         OnPropertyChanged(nameof(FirstMedia));

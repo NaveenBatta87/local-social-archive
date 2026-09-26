@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:LocalSocialArchive.ViewModels"
         mc:Ignorable="d"
-        Title="Edit Archived Post" Height="580" Width="540"
+        Title="Edit Archived Post" Height="740" Width="600"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize"
+        ResizeMode="CanResizeWithGrip"
         Background="#0C1017"
         Foreground="#E7E9EA"
-        FontFamily="Segoe UI Variable Text, Segoe UI, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        FontFamily="Segoe UI Variable Text, Segoe UI, Segoe UI Emoji, sans-serif"
         TextOptions.TextFormattingMode="Display"
         TextOptions.TextRenderingMode="ClearType"
         RenderOptions.ClearTypeHint="Enabled">
@@ -57,109 +57,245 @@
         </Style>
     </Window.Resources>
 
-    <Border Padding="26" Background="#0C1017">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- Header -->
-                <RowDefinition Height="Auto"/> <!-- Author & Handle -->
-                <RowDefinition Height="Auto"/> <!-- Folder & Tags -->
-                <RowDefinition Height="*"/>    <!-- Content -->
-                <RowDefinition Height="Auto"/> <!-- Action Buttons -->
-            </Grid.RowDefinitions>
+    <Border Padding="24" Background="#0C1017">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Header -->
+                    <RowDefinition Height="Auto"/> <!-- Author & Handle -->
+                    <RowDefinition Height="Auto"/> <!-- Folder & Tags -->
+                    <RowDefinition Height="Auto"/> <!-- Content & Emoji -->
+                    <RowDefinition Height="Auto"/> <!-- Comment / Notes -->
+                    <RowDefinition Height="Auto"/> <!-- Media Attachments (Add/Remove) -->
+                    <RowDefinition Height="Auto"/> <!-- Action Buttons -->
+                </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="28" Height="28" Background="#161B22" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="6" Margin="0,0,10,0">
-                        <TextBlock Text="✏️" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Text="Edit Post Details" FontSize="19" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                </StackPanel>
-                <TextBlock Text="Modify post metadata and folder classification." FontSize="12" Foreground="#8B949E" Margin="0,4,0,0"/>
-            </StackPanel>
-
-            <!-- Author Name & Handle -->
-            <Grid Grid.Row="1" Margin="0,0,0,14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Author Name"/>
-                    <TextBox Text="{Binding AuthorName, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="28" Height="28" Background="#161B22" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="6" Margin="0,0,10,0">
+                            <TextBlock Text="✏️" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Edit Post Details &amp; Media" FontSize="19" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="Modify post content, add or remove images/videos, comments, and classification." FontSize="12" Foreground="#8B949E" Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="Author Handle"/>
-                    <TextBox Text="{Binding AuthorHandle, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
+                <!-- Author Name & Handle -->
+                <Grid Grid.Row="1" Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="14"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Author Name"/>
+                        <TextBox Text="{Binding AuthorName, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Author Handle"/>
+                        <TextBox Text="{Binding AuthorHandle, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Folder & Tags -->
+                <Grid Grid.Row="2" Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="14"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Folder Collection"/>
+                        <ComboBox ItemsSource="{Binding AvailableFolders}"
+                                  SelectedItem="{Binding FolderName}"
+                                  Height="38"
+                                  Style="{StaticResource UniversalDarkComboBoxStyle}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="📁" FontSize="12" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding}" FontSize="13" Foreground="#FFFFFF" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Tags (e.g. #csharp #windows)"/>
+                        <TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Post Content with Emoji Bar -->
+                <StackPanel Grid.Row="3" Margin="0,0,0,14">
+                    <Grid Margin="0,0,0,6">
+                        <TextBlock Text="Post Content" VerticalAlignment="Center" Margin="0"/>
+                        
+                        <!-- Quick Emoji Bar -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="👍" Command="{Binding InsertEmojiCommand}" CommandParameter="👍" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Thumbs Up"/>
+                            <Button Content="🚀" Command="{Binding InsertEmojiCommand}" CommandParameter="🚀" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Rocket"/>
+                            <Button Content="🔥" Command="{Binding InsertEmojiCommand}" CommandParameter="🔥" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Fire"/>
+                            <Button Content="❤️" Command="{Binding InsertEmojiCommand}" CommandParameter="❤️" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Heart"/>
+                            <Button Content="✨" Command="{Binding InsertEmojiCommand}" CommandParameter="✨" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Sparkles"/>
+                            <Button Content="💡" Command="{Binding InsertEmojiCommand}" CommandParameter="💡" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Idea"/>
+                            <Button Content="💻" Command="{Binding InsertEmojiCommand}" CommandParameter="💻" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Laptop"/>
+                            <Button Content="🧵" Command="{Binding InsertEmojiCommand}" CommandParameter="🧵" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Thread"/>
+                            <Button Content="✅" Command="{Binding InsertEmojiCommand}" CommandParameter="✅" Background="Transparent" BorderThickness="0" FontSize="13" Cursor="Hand" Padding="3,1" ToolTip="Checkmark"/>
+                            <Button Content="🪟 Win + ." Click="BtnWindowsEmojiPicker_Click"
+                                    ToolTip="Open Windows Built-in Emoji &amp; Symbol Picker (Win + .)"
+                                    Padding="6,2" Margin="6,0,0,0"
+                                    Background="#161B22" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
+                                    FontSize="11.5" FontWeight="SemiBold" Cursor="Hand">
+                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                            </Button>
+                            <ToggleButton x:Name="BtnEditEmojiPopup" Content="😀 Emojis"
+                                          Padding="8,2" Margin="6,0,0,0"
+                                          Background="#161B22" Foreground="#F59E0B" BorderBrush="#2F3336" BorderThickness="1"
+                                          FontSize="11.5" FontWeight="SemiBold" Cursor="Hand">
+                                <ToggleButton.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </ToggleButton.Resources>
+                            </ToggleButton>
+                            <Popup IsOpen="{Binding IsChecked, ElementName=BtnEditEmojiPopup}" StaysOpen="False" Placement="Bottom" PlacementTarget="{Binding ElementName=BtnEditEmojiPopup}">
+                                <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="8" Padding="10" Width="280">
+                                    <StackPanel>
+                                        <Button Content="🪟 Open Windows Picker (Win + .)" Click="BtnWindowsEmojiPicker_Click"
+                                                Padding="8,4" Margin="0,0,0,8" Background="#1A3B5C" Foreground="#1D9BF0" BorderBrush="#1D9BF0" BorderThickness="1"
+                                                FontWeight="SemiBold" FontSize="11.5" Cursor="Hand">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                        </Button>
+                                        <TextBlock Text="Select Emoji" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,0,6"/>
+                                        <WrapPanel>
+                                            <Button Content="😀" Command="{Binding InsertEmojiCommand}" CommandParameter="😀" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😃" Command="{Binding InsertEmojiCommand}" CommandParameter="😃" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😄" Command="{Binding InsertEmojiCommand}" CommandParameter="😄" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😁" Command="{Binding InsertEmojiCommand}" CommandParameter="😁" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😆" Command="{Binding InsertEmojiCommand}" CommandParameter="😆" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😅" Command="{Binding InsertEmojiCommand}" CommandParameter="😅" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😂" Command="{Binding InsertEmojiCommand}" CommandParameter="😂" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🤣" Command="{Binding InsertEmojiCommand}" CommandParameter="🤣" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😊" Command="{Binding InsertEmojiCommand}" CommandParameter="😊" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😇" Command="{Binding InsertEmojiCommand}" CommandParameter="😇" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🙂" Command="{Binding InsertEmojiCommand}" CommandParameter="🙂" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😉" Command="{Binding InsertEmojiCommand}" CommandParameter="😉" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😍" Command="{Binding InsertEmojiCommand}" CommandParameter="😍" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🥰" Command="{Binding InsertEmojiCommand}" CommandParameter="🥰" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="😎" Command="{Binding InsertEmojiCommand}" CommandParameter="😎" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🤓" Command="{Binding InsertEmojiCommand}" CommandParameter="🤓" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🧐" Command="{Binding InsertEmojiCommand}" CommandParameter="🧐" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🤔" Command="{Binding InsertEmojiCommand}" CommandParameter="🤔" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🥳" Command="{Binding InsertEmojiCommand}" CommandParameter="🥳" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🤯" Command="{Binding InsertEmojiCommand}" CommandParameter="🤯" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🔥" Command="{Binding InsertEmojiCommand}" CommandParameter="🔥" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🚀" Command="{Binding InsertEmojiCommand}" CommandParameter="🚀" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="💡" Command="{Binding InsertEmojiCommand}" CommandParameter="💡" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="💯" Command="{Binding InsertEmojiCommand}" CommandParameter="💯" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="💻" Command="{Binding InsertEmojiCommand}" CommandParameter="💻" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="⚙️" Command="{Binding InsertEmojiCommand}" CommandParameter="⚙️" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🛠️" Command="{Binding InsertEmojiCommand}" CommandParameter="🛠️" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="⚡" Command="{Binding InsertEmojiCommand}" CommandParameter="⚡" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🔒" Command="{Binding InsertEmojiCommand}" CommandParameter="🔒" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="💬" Command="{Binding InsertEmojiCommand}" CommandParameter="💬" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="📝" Command="{Binding InsertEmojiCommand}" CommandParameter="📝" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="📁" Command="{Binding InsertEmojiCommand}" CommandParameter="📁" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="📌" Command="{Binding InsertEmojiCommand}" CommandParameter="📌" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="✅" Command="{Binding InsertEmojiCommand}" CommandParameter="✅" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="❌" Command="{Binding InsertEmojiCommand}" CommandParameter="❌" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="⚠️" Command="{Binding InsertEmojiCommand}" CommandParameter="⚠️" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="⭐️" Command="{Binding InsertEmojiCommand}" CommandParameter="⭐️" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                            <Button Content="🏆" Command="{Binding InsertEmojiCommand}" CommandParameter="🏆" Background="Transparent" BorderThickness="0" FontSize="16" Margin="2" Cursor="Hand"/>
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBox x:Name="TxtContent" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True" TextWrapping="Wrap" Height="100"
+                             VerticalScrollBarVisibility="Auto"
+                             FontFamily="{StaticResource TweetContentFontFamily}"/>
                 </StackPanel>
-            </Grid>
 
-            <!-- Folder & Tags -->
-            <Grid Grid.Row="2" Margin="0,0,0,14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                <!-- Comment / Notes (Optional) -->
+                <StackPanel Grid.Row="4" Margin="0,0,0,14">
+                    <TextBlock Text="💬 Comments / Personal Notes (Optional)"/>
+                    <TextBox Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True" TextWrapping="Wrap" Height="65"
+                             VerticalScrollBarVisibility="Auto"/>
+                </StackPanel>
 
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Folder Collection"/>
-                    <ComboBox ItemsSource="{Binding AvailableFolders}"
-                              SelectedItem="{Binding FolderName}"
-                              Height="38"
-                              Style="{StaticResource UniversalDarkComboBoxStyle}">
-                        <ComboBox.ItemTemplate>
+                <!-- Media Attachments Management -->
+                <StackPanel Grid.Row="5" Margin="0,0,0,18">
+                    <Grid Margin="0,0,0,8">
+                        <TextBlock Text="Media Attachments (Images, GIFs, JFIF, Videos)" VerticalAlignment="Center"/>
+                        <Button Content="+ Add Media" Command="{Binding AddImagesCommand}"
+                                HorizontalAlignment="Right" Padding="12,5"
+                                Background="#161B22" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
+                                FontSize="12" FontWeight="SemiBold" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </Grid>
+
+                    <!-- Attached list -->
+                    <ItemsControl ItemsSource="{Binding AttachedImagePaths}">
+                        <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="📁" FontSize="12" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding}" FontSize="13" Foreground="#FFFFFF" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                </StackPanel>
+                                <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1"
+                                        CornerRadius="6" Padding="10,6" Margin="0,0,0,6">
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,30,0" VerticalAlignment="Center">
+                                            <TextBlock Text="📎" FontSize="11" Foreground="#8B949E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding}" FontSize="12" Foreground="#E7E9EA" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Button Content="✕" Command="{Binding DataContext.RemoveImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"
+                                                HorizontalAlignment="Right" Background="Transparent" Foreground="#F87171"
+                                                BorderThickness="0" Cursor="Hand" Width="22" Height="22" FontWeight="Bold"/>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2">
-                    <TextBlock Text="Tags (e.g. #csharp #windows)"/>
-                    <TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" Height="38"/>
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <Button Content="Cancel" Command="{Binding CancelCommand}"
+                            Width="90" Height="36" Margin="0,0,10,0"
+                            Background="#161B22" Foreground="#E7E9EA" BorderBrush="#2F3336" BorderThickness="1"
+                            Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <Button Content="Save Changes" Command="{Binding SaveCommand}"
+                            Width="130" Height="36"
+                            Background="#1D9BF0" Foreground="#FFFFFF" FontWeight="Bold"
+                            BorderThickness="0" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
                 </StackPanel>
             </Grid>
-
-            <!-- Post Content -->
-            <StackPanel Grid.Row="3" Margin="0,0,0,20">
-                <TextBlock Text="Post Content"/>
-                <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                         AcceptsReturn="True" TextWrapping="Wrap" Height="130"
-                         VerticalScrollBarVisibility="Auto"/>
-            </StackPanel>
-
-            <!-- Action Buttons -->
-            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Cancel" Command="{Binding CancelCommand}"
-                        Width="90" Height="36" Margin="0,0,10,0"
-                        Background="#161B22" Foreground="#E7E9EA" BorderBrush="#2F3336" BorderThickness="1"
-                        Cursor="Hand">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="6"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-
-                <Button Content="Save Changes" Command="{Binding SaveCommand}"
-                        Width="130" Height="36"
-                        Background="#1D9BF0" Foreground="#FFFFFF" FontWeight="Bold"
-                        BorderThickness="0" Cursor="Hand">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="6"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-            </StackPanel>
-        </Grid>
+        </ScrollViewer>
     </Border>
 </Window>

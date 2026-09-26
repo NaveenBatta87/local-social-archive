@@ -72,6 +72,7 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                     Api.JetAddColumn(session, postsTableId, "CreatedAt", new JET_COLUMNDEF { coltyp = JET_coltyp.DateTime }, null, 0, out _);
                     Api.JetAddColumn(session, postsTableId, "ThreadId", new JET_COLUMNDEF { coltyp = JET_coltyp.LongText, cp = JET_CP.Unicode }, null, 0, out _);
                     Api.JetAddColumn(session, postsTableId, "ThreadIndex", new JET_COLUMNDEF { coltyp = JET_coltyp.Long }, null, 0, out _);
+                    Api.JetAddColumn(session, postsTableId, "Comment", new JET_COLUMNDEF { coltyp = JET_coltyp.LongText, cp = JET_CP.Unicode }, null, 0, out _);
 
                     string pkPosts = "+Id\0\0";
                     Api.JetCreateIndex(session, postsTableId, "PK_Posts", CreateIndexGrbit.IndexPrimary | CreateIndexGrbit.IndexUnique, pkPosts, pkPosts.Length, 100);
@@ -98,7 +99,7 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                 }
                 else
                 {
-                    // Ensure existing DB schema has ThreadId and ThreadIndex columns
+                    // Ensure existing DB schema has ThreadId, ThreadIndex, and Comment columns
                     try
                     {
                         Api.JetAttachDatabase(session, _databasePath, AttachDatabaseGrbit.None);
@@ -114,6 +115,10 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                             if (!colDict.ContainsKey("ThreadIndex"))
                             {
                                 Api.JetAddColumn(session, postsTableId, "ThreadIndex", new JET_COLUMNDEF { coltyp = JET_coltyp.Long }, null, 0, out _);
+                            }
+                            if (!colDict.ContainsKey("Comment"))
+                            {
+                                Api.JetAddColumn(session, postsTableId, "Comment", new JET_COLUMNDEF { coltyp = JET_coltyp.LongText, cp = JET_CP.Unicode }, null, 0, out _);
                             }
                         }
                         finally
@@ -175,6 +180,10 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                                 if (colDict.ContainsKey("ThreadIndex"))
                                 {
                                     Api.SetColumn(session, postsTableId, colDict["ThreadIndex"], post.ThreadIndex);
+                                }
+                                if (colDict.ContainsKey("Comment"))
+                                {
+                                    Api.SetColumn(session, postsTableId, colDict["Comment"], post.Comment ?? string.Empty, Encoding.Unicode);
                                 }
                                 update.Save();
                             }
@@ -300,7 +309,8 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                                     FolderPath = Api.RetrieveColumnAsString(session, postsTableId, colDict["FolderPath"], Encoding.Unicode) ?? string.Empty,
                                     CreatedAt = Api.RetrieveColumnAsDateTime(session, postsTableId, colDict["CreatedAt"]) ?? DateTime.Now,
                                     ThreadId = colDict.ContainsKey("ThreadId") ? Api.RetrieveColumnAsString(session, postsTableId, colDict["ThreadId"], Encoding.Unicode) : null,
-                                    ThreadIndex = colDict.ContainsKey("ThreadIndex") ? (Api.RetrieveColumnAsInt32(session, postsTableId, colDict["ThreadIndex"]) ?? 0) : 0
+                                    ThreadIndex = colDict.ContainsKey("ThreadIndex") ? (Api.RetrieveColumnAsInt32(session, postsTableId, colDict["ThreadIndex"]) ?? 0) : 0,
+                                    Comment = colDict.ContainsKey("Comment") ? Api.RetrieveColumnAsString(session, postsTableId, colDict["Comment"], Encoding.Unicode) : null
                                 };
 
                                 if (mediaByPostId.TryGetValue(post.Id, out var mediaList))
@@ -365,6 +375,7 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
             p.AuthorName.ToLowerInvariant().Contains(q) ||
             p.AuthorHandle.ToLowerInvariant().Contains(q) ||
             p.FolderName.ToLowerInvariant().Contains(q) ||
+            (p.Comment != null && p.Comment.ToLowerInvariant().Contains(q)) ||
             p.TagList.Any(t => t.ToLowerInvariant().Contains(q))
         ).ToList();
     }
@@ -415,6 +426,10 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                                 {
                                     Api.SetColumn(session, postsTableId, colDict["ThreadIndex"], post.ThreadIndex);
                                 }
+                                if (colDict.ContainsKey("Comment"))
+                                {
+                                    Api.SetColumn(session, postsTableId, colDict["Comment"], post.Comment ?? string.Empty, Encoding.Unicode);
+                                }
                                 update.Save();
                             }
                             tx.Commit(CommitTransactionGrbit.LazyFlush);
@@ -423,6 +438,50 @@ public class EseDatabaseService : IEseDatabaseService, IDisposable
                     finally
                     {
                         Api.JetCloseTable(session, postsTableId);
+                    }
+
+                    // 2. Synchronize Media Records for this Post
+                    Api.JetOpenTable(session, dbid, "Media", null, 0, OpenTableGrbit.None, out JET_TABLEID mediaTableId);
+                    try
+                    {
+                        var mediaColDict = Api.GetColumnDictionary(session, mediaTableId);
+                        
+                        // A. Delete existing media records for this PostId
+                        if (Api.TryMoveFirst(session, mediaTableId))
+                        {
+                            do
+                            {
+                                var currentPostId = Api.RetrieveColumnAsString(session, mediaTableId, mediaColDict["PostId"], Encoding.Unicode);
+                                if (string.Equals(currentPostId, post.Id, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    using var txMedia = new Transaction(session);
+                                    Api.JetDelete(session, mediaTableId);
+                                    txMedia.Commit(CommitTransactionGrbit.LazyFlush);
+                                }
+                            } while (Api.TryMoveNext(session, mediaTableId));
+                        }
+
+                        // B. Re-insert current media items
+                        if (post.MediaItems != null && post.MediaItems.Count > 0)
+                        {
+                            using var txMedia = new Transaction(session);
+                            foreach (var media in post.MediaItems)
+                            {
+                                using var update = new Update(session, mediaTableId, JET_prep.Insert);
+                                Api.SetColumn(session, mediaTableId, mediaColDict["Id"], media.Id, Encoding.Unicode);
+                                Api.SetColumn(session, mediaTableId, mediaColDict["PostId"], post.Id, Encoding.Unicode);
+                                Api.SetColumn(session, mediaTableId, mediaColDict["FilePath"], media.FilePath ?? string.Empty, Encoding.Unicode);
+                                Api.SetColumn(session, mediaTableId, mediaColDict["MediaType"], media.MediaType ?? "Image", Encoding.Unicode);
+                                Api.SetColumn(session, mediaTableId, mediaColDict["ThumbnailPath"], media.ThumbnailPath ?? string.Empty, Encoding.Unicode);
+                                Api.SetColumn(session, mediaTableId, mediaColDict["CreatedAt"], media.CreatedAt);
+                                update.Save();
+                            }
+                            txMedia.Commit(CommitTransactionGrbit.LazyFlush);
+                        }
+                    }
+                    finally
+                    {
+                        Api.JetCloseTable(session, mediaTableId);
                     }
                 }
                 finally

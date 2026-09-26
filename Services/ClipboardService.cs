@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using LocalSocialArchive.Helpers;
 using LocalSocialArchive.Models;
 
 namespace LocalSocialArchive.Services;
@@ -24,31 +25,32 @@ public class ClipboardService : IClipboardService
 
     public async Task<Post?> ProcessClipboardAsync(string targetFolder = "Coding")
     {
-        // Must read clipboard on STA thread
         string? textContent = null;
         BitmapSource? imageContent = null;
         List<string>? fileList = null;
 
         Application.Current.Dispatcher.Invoke(() =>
         {
-            if (Clipboard.ContainsFileDropList())
+            var data = Clipboard.GetDataObject();
+            if (data != null)
             {
-                var dropList = Clipboard.GetFileDropList();
-                fileList = new List<string>();
-                foreach (var file in dropList)
+                imageContent = ClipboardHelper.GetImageFromClipboard(data);
+                fileList = ClipboardHelper.GetMediaFilesFromClipboard(data);
+
+                if (Clipboard.ContainsFileDropList())
                 {
-                    if (file != null) fileList.Add(file);
+                    var dropList = Clipboard.GetFileDropList();
+                    if (fileList == null) fileList = new List<string>();
+                    foreach (var file in dropList)
+                    {
+                        if (file != null && !fileList.Contains(file)) fileList.Add(file);
+                    }
                 }
-            }
 
-            if (Clipboard.ContainsImage())
-            {
-                imageContent = Clipboard.GetImage();
-            }
-
-            if (Clipboard.ContainsText())
-            {
-                textContent = Clipboard.GetText();
+                if (Clipboard.ContainsText())
+                {
+                    textContent = Clipboard.GetText();
+                }
             }
         });
 
@@ -64,7 +66,7 @@ public class ClipboardService : IClipboardService
 
         var mediaItems = new List<MediaItem>();
 
-        // 1. Process Image from Clipboard
+        // 1. Process Image from Clipboard (DIB, PNG stream, BitmapSource)
         if (imageContent != null)
         {
             string imageFileName = "clipboard_image.png";
@@ -81,7 +83,7 @@ public class ClipboardService : IClipboardService
             });
         }
 
-        // 2. Process Dropped / Copied Files
+        // 2. Process Dropped / Copied Files (.jfif, .jif, .png, .mp4, etc.)
         if (fileList != null && fileList.Count > 0)
         {
             int fileIndex = 1;
@@ -92,21 +94,27 @@ public class ClipboardService : IClipboardService
                 var ext = Path.GetExtension(filePath).ToLowerInvariant();
                 if (MediaItem.IsVideoExtension(filePath))
                 {
-                    // Video Media File (.mp4, .webm, etc.)
                     string targetFileName = $"video_{fileIndex++}{ext}";
                     string targetPath = Path.Combine(postDirectory, targetFileName);
-                    File.Copy(filePath, targetPath, true);
+                    if (!string.Equals(filePath, targetPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Copy(filePath, targetPath, true);
+                    }
+
+                    string thumbPath = Path.Combine(postDirectory, $"{Path.GetFileNameWithoutExtension(targetFileName)}_thumb.png");
+                    await ThumbnailHelper.GenerateVideoThumbnailAsync(targetPath, thumbPath);
 
                     mediaItems.Add(new MediaItem
                     {
                         Id = Guid.NewGuid().ToString("N"),
                         PostId = postId,
                         FilePath = targetPath,
+                        ThumbnailPath = File.Exists(thumbPath) ? thumbPath : null,
                         MediaType = "Video",
                         CreatedAt = DateTime.Now
                     });
                 }
-                else if (ext is ".png" or ".jpg" or ".jpeg" or ".bmp" or ".webp" or ".gif")
+                else if (MediaItem.IsImageExtension(filePath))
                 {
                     try
                     {
@@ -133,7 +141,11 @@ public class ClipboardService : IClipboardService
                     catch
                     {
                         string destFile = Path.Combine(postDirectory, Path.GetFileName(filePath));
-                        File.Copy(filePath, destFile, true);
+                        if (!string.Equals(filePath, destFile, StringComparison.OrdinalIgnoreCase))
+                        {
+                            File.Copy(filePath, destFile, true);
+                        }
+
                         mediaItems.Add(new MediaItem
                         {
                             Id = Guid.NewGuid().ToString("N"),
@@ -159,7 +171,11 @@ public class ClipboardService : IClipboardService
                 else
                 {
                     string destFile = Path.Combine(postDirectory, Path.GetFileName(filePath));
-                    File.Copy(filePath, destFile, true);
+                    if (!string.Equals(filePath, destFile, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Copy(filePath, destFile, true);
+                    }
+
                     mediaItems.Add(new MediaItem
                     {
                         Id = Guid.NewGuid().ToString("N"),
@@ -218,18 +234,25 @@ public class ClipboardService : IClipboardService
             {
                 string targetFileName = $"video_{fileIndex++}{ext}";
                 string targetPath = Path.Combine(postDirectory, targetFileName);
-                File.Copy(filePath, targetPath, true);
+                if (!string.Equals(filePath, targetPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(filePath, targetPath, true);
+                }
+
+                string thumbPath = Path.Combine(postDirectory, $"{Path.GetFileNameWithoutExtension(targetFileName)}_thumb.png");
+                await ThumbnailHelper.GenerateVideoThumbnailAsync(targetPath, thumbPath);
 
                 mediaItems.Add(new MediaItem
                 {
                     Id = Guid.NewGuid().ToString("N"),
                     PostId = postId,
                     FilePath = targetPath,
+                    ThumbnailPath = File.Exists(thumbPath) ? thumbPath : null,
                     MediaType = "Video",
                     CreatedAt = DateTime.Now
                 });
             }
-            else if (ext is ".png" or ".jpg" or ".jpeg" or ".bmp" or ".webp" or ".gif")
+            else if (MediaItem.IsImageExtension(filePath))
             {
                 try
                 {
@@ -256,7 +279,11 @@ public class ClipboardService : IClipboardService
                 catch
                 {
                     string destFile = Path.Combine(postDirectory, Path.GetFileName(filePath));
-                    File.Copy(filePath, destFile, true);
+                    if (!string.Equals(filePath, destFile, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Copy(filePath, destFile, true);
+                    }
+
                     mediaItems.Add(new MediaItem
                     {
                         Id = Guid.NewGuid().ToString("N"),
@@ -274,7 +301,11 @@ public class ClipboardService : IClipboardService
             else
             {
                 string destFile = Path.Combine(postDirectory, Path.GetFileName(filePath));
-                File.Copy(filePath, destFile, true);
+                if (!string.Equals(filePath, destFile, StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(filePath, destFile, true);
+                }
+
                 mediaItems.Add(new MediaItem
                 {
                     Id = Guid.NewGuid().ToString("N"),
@@ -309,7 +340,14 @@ public class ClipboardService : IClipboardService
         return post;
     }
 
-    public async Task<Post?> CreateManualPostAsync(string authorName, string authorHandle, string content, string folder, string tags, IEnumerable<string>? mediaPaths = null)
+    public async Task<Post?> CreateManualPostAsync(
+        string authorName,
+        string authorHandle,
+        string content,
+        string folder,
+        string tags,
+        IEnumerable<string>? mediaPaths = null,
+        string? comment = null)
     {
         string postId = Guid.NewGuid().ToString("N");
         string folderDatePrefix = DateTime.Now.ToString("yyyyMMdd");
@@ -326,14 +364,28 @@ public class ClipboardService : IClipboardService
                 {
                     var ext = Path.GetExtension(path);
                     bool isVid = MediaItem.IsVideoExtension(path);
-                    string dest = Path.Combine(postDirectory, $"{(isVid ? "video" : "media")}_{index++}{ext}");
-                    File.Copy(path, dest, true);
+                    string fileName = $"{(isVid ? "video" : "media")}_{index++}{ext}";
+                    string dest = Path.Combine(postDirectory, fileName);
+
+                    if (!string.Equals(path, dest, StringComparison.OrdinalIgnoreCase))
+                    {
+                        File.Copy(path, dest, true);
+                    }
+
+                    string? thumbPath = null;
+                    if (isVid)
+                    {
+                        thumbPath = Path.Combine(postDirectory, $"{Path.GetFileNameWithoutExtension(fileName)}_thumb.png");
+                        await ThumbnailHelper.GenerateVideoThumbnailAsync(dest, thumbPath);
+                        if (!File.Exists(thumbPath)) thumbPath = null;
+                    }
 
                     mediaItems.Add(new MediaItem
                     {
                         Id = Guid.NewGuid().ToString("N"),
                         PostId = postId,
                         FilePath = dest,
+                        ThumbnailPath = thumbPath,
                         MediaType = isVid ? "Video" : "Image",
                         CreatedAt = DateTime.Now
                     });
@@ -350,6 +402,7 @@ public class ClipboardService : IClipboardService
             PostDate = DateTime.Now,
             FolderName = string.IsNullOrWhiteSpace(folder) ? "Coding" : folder.Trim(),
             Tags = tags ?? string.Empty,
+            Comment = comment,
             FolderPath = postDirectory,
             CreatedAt = DateTime.Now,
             MediaItems = new ObservableCollection<MediaItem>(mediaItems)
@@ -433,10 +486,11 @@ public class ClipboardService : IClipboardService
             authorName = post.AuthorName,
             authorHandle = post.AuthorHandle,
             content = post.Content,
+            comment = post.Comment,
             postDate = post.PostDate.ToString("o"),
             folderName = post.FolderName,
             tags = post.TagList,
-            mediaFiles = post.MediaItems.Select(m => new { name = Path.GetFileName(m.FilePath), type = m.MediaType, path = m.FilePath }).ToList()
+            mediaFiles = post.MediaItems.Select(m => new { name = Path.GetFileName(m.FilePath), type = m.MediaType, path = m.FilePath, thumbnail = m.ThumbnailPath }).ToList()
         };
 
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
@@ -451,6 +505,10 @@ public class ClipboardService : IClipboardService
         if (post.TagList.Count > 0)
         {
             sb.AppendLine($"- **Tags:** {string.Join(", ", post.TagList.Select(t => $"#{t}"))}");
+        }
+        if (!string.IsNullOrWhiteSpace(post.Comment))
+        {
+            sb.AppendLine($"- **Comment / Notes:** {post.Comment}");
         }
         sb.AppendLine();
         sb.AppendLine("---");

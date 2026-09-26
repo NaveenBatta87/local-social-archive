@@ -12,7 +12,7 @@
         WindowStartupLocation="CenterScreen"
         Background="#000000"
         Foreground="#E7E9EA"
-        FontFamily="Segoe UI Variable Text, Segoe UI, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        FontFamily="Segoe UI Variable Text, Segoe UI, Segoe UI Emoji, sans-serif"
         TextOptions.TextFormattingMode="Display"
         TextOptions.TextRenderingMode="ClearType"
         RenderOptions.ClearTypeHint="Enabled"
@@ -277,6 +277,7 @@
     </Window.Resources>
 
     <Window.InputBindings>
+        <KeyBinding Key="Delete" Command="{Binding DeletePostCommand}" CommandParameter="{Binding SelectedPost}"/>
         <KeyBinding Key="V" Modifiers="Control" Command="{Binding PasteFromClipboardCommand}"/>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding CreateNewPostCommand}"/>
         <KeyBinding Key="N" Modifiers="Control+Shift" Command="{Binding CreateNewFolderCommand}"/>
@@ -328,18 +329,23 @@
                     </Button>
 
                     <!-- Top Bar Search & Actions -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0"
-                                WindowChrome.IsHitTestVisibleInChrome="True">
-                        <!-- Search Box (Spacious Rounded with Clear Button) -->
-                        <Border Width="300" Height="36" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1"
-                                CornerRadius="10" Margin="0,0,12,0">
+                    <Grid Grid.Column="1" Margin="12,0,12,0"
+                          WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>    <!-- Search (fills available space) -->
+                            <ColumnDefinition Width="Auto"/> <!-- Compact Action Buttons -->
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Search Box (Stretches to fill available space) -->
+                        <Border Grid.Column="0" Height="34" Background="#111820" BorderBrush="#21262D" BorderThickness="1"
+                                CornerRadius="10" Margin="0,0,10,0">
                             <Grid Margin="12,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="22"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="🔍" FontSize="12" Foreground="#8B949E"
+                                <TextBlock Grid.Column="0" Text="🔍" FontSize="12" Foreground="#6E7681"
                                            VerticalAlignment="Center"/>
                                 <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" BorderThickness="0" Foreground="#E7E9EA"
@@ -363,69 +369,70 @@
                                 </TextBox>
                                 <Button Grid.Column="2" Command="{Binding ClearSearchCommand}"
                                         Visibility="{Binding SearchQuery, Converter={StaticResource NullToVis}}"
-                                        Background="Transparent" BorderThickness="0" Foreground="#8B949E"
+                                        Background="Transparent" BorderThickness="0" Foreground="#6E7681"
                                         Cursor="Hand" Width="18" Height="18" VerticalAlignment="Center" ToolTip="Clear Search">
                                     <TextBlock Text="✕" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Button>
                             </Grid>
                         </Border>
 
-                        <!-- Quick Paste (Ctrl+V) Button (Spacious Pill) -->
-                        <Button Command="{Binding PasteFromClipboardCommand}"
-                                Height="36" Margin="0,0,10,0" Cursor="Hand">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="btnBorder" Background="#26A7DE" CornerRadius="10" Padding="16,0">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="📥" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Quick Paste (Ctrl+V)" FontSize="12.5" FontWeight="Bold" Foreground="#000000" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="btnBorder" Property="Background" Value="#45BAEA"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <!-- Compact Action Buttons -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Quick Paste — Ghost/Outline Style (not solid cyan) -->
+                            <Button Command="{Binding PasteFromClipboardCommand}"
+                                    Height="34" Margin="0,0,8,0" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="btnBorder" Background="Transparent"
+                                                BorderBrush="#2F3336" BorderThickness="1" CornerRadius="10" Padding="14,0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="📥" FontSize="12" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Paste (Ctrl+V)" FontSize="12" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="btnBorder" Property="Background" Value="#161B22"/>
+                                                <Setter TargetName="btnBorder" Property="BorderBrush" Value="#1D9BF0"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
 
-                        <!-- Add Tweet (Ctrl+N) Button (Spacious Pill) -->
-                        <Button Command="{Binding CreateNewPostCommand}"
-                                Height="36" Margin="0,0,12,0" Cursor="Hand">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="btnAddBorder" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="10" Padding="16,0">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="✏️" FontSize="12" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Add Tweet" FontSize="12.5" FontWeight="SemiBold" Foreground="#E7E9EA" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="btnAddBorder" Property="Background" Value="#212836"/>
-                                            <Setter TargetName="btnAddBorder" Property="BorderBrush" Value="#45BAEA"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                            <!-- Compose — Small Circle "+" Button -->
+                            <Button Command="{Binding CreateNewPostCommand}"
+                                    ToolTip="Add Tweet (Ctrl+N)" Cursor="Hand" Margin="0,0,10,0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="btnCompose" Width="34" Height="34" CornerRadius="17"
+                                                Background="#161B22" BorderBrush="#2F3336" BorderThickness="1">
+                                            <TextBlock Text="+" FontSize="18" FontWeight="Light" Foreground="#8B949E"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="btnCompose" Property="Background" Value="#1A3B5C"/>
+                                                <Setter TargetName="btnCompose" Property="BorderBrush" Value="#1D9BF0"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
 
-                        <!-- Filter Dropdown (Custom Dark Fluent) -->
-                        <ComboBox Style="{StaticResource DarkComboBoxStyle}"
-                                  ItemsSource="{Binding FilterDropdownOptions}"
-                                  SelectedItem="{Binding SelectedFilterDropdownText}"
-                                  Height="36" Width="190">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="📁 " FontSize="11" Foreground="#8B949E" Margin="0,0,4,0"/>
+                            <!-- Filter Dropdown (Compact) -->
+                            <ComboBox Style="{StaticResource DarkComboBoxStyle}"
+                                      ItemsSource="{Binding FilterDropdownOptions}"
+                                      SelectedItem="{Binding SelectedFilterDropdownText}"
+                                      Height="34" Width="170">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
                                         <TextBlock Text="{Binding}" FontSize="12"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
 
                     <!-- Native Vector Window Caption Buttons (Minimize, Maximize, Close) -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right"
@@ -580,25 +587,21 @@
                             <RowDefinition Height="Auto"/> <!-- DB Size Indicator -->
                         </Grid.RowDefinitions>
 
-                        <!-- 1. Global "All Posts" Item -->
-                        <Border Grid.Row="0" Margin="0,0,0,10" CornerRadius="8" Cursor="Hand">
+                        <!-- 1. Global "All Posts" Item (Simplified) -->
+                        <Border Grid.Row="0" Margin="0,0,0,12" CornerRadius="8" Cursor="Hand">
                             <Border.Style>
                                 <Style TargetType="Border">
-                                    <Setter Property="Background" Value="#161B22"/>
-                                    <Setter Property="BorderBrush" Value="#2F3336"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
                                     <Setter Property="BorderThickness" Value="1"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding SelectedFolder.Name}" Value="All Posts">
-                                            <Setter Property="Background" Value="#1A3B5C"/>
+                                            <Setter Property="Background" Value="#141A24"/>
                                             <Setter Property="BorderBrush" Value="#1D9BF0"/>
                                         </DataTrigger>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding SelectedFolder.Name, Converter={StaticResource InverseBoolToVis}}" Value="False"/>
-                                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Background" Value="#212836"/>
-                                        </MultiDataTrigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#111820"/>
+                                        </Trigger>
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
@@ -606,94 +609,55 @@
                                 <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateHomeCommand}"/>
                             </Border.InputBindings>
 
-                            <Grid Height="36" Margin="10,0">
+                            <Grid Height="34" Margin="10,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="22"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="🌐" FontSize="13" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="All Posts" FontSize="13" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                                <Border Grid.Column="2" Background="#12161F" CornerRadius="6" Padding="6,2" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Posts.Count, StringFormat='{}{0:N0}'}" FontSize="11" FontWeight="Bold" Foreground="#1D9BF0"/>
-                                </Border>
+                                <TextBlock Grid.Column="1" Text="All Posts" FontSize="13" FontWeight="SemiBold" Foreground="#C9D1D9" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Posts.Count, StringFormat='{}{0:N0}'}" FontSize="11" Foreground="#6E7681" VerticalAlignment="Center"/>
                             </Grid>
                         </Border>
 
-                        <!-- 2. COLLECTIONS Header (Groups of Folders) -->
-                        <Grid Grid.Row="1" Margin="4,4,4,8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                        <!-- 2. COLLECTIONS Header (Groups of Folders) — actions visible on hover -->
+                        <Border Grid.Row="1" Margin="0,4,0,8" Background="Transparent">
+                            <Grid Margin="4,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Column="0" Text="COLLECTIONS" FontSize="11" FontWeight="Bold" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" Text="COLLECTIONS" FontSize="10" FontWeight="Bold" Foreground="#6E7681" VerticalAlignment="Center" Margin="0,0,0,0"/>
 
-                            <!-- Hub Grid View Button -->
-                            <Button Grid.Column="1" Command="{Binding ShowFoldersHubCommand}"
-                                    ToolTip="Open Collections Hub Grid (Ctrl+F)"
-                                    Background="Transparent" BorderThickness="0"
-                                    Cursor="Hand" Width="22" Height="22" Margin="0,0,4,0">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="border" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="4">
-                                            <TextBlock Text="⊞" FontSize="11" Foreground="#8B949E"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="border" Property="Background" Value="#212836"/>
-                                                <Setter TargetName="border" Property="BorderBrush" Value="#1D9BF0"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-
-                            <!-- Add Collection Button -->
-                            <Button Grid.Column="2" Command="{Binding CreateNewCollectionCommand}"
-                                    ToolTip="Add New Collection (Ctrl+Shift+C)"
-                                    Background="Transparent" BorderThickness="0"
-                                    Cursor="Hand" Width="22" Height="22" Margin="0,0,4,0">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="border" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="4">
-                                            <TextBlock Text="🗂️+" FontSize="10" Foreground="#1D9BF0"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="border" Property="Background" Value="#212836"/>
-                                                <Setter TargetName="border" Property="BorderBrush" Value="#1D9BF0"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-
-                            <!-- Add Folder Button -->
-                            <Button Grid.Column="3" Command="{Binding CreateNewFolderCommand}"
-                                    ToolTip="Add Folder to Collection (Ctrl+Shift+N)"
-                                    Background="Transparent" BorderThickness="0"
-                                    Cursor="Hand" Width="22" Height="22">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="border" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="4">
-                                            <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="#1D9BF0"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="border" Property="Background" Value="#212836"/>
-                                                <Setter TargetName="border" Property="BorderBrush" Value="#1D9BF0"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                        </Grid>
+                                <!-- Action buttons — hidden until header hover -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="0"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                                    <Setter Property="Opacity" Value="1"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <Button Command="{Binding ShowFoldersHubCommand}" ToolTip="Hub Grid (Ctrl+F)"
+                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Width="20" Height="20" Margin="0,0,2,0">
+                                        <TextBlock Text="⊞" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Button>
+                                    <Button Command="{Binding CreateNewCollectionCommand}" ToolTip="New Collection (Ctrl+Shift+C)"
+                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Width="20" Height="20" Margin="0,0,2,0">
+                                        <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                                    </Button>
+                                    <Button Command="{Binding CreateNewFolderCommand}" ToolTip="New Folder (Ctrl+Shift+N)"
+                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Width="20" Height="20">
+                                        <TextBlock Text="📁+" FontSize="10" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
                         <!-- 3. Collections Accordion (Each contains Folders) -->
                         <ItemsControl Grid.Row="2" ItemsSource="{Binding FilteredCollections}">
@@ -744,23 +708,43 @@
                                                     <TextBlock Text="{Binding FolderCount, StringFormat='{}{0}f'}" FontSize="10.5" FontWeight="SemiBold" Foreground="#8B949E"/>
                                                 </Border>
 
-                                                <!-- Add Folder to this Collection (+) -->
+                                                <!-- Add Folder to this Collection (+) — visible on row hover -->
                                                 <Button Grid.Column="4"
                                                         Command="{Binding DataContext.CreateNewFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}"
                                                         ToolTip="Add Folder to this Collection"
                                                         Background="Transparent" BorderThickness="0" Cursor="Hand" Width="20" Height="20" Margin="2,0,0,0">
-                                                    <TextBlock Text="+" FontSize="12" FontWeight="Bold" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Opacity" Value="0"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                                                    <Setter Property="Opacity" Value="1"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <TextBlock Text="+" FontSize="12" FontWeight="Bold" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
-                                                <!-- Delete Collection Button (If deletable) -->
+                                                <!-- Delete Collection Button (If deletable) — visible on row hover -->
                                                 <Button Grid.Column="5"
                                                         Command="{Binding DataContext.DeleteCollectionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}"
                                                         Visibility="{Binding IsDeletable, Converter={StaticResource BoolToVis}}"
                                                         ToolTip="Delete Collection"
                                                         Background="Transparent" BorderThickness="0" Cursor="Hand" Width="20" Height="20" Margin="2,0,0,0">
-                                                    <TextBlock Text="✕" FontSize="9.5" Foreground="#F87171" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Opacity" Value="0"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                                                    <Setter Property="Opacity" Value="1"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <TextBlock Text="✕" FontSize="9.5" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
                                             </Grid>
                                         </Border>
@@ -828,7 +812,7 @@
                                                                 <TextBlock Text="{Binding Count, StringFormat='{}{0:N0}'}" FontSize="11" FontWeight="SemiBold" Foreground="#8B949E"/>
                                                             </Border>
 
-                                                            <!-- Delete Folder Button -->
+                                                            <!-- Delete Folder Button — visible on row hover -->
                                                             <Button Grid.Column="3"
                                                                     Command="{Binding DataContext.DeleteFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                     CommandParameter="{Binding}"
@@ -836,6 +820,16 @@
                                                                     ToolTip="Delete Folder"
                                                                     Background="Transparent" BorderThickness="0" Cursor="Hand"
                                                                     Width="20" Height="20" Margin="4,0,0,0">
+                                                                <Button.Style>
+                                                                    <Style TargetType="Button">
+                                                                        <Setter Property="Opacity" Value="0"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                                                                                <Setter Property="Opacity" Value="1"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
                                                                 <TextBlock Text="✕" FontSize="9.5" FontWeight="Bold" Foreground="#6E7681"
                                                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Button>
@@ -1022,8 +1016,8 @@
                                                             <Setter Property="Foreground" Value="#8B949E"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsGridView}" Value="False">
-                                                                    <Setter Property="Background" Value="#1D9BF0"/>
-                                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                                    <Setter Property="Background" Value="#1A3B5C"/>
+                                                                    <Setter Property="Foreground" Value="#E7E9EA"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -1048,8 +1042,8 @@
                                                             <Setter Property="Foreground" Value="#8B949E"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsGridView}" Value="True">
-                                                                    <Setter Property="Background" Value="#1D9BF0"/>
-                                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                                    <Setter Property="Background" Value="#1A3B5C"/>
+                                                                    <Setter Property="Foreground" Value="#E7E9EA"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -1133,11 +1127,39 @@
 
                                 <ListView.ItemTemplate>
                                     <DataTemplate DataType="{x:Type models:Post}">
-                                        <Border CornerRadius="18" Background="{StaticResource CardBgBrush}"
+                                        <Border CornerRadius="14" Background="{StaticResource CardBgBrush}"
                                                 BorderThickness="1" Padding="20" Cursor="Hand">
-                                            <Border.Effect>
-                                                <DropShadowEffect Color="#000000" BlurRadius="14" ShadowDepth="3" Opacity="0.3"/>
-                                            </Border.Effect>
+                                            <Border.ContextMenu>
+                                                <ContextMenu Background="#161B22" BorderBrush="#2F3336" Foreground="#E7E9EA">
+                                                    <MenuItem Header="⤢ Open Theater View"
+                                                              Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="✏️ Edit Post Content"
+                                                              Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="📁 Move to Folder..."
+                                                              ItemsSource="{Binding DataContext.Folders, RelativeSource={RelativeSource AncestorType=Window}}">
+                                                        <MenuItem.ItemContainerStyle>
+                                                            <Style TargetType="MenuItem">
+                                                                <Setter Property="Header" Value="{Binding Name}"/>
+                                                                <Setter Property="Command" Value="{Binding DataContext.MovePostToFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                                                <Setter Property="CommandParameter" Value="{Binding Name}"/>
+                                                            </Style>
+                                                        </MenuItem.ItemContainerStyle>
+                                                    </MenuItem>
+                                                    <MenuItem Header="📂 Open in Explorer"
+                                                              Command="{Binding DataContext.OpenLocalFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="📋 Copy Tweet Text"
+                                                              Command="{Binding DataContext.CopyPostTextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                    <Separator Background="#2F3336"/>
+                                                    <MenuItem Header="🗑️ Delete Entry"
+                                                              Foreground="#F87171"
+                                                              Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}"/>
@@ -1161,6 +1183,7 @@
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto"/> <!-- Header -->
                                                     <RowDefinition Height="Auto"/> <!-- Body Text -->
+                                                    <RowDefinition Height="Auto"/> <!-- Comment Note (Optional) -->
                                                     <RowDefinition Height="Auto"/> <!-- Media Previews Grid -->
                                                 </Grid.RowDefinitions>
 
@@ -1169,7 +1192,7 @@
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="46"/> <!-- Avatar -->
                                                         <ColumnDefinition Width="*"/>  <!-- Names & Date -->
-                                                        <ColumnDefinition Width="Auto"/> <!-- Folder Badge -->
+                                                        <ColumnDefinition Width="Auto"/> <!-- Actions & Folder Badge -->
                                                     </Grid.ColumnDefinitions>
 
                                                     <!-- Avatar Circle -->
@@ -1182,10 +1205,7 @@
 
                                                     <!-- Name, Handle & Timestamp -->
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="👤 " FontSize="10" Foreground="#8B949E" VerticalAlignment="Center"/>
-                                                            <TextBlock Text="{Binding AuthorName}" FontSize="14.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding AuthorName}" FontSize="14.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                                                         <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                                                             <TextBlock Text="{Binding AuthorHandle}" FontSize="12" Foreground="#8B949E"/>
                                                             <TextBlock Text=" • " FontSize="12" Foreground="#8B949E"/>
@@ -1193,31 +1213,78 @@
                                                         </StackPanel>
                                                     </StackPanel>
 
-                                                    <!-- Folder Badge & Theater Shortcut -->
+                                                    <!-- Folder Badge & Quick Buttons -->
                                                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
                                                         <Border Background="{StaticResource BadgeBgBrush}" CornerRadius="8"
                                                                 Padding="12,4" BorderBrush="#30363D" BorderThickness="1" Margin="0,0,8,0">
                                                             <TextBlock Text="{Binding FolderName}" FontSize="11.5" FontWeight="SemiBold" Foreground="#9EACB9"/>
                                                         </Border>
-                                                        <Button Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                CommandParameter="{Binding}" ToolTip="Open Split Theater View"
-                                                                Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" Cursor="Hand" Width="28" Height="28">
-                                                            <Button.Resources>
-                                                                <Style TargetType="Border">
-                                                                    <Setter Property="CornerRadius" Value="6"/>
+                                                        <!-- Action buttons — hidden until card hover -->
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <StackPanel.Style>
+                                                                <Style TargetType="StackPanel">
+                                                                    <Setter Property="Opacity" Value="0"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border, AncestorLevel=2}}" Value="True">
+                                                                            <Setter Property="Opacity" Value="1"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
                                                                 </Style>
-                                                            </Button.Resources>
-                                                            <TextBlock Text="⤢" FontSize="13" Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Button>
+                                                            </StackPanel.Style>
+                                                            <!-- Edit Button -->
+                                                            <Button Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}" ToolTip="Edit Post"
+                                                                    Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" Cursor="Hand" Width="28" Height="28" Margin="0,0,4,0">
+                                                                <Button.Resources>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="CornerRadius" Value="6"/>
+                                                                    </Style>
+                                                                </Button.Resources>
+                                                                <TextBlock Text="✏️" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Button>
+                                                            <!-- Delete Button -->
+                                                            <Button Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}" ToolTip="Delete Post (Del)"
+                                                                    Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" Cursor="Hand" Width="28" Height="28" Margin="0,0,4,0">
+                                                                <Button.Resources>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="CornerRadius" Value="6"/>
+                                                                    </Style>
+                                                                </Button.Resources>
+                                                                <TextBlock Text="🗑️" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Button>
+                                                            <!-- Theater View Button -->
+                                                            <Button Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}" ToolTip="Open Split Theater View"
+                                                                    Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" Cursor="Hand" Width="28" Height="28">
+                                                                <Button.Resources>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="CornerRadius" Value="6"/>
+                                                                    </Style>
+                                                                </Button.Resources>
+                                                                <TextBlock Text="⤢" FontSize="13" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Button>
+                                                        </StackPanel>
                                                     </StackPanel>
                                                 </Grid>
 
                                                 <!-- Tweet Content Text -->
                                                 <TextBlock Grid.Row="1" Text="{Binding Content}" FontSize="14.5" LineHeight="21"
-                                                           Foreground="#E7E9EA" TextWrapping="Wrap" Margin="0,12,0,12"/>
+                                                           Foreground="#E7E9EA" TextWrapping="Wrap" Margin="0,12,0,10"
+                                                           FontFamily="{StaticResource TweetContentFontFamily}"/>
+
+                                                <!-- Optional Note / Comment Bubble -->
+                                                <Border Grid.Row="2" Visibility="{Binding HasComment, Converter={StaticResource BoolToVis}}"
+                                                        Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="8"
+                                                        Padding="12,7" Margin="0,0,0,12">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="💬 " FontSize="12" VerticalAlignment="Top" Margin="0,1,6,0"/>
+                                                        <TextBlock Text="{Binding Comment}" FontSize="12.5" Foreground="#F0883E" TextWrapping="Wrap" LineHeight="18"/>
+                                                    </StackPanel>
+                                                </Border>
 
                                                 <!-- Attached Media Preview Grids -->
-                                                <Grid Grid.Row="2" Visibility="{Binding HasMedia, Converter={StaticResource BoolToVis}}" Margin="0,4,0,0">
+                                                <Grid Grid.Row="3" Visibility="{Binding HasMedia, Converter={StaticResource BoolToVis}}" Margin="0,4,0,0">
                                                     <!-- Single Image / Video Preview -->
                                                     <Border Visibility="{Binding HasSingleMedia, Converter={StaticResource BoolToVis}}"
                                                             CornerRadius="14" Background="#0C1017" ClipToBounds="True" MaxHeight="320" Cursor="Hand">
@@ -1227,7 +1294,7 @@
                                                                           CommandParameter="{Binding}"/>
                                                         </Border.InputBindings>
                                                         <Grid>
-                                                            <Image Source="{Binding PrimaryImage}" Stretch="UniformToFill" HorizontalAlignment="Center"/>
+                                                            <Image Source="{Binding PrimaryThumbnail}" Stretch="UniformToFill" HorizontalAlignment="Center"/>
                                                             <!-- Video Play Overlay Badge -->
                                                             <Border Visibility="{Binding PrimaryIsVideo, Converter={StaticResource BoolToVis}}"
                                                                     Background="#CC000000" CornerRadius="22" Width="44" Height="44"
@@ -1249,10 +1316,10 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <Border Grid.Column="0" Margin="0,0,4,0" CornerRadius="12" Background="#0C1017" ClipToBounds="True">
-                                                            <Image Source="{Binding PrimaryImage}" Stretch="UniformToFill"/>
+                                                            <Image Source="{Binding PrimaryThumbnail}" Stretch="UniformToFill"/>
                                                         </Border>
                                                         <Border Grid.Column="1" Margin="4,0,0,0" CornerRadius="12" Background="#0C1017" ClipToBounds="True">
-                                                            <Image Source="{Binding SecondaryImage}" Stretch="UniformToFill"/>
+                                                            <Image Source="{Binding SecondaryThumbnail}" Stretch="UniformToFill"/>
                                                         </Border>
                                                     </Grid>
 
@@ -1272,10 +1339,10 @@
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <Border Grid.Row="0" Grid.Column="0" Margin="0,0,3,3" CornerRadius="10" Background="#0C1017" ClipToBounds="True">
-                                                            <Image Source="{Binding PrimaryImage}" Stretch="UniformToFill"/>
+                                                            <Image Source="{Binding PrimaryThumbnail}" Stretch="UniformToFill"/>
                                                         </Border>
                                                         <Border Grid.Row="0" Grid.Column="1" Margin="3,0,0,3" CornerRadius="10" Background="#0C1017" ClipToBounds="True">
-                                                            <Image Source="{Binding SecondaryImage}" Stretch="UniformToFill"/>
+                                                            <Image Source="{Binding SecondaryThumbnail}" Stretch="UniformToFill"/>
                                                         </Border>
                                                         <Border Grid.Row="1" Grid.Column="0" Margin="0,3,3,0" CornerRadius="10" Background="#0C1017" ClipToBounds="True">
                                                             <Image Source="{Binding ThirdImage}" Stretch="UniformToFill"/>
@@ -1329,12 +1396,40 @@
 
                                 <ListView.ItemTemplate>
                                     <DataTemplate DataType="{x:Type models:Post}">
-                                        <!-- Spacious & Smoothly Rounded Tile Card -->
-                                        <Border Width="330" MinHeight="340" CornerRadius="18" Background="#161B22"
+                                        <!-- Clean Tile Card -->
+                                        <Border Width="330" MinHeight="340" CornerRadius="14" Background="#161B22"
                                                 BorderThickness="1" Cursor="Hand" ClipToBounds="False">
-                                            <Border.Effect>
-                                                <DropShadowEffect Color="#000000" BlurRadius="18" ShadowDepth="4" Opacity="0.35"/>
-                                            </Border.Effect>
+                                            <Border.ContextMenu>
+                                                <ContextMenu Background="#161B22" BorderBrush="#2F3336" Foreground="#E7E9EA">
+                                                    <MenuItem Header="⤢ Open Theater View"
+                                                              Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="✏️ Edit Post Content"
+                                                              Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="📁 Move to Folder..."
+                                                              ItemsSource="{Binding DataContext.Folders, RelativeSource={RelativeSource AncestorType=Window}}">
+                                                        <MenuItem.ItemContainerStyle>
+                                                            <Style TargetType="MenuItem">
+                                                                <Setter Property="Header" Value="{Binding Name}"/>
+                                                                <Setter Property="Command" Value="{Binding DataContext.MovePostToFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                                                <Setter Property="CommandParameter" Value="{Binding Name}"/>
+                                                            </Style>
+                                                        </MenuItem.ItemContainerStyle>
+                                                    </MenuItem>
+                                                    <MenuItem Header="📂 Open in Explorer"
+                                                              Command="{Binding DataContext.OpenLocalFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                    <MenuItem Header="📋 Copy Tweet Text"
+                                                              Command="{Binding DataContext.CopyPostTextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                    <Separator Background="#2F3336"/>
+                                                    <MenuItem Header="🗑️ Delete Entry"
+                                                              Foreground="#F87171"
+                                                              Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"/>
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="BorderBrush" Value="#252D38"/>
@@ -1359,6 +1454,7 @@
                                                     <RowDefinition Height="Auto"/> <!-- Media Capsule or Folder Header -->
                                                     <RowDefinition Height="Auto"/> <!-- Author Row -->
                                                     <RowDefinition Height="*"/>    <!-- Text Content -->
+                                                    <RowDefinition Height="Auto"/> <!-- Comment Preview if present -->
                                                     <RowDefinition Height="Auto"/> <!-- Bottom Row -->
                                                 </Grid.RowDefinitions>
 
@@ -1366,8 +1462,8 @@
                                                 <Border Grid.Row="0" Visibility="{Binding HasMedia, Converter={StaticResource BoolToVis}}"
                                                         Height="165" Margin="14,14,14,10" CornerRadius="14" Background="#0A0D13" ClipToBounds="True">
                                                     <Grid>
-                                                        <!-- Image Preview -->
-                                                        <Image Source="{Binding PrimaryImage}" Stretch="UniformToFill"/>
+                                                        <!-- Image / Video Preview using PrimaryThumbnail -->
+                                                        <Image Source="{Binding PrimaryThumbnail}" Stretch="UniformToFill"/>
 
                                                         <!-- Video Play Overlay Badge -->
                                                         <Border Visibility="{Binding PrimaryIsVideo, Converter={StaticResource BoolToVis}}"
@@ -1420,23 +1516,40 @@
                                                 <!-- 3. Text Content -->
                                                 <TextBlock Grid.Row="2" Text="{Binding Content}" FontSize="12.5" LineHeight="18" Foreground="#C9D1D9"
                                                            TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="60"
-                                                           Margin="16,0,16,12"/>
+                                                           Margin="16,0,16,10"
+                                                           FontFamily="{StaticResource TweetContentFontFamily}"/>
 
-                                                <!-- 4. Bottom Row (Relative Time & View Button) -->
-                                                <Border Grid.Row="3" BorderBrush="#21262D" BorderThickness="0,1,0,0" Padding="16,10" Background="#11151C" CornerRadius="0,0,18,18">
+                                                <!-- 4. Optional Comment Pill in Tile -->
+                                                <Border Grid.Row="3" Visibility="{Binding HasComment, Converter={StaticResource BoolToVis}}"
+                                                        Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="6"
+                                                        Padding="8,4" Margin="16,0,16,10">
+                                                    <TextBlock Text="{Binding Comment, StringFormat='💬 {0}'}" FontSize="11" Foreground="#F0883E" TextTrimming="CharacterEllipsis"/>
+                                                </Border>
+
+                                                <!-- 5. Bottom Row (Relative Time & Quick Actions) -->
+                                                <Border Grid.Row="4" BorderBrush="#21262D" BorderThickness="0,1,0,0" Padding="14,10" Background="#11151C" CornerRadius="0,0,18,18">
                                                     <Grid>
                                                         <TextBlock Text="{Binding RelativeTime}" FontSize="11.5" Foreground="#6E7681" VerticalAlignment="Center"/>
-                                                        <Button Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                CommandParameter="{Binding}" ToolTip="Open Theater View"
-                                                                HorizontalAlignment="Right" Background="#1A3B5C" Foreground="#1D9BF0"
-                                                                Padding="10,4" BorderThickness="0" Cursor="Hand">
-                                                            <Button.Resources>
-                                                                <Style TargetType="Border">
-                                                                    <Setter Property="CornerRadius" Value="6"/>
-                                                                </Style>
-                                                            </Button.Resources>
-                                                            <TextBlock Text="⤢ View" FontSize="11.5" FontWeight="SemiBold"/>
-                                                        </Button>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                            <!-- Quick Delete -->
+                                                            <Button Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}" ToolTip="Delete Post (Del)"
+                                                                    Background="Transparent" BorderThickness="0" Cursor="Hand" Width="26" Height="26" Margin="0,0,6,0">
+                                                                <TextBlock Text="🗑️" FontSize="11" Foreground="#F87171" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Button>
+                                                            <!-- View Button -->
+                                                            <Button Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}" ToolTip="Open Theater View"
+                                                                    Background="#1A3B5C" Foreground="#1D9BF0"
+                                                                    Padding="10,4" BorderThickness="0" Cursor="Hand">
+                                                                <Button.Resources>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="CornerRadius" Value="6"/>
+                                                                    </Style>
+                                                                </Button.Resources>
+                                                                <TextBlock Text="⤢ View" FontSize="11.5" FontWeight="SemiBold"/>
+                                                            </Button>
+                                                        </StackPanel>
                                                     </Grid>
                                                 </Border>
                                             </Grid>
@@ -1444,6 +1557,17 @@
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
+
+                            <!-- Empty State — shown when feed is empty -->
+                            <Border Grid.Row="1"
+                                    Visibility="{Binding IsEmptyFeed, Converter={StaticResource BoolToVis}}"
+                                    VerticalAlignment="Center" HorizontalAlignment="Center" Padding="40">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="✦" FontSize="48" Foreground="#21262D" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                                    <TextBlock Text="Your archive is quiet" FontSize="16" FontWeight="SemiBold" Foreground="#6E7681" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                    <TextBlock Text="Paste from clipboard or compose to add posts" FontSize="13" Foreground="#484F58" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
 
                             <!-- Status Bar -->
                             <Border Grid.Row="2" Background="#0A0D13" BorderBrush="#1C212A" BorderThickness="0,1,0,0" Padding="14,6">
@@ -1710,16 +1834,16 @@
                         </Grid>
 
                         <!-- ================================================================= -->
-                        <!-- VIEW C: MICROSOFT WORD DOCUMENT CANVAS (Rich Text & Media Studio) -->
+                        <!-- VIEW C: CANVAS & STUDIO (Word Document Canvas + Thread Maker) ===== -->
                         <!-- ================================================================= -->
                         <Grid Visibility="{Binding IsCanvasViewActive, Converter={StaticResource BoolToVis}}">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/> <!-- Word Ribbon / Toolbar -->
-                                <RowDefinition Height="*"/>    <!-- Word Document Paper Canvas (Desk & Sheet) -->
+                                <RowDefinition Height="Auto"/> <!-- Canvas Mode Switcher Ribbon -->
+                                <RowDefinition Height="*"/>    <!-- Canvas Workspace (Doc Sheet or Thread Nodes) -->
                                 <RowDefinition Height="Auto"/> <!-- Status Bar -->
                             </Grid.RowDefinitions>
 
-                            <!-- 1. Word Ribbon Toolbar -->
+                            <!-- 1. Top Ribbon & Mode Switcher -->
                             <Border Grid.Row="0" Background="#0A0D13" BorderBrush="#1C212A" BorderThickness="0,0,0,1" Padding="14,10">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -1727,7 +1851,7 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Row 1: Document Metadata & Primary Archive Action -->
+                                    <!-- Row 1: Mode Switcher [ 📝 Word Document Canvas | 🧵 Thread Maker Studio ] & Metadata -->
                                     <Grid Grid.Row="0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
@@ -1735,24 +1859,73 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Left: Word Canvas Badge -->
-                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
-                                            <Border Background="#1A3B5C" CornerRadius="6" Padding="10,5">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="📝 " FontSize="14"/>
-                                                    <TextBlock Text="Word Document Canvas" FontSize="13.5" FontWeight="Bold" Foreground="#1D9BF0" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </StackPanel>
+                                        <!-- Mode Switcher Pill Segmented Buttons -->
+                                        <Border Grid.Column="0" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="8" Padding="3" Margin="0,0,14,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <!-- Word Canvas Mode -->
+                                                <Button Command="{Binding SetCanvasModeCommand}" CommandParameter="Doc"
+                                                        ToolTip="Microsoft Word Document Canvas (Rich text, inline images &amp; media)"
+                                                        Padding="12,5" BorderThickness="0" Cursor="Hand">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Setter Property="Foreground" Value="#8B949E"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsThreadModeActive}" Value="False">
+                                                                    <Setter Property="Background" Value="#1D9BF0"/>
+                                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="📝 " FontSize="12" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="Word Document" FontSize="12" FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Button>
 
-                                        <!-- Center: Title and Target Folder Selector -->
+                                                <!-- Thread Maker Studio Mode -->
+                                                <Button Command="{Binding SetCanvasModeCommand}" CommandParameter="Thread"
+                                                        ToolTip="Thread Maker Studio (Sequential multi-tweet thread composer)"
+                                                        Padding="12,5" BorderThickness="0" Cursor="Hand" Margin="2,0,0,0">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Setter Property="Foreground" Value="#8B949E"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsThreadModeActive}" Value="True">
+                                                                    <Setter Property="Background" Value="#1D9BF0"/>
+                                                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🧵 " FontSize="12" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="Thread Studio" FontSize="12" FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Center: Title & Target Folder Selector -->
                                         <Grid Grid.Column="1" VerticalAlignment="Center">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="2*"/>
                                                 <ColumnDefinition Width="1.2*"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- Document Title Input -->
+                                            <!-- Title Input -->
                                             <Border Grid.Column="0" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
@@ -1781,39 +1954,112 @@
                                             </Border>
                                         </Grid>
 
-                                        <!-- Right: Save & Clear Buttons -->
+                                        <!-- Right: Action Buttons -->
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <!-- Save & Archive Button -->
-                                            <Button Click="BtnArchiveDoc_Click" ToolTip="Save Document &amp; All Embedded Media to Database"
-                                                    Padding="14,7" Background="#10B981" Foreground="#FFFFFF" FontWeight="Bold"
-                                                    BorderThickness="0" Cursor="Hand" Margin="0,0,8,0">
-                                                <Button.Resources>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="CornerRadius" Value="6"/>
-                                                    </Style>
-                                                </Button.Resources>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="💾 " FontSize="13" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Save &amp; Archive Post" FontSize="12.5" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </Button>
+                                            <!-- Actions for Doc Mode -->
+                                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsThreadModeActive, Converter={StaticResource InverseBoolToVis}}">
+                                                <Button Click="BtnArchiveDoc_Click" ToolTip="Save Document &amp; All Embedded Media to Database"
+                                                        Padding="14,7" Background="#10B981" Foreground="#FFFFFF" FontWeight="Bold"
+                                                        BorderThickness="0" Cursor="Hand" Margin="0,0,8,0">
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="💾 " FontSize="13" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Save &amp; Archive Post" FontSize="12.5" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
 
-                                            <!-- Clear Document Button -->
-                                            <Button Click="BtnClearDoc_Click" ToolTip="Clear Document Canvas"
-                                                    Padding="10,7" Background="#211212" Foreground="#F87171" BorderBrush="#3B1C1C" BorderThickness="1"
-                                                    Cursor="Hand">
-                                                <Button.Resources>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="CornerRadius" Value="6"/>
-                                                    </Style>
-                                                </Button.Resources>
-                                                <TextBlock Text="🧹 Clear" FontSize="12" VerticalAlignment="Center"/>
-                                            </Button>
+                                                <Button Click="BtnClearDoc_Click" ToolTip="Clear Document Canvas"
+                                                        Padding="10,7" Background="#211212" Foreground="#F87171" BorderBrush="#3B1C1C" BorderThickness="1"
+                                                        Cursor="Hand">
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <TextBlock Text="🧹 Clear" FontSize="12" VerticalAlignment="Center"/>
+                                                </Button>
+                                            </StackPanel>
+
+                                            <!-- Actions for Thread Studio Mode -->
+                                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsThreadModeActive, Converter={StaticResource BoolToVis}}">
+                                                <Button Command="{Binding AddEmptyCanvasNodeCommand}" ToolTip="Add New Step Node to Thread"
+                                                        Padding="10,7" Background="#1D9BF0" Foreground="#FFFFFF" FontWeight="Bold"
+                                                        BorderThickness="0" Cursor="Hand" Margin="0,0,6,0">
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="➕ " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Add Step" FontSize="12" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <Button Command="{Binding PasteToCanvasCommand}" ToolTip="Paste Tweet/Thread from Clipboard"
+                                                        Padding="10,7" Background="#161B22" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
+                                                        FontWeight="SemiBold" Cursor="Hand" Margin="0,0,6,0">
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="📋 " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Paste" FontSize="12" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <Button Command="{Binding ArchiveThreadAsSeriesCommand}" ToolTip="Save as Connected Multi-Post Series"
+                                                        Padding="10,7" Background="#10B981" Foreground="#FFFFFF" FontWeight="Bold"
+                                                        BorderThickness="0" Cursor="Hand" Margin="0,0,6,0">
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🔗 " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Save Series" FontSize="12" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <Button Command="{Binding MergeAndArchiveThreadCommand}" ToolTip="Merge All Steps into 1 Master Archived Post"
+                                                        Padding="10,7" Background="#212836" Foreground="#E7E9EA" BorderBrush="#2F3336" BorderThickness="1"
+                                                        FontWeight="SemiBold" Cursor="Hand" Margin="0,0,6,0">
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="🧵 " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Merge 1 Post" FontSize="12" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <Button Command="{Binding ClearCanvasCommand}" ToolTip="Clear Thread Canvas"
+                                                        Padding="8,7" Background="#211212" Foreground="#F87171" BorderBrush="#3B1C1C" BorderThickness="1"
+                                                        Cursor="Hand">
+                                                    <Button.Resources>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="CornerRadius" Value="6"/>
+                                                        </Style>
+                                                    </Button.Resources>
+                                                    <TextBlock Text="🧹" FontSize="12" VerticalAlignment="Center"/>
+                                                </Button>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Grid>
 
-                                    <!-- Row 2: Formatting Toolbar (Bold, Italic, Underline, Bullets, Images, GIFs, Videos, Paste) -->
-                                    <Border Grid.Row="1" Background="#12161F" BorderBrush="#21262D" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,8,0,0">
+                                    <!-- Row 2: Secondary Toolbars & Settings -->
+                                    <!-- A. Word Doc Toolbar (Formatting, Media, Emoji) -->
+                                    <Border Grid.Row="1" Visibility="{Binding IsThreadModeActive, Converter={StaticResource InverseBoolToVis}}"
+                                            Background="#12161F" BorderBrush="#21262D" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,8,0,0">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -1823,52 +2069,40 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- Text Formatting Group (Standard Word commands) -->
+                                            <!-- Text Formatting Group -->
                                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <!-- Bold -->
                                                 <Button Command="EditingCommands.ToggleBold" CommandTarget="{Binding ElementName=DocRichTextBox}"
                                                         ToolTip="Bold (Ctrl+B)" Width="30" Height="28" Background="#161B22" Foreground="#FFFFFF"
                                                         BorderBrush="#2F3336" BorderThickness="1" FontWeight="Bold" FontSize="13" Cursor="Hand" Margin="0,0,4,0">
                                                     <Button.Resources>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="CornerRadius" Value="4"/>
-                                                        </Style>
+                                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <TextBlock Text="B" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
-                                                <!-- Italic -->
                                                 <Button Command="EditingCommands.ToggleItalic" CommandTarget="{Binding ElementName=DocRichTextBox}"
                                                         ToolTip="Italic (Ctrl+I)" Width="30" Height="28" Background="#161B22" Foreground="#FFFFFF"
                                                         BorderBrush="#2F3336" BorderThickness="1" FontStyle="Italic" FontSize="13" Cursor="Hand" Margin="0,0,4,0">
                                                     <Button.Resources>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="CornerRadius" Value="4"/>
-                                                        </Style>
+                                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <TextBlock Text="I" FontStyle="Italic" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
-                                                <!-- Underline -->
                                                 <Button Command="EditingCommands.ToggleUnderline" CommandTarget="{Binding ElementName=DocRichTextBox}"
                                                         ToolTip="Underline (Ctrl+U)" Width="30" Height="28" Background="#161B22" Foreground="#FFFFFF"
                                                         BorderBrush="#2F3336" BorderThickness="1" FontSize="13" Cursor="Hand" Margin="0,0,4,0">
                                                     <Button.Resources>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="CornerRadius" Value="4"/>
-                                                        </Style>
+                                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <TextBlock Text="U" TextDecorations="Underline" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
-                                                <!-- Bullets -->
                                                 <Button Command="EditingCommands.ToggleBullets" CommandTarget="{Binding ElementName=DocRichTextBox}"
                                                         ToolTip="Bullet List" Width="30" Height="28" Background="#161B22" Foreground="#FFFFFF"
                                                         BorderBrush="#2F3336" BorderThickness="1" FontSize="13" Cursor="Hand" Margin="0,0,8,0">
                                                     <Button.Resources>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="CornerRadius" Value="4"/>
-                                                        </Style>
+                                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <TextBlock Text="•≡" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
@@ -1877,20 +2111,18 @@
                                             <!-- Divider -->
                                             <Rectangle Grid.Column="1" Width="1" Fill="#2F3336" Margin="4,3,10,3"/>
 
-                                            <!-- Media Insert Buttons Group -->
+                                            <!-- Media & Emoji Group -->
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <!-- Insert Image / GIF -->
-                                                <Button Click="BtnInsertImage_Click" ToolTip="Insert Image or GIF from disk"
+                                                <Button Click="BtnInsertImage_Click" ToolTip="Insert Image (.png, .jpg, .jfif, .webp, .gif) from disk"
                                                         Padding="10,4" Background="#161B22" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
                                                         Cursor="Hand" Margin="0,0,6,0">
                                                     <Button.Resources>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="CornerRadius" Value="4"/>
-                                                        </Style>
+                                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="🖼️ " FontSize="12"/>
-                                                        <TextBlock Text="Image / GIF" FontSize="12" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="Image / JFIF" FontSize="12" FontWeight="SemiBold"/>
                                                     </StackPanel>
                                                 </Button>
 
@@ -1899,9 +2131,7 @@
                                                         Padding="10,4" Background="#161B22" Foreground="#8B5CF6" BorderBrush="#2F3336" BorderThickness="1"
                                                         Cursor="Hand" Margin="0,0,6,0">
                                                     <Button.Resources>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="CornerRadius" Value="4"/>
-                                                        </Style>
+                                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="🎥 " FontSize="12"/>
@@ -1909,14 +2139,81 @@
                                                     </StackPanel>
                                                 </Button>
 
+                                                <!-- Emoji Palette Popup Trigger -->
+                                                <Grid Margin="0,0,6,0">
+                                                    <Button x:Name="BtnDocEmojiTrigger" Click="BtnDocEmoji_Click" ToolTip="Insert Emoji Pack"
+                                                            Padding="10,4" Background="#161B22" Foreground="#F59E0B" BorderBrush="#2F3336" BorderThickness="1"
+                                                            Cursor="Hand">
+                                                        <Button.Resources>
+                                                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
+                                                        </Button.Resources>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="😊 " FontSize="12"/>
+                                                            <TextBlock Text="Emoji" FontSize="12" FontWeight="SemiBold"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                    <Popup x:Name="DocEmojiPopup" PlacementTarget="{Binding ElementName=BtnDocEmojiTrigger}"
+                                                           Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+                                                        <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="10" Padding="12" Width="320" Margin="0,6,0,0">
+                                                            <Border.Effect>
+                                                                <DropShadowEffect Color="#000000" BlurRadius="16" ShadowDepth="4" Opacity="0.5"/>
+                                                            </Border.Effect>
+                                                            <StackPanel>
+                                                                <!-- Windows Native Emoji Picker Button -->
+                                                                <Button Click="BtnOpenWindowsEmojiPicker_Click"
+                                                                        Padding="10,6" Margin="0,0,0,10"
+                                                                        Background="#1A3B5C" Foreground="#1D9BF0" BorderBrush="#1D9BF0" BorderThickness="1"
+                                                                        Cursor="Hand" ToolTip="Launch native Windows 10/11 Emoji &amp; Symbol Picker (Win + .)">
+                                                                    <Button.Resources>
+                                                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
+                                                                    </Button.Resources>
+                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                        <TextBlock Text="🪟 " FontSize="13"/>
+                                                                        <TextBlock Text="Windows Emoji Picker (Win + .)" FontSize="12" FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                </Button>
+
+                                                                <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
+                                                                    <ItemsControl ItemsSource="{Binding EmojiCategories}">
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <StackPanel Margin="0,0,0,8">
+                                                                                <TextBlock Text="{Binding Name, StringFormat='{}{0}'}" FontSize="11" FontWeight="Bold" Foreground="#8B949E" Margin="2,0,0,4"/>
+                                                                                <ItemsControl ItemsSource="{Binding Emojis}">
+                                                                                    <ItemsControl.ItemsPanel>
+                                                                                        <ItemsPanelTemplate>
+                                                                                            <WrapPanel Orientation="Horizontal"/>
+                                                                                        </ItemsPanelTemplate>
+                                                                                    </ItemsControl.ItemsPanel>
+                                                                                    <ItemsControl.ItemTemplate>
+                                                                                        <DataTemplate>
+                                                                                            <Button Content="{Binding}" Click="BtnDocEmojiItem_Click"
+                                                                                                    Width="30" Height="30" FontSize="14" Margin="2"
+                                                                                                    Background="#0D1117" BorderBrush="#21262D" BorderThickness="1"
+                                                                                                    Cursor="Hand">
+                                                                                                <Button.Resources>
+                                                                                                    <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
+                                                                                                </Button.Resources>
+                                                                                            </Button>
+                                                                                        </DataTemplate>
+                                                                                    </ItemsControl.ItemTemplate>
+                                                                                </ItemsControl>
+                                                                            </StackPanel>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </ScrollViewer>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </Popup>
+                                                </Grid>
+
                                                 <!-- Paste into Canvas (Ctrl+V) -->
-                                                <Button Click="BtnPasteIntoDoc_Click" ToolTip="Paste text, image, or GIF directly from clipboard"
+                                                <Button Click="BtnPasteIntoDoc_Click" ToolTip="Paste text, Word image, or GIF directly from clipboard"
                                                         Padding="10,4" Background="#1A3B5C" Foreground="#1D9BF0" BorderBrush="#1D9BF0" BorderThickness="1"
                                                         Cursor="Hand">
                                                     <Button.Resources>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="CornerRadius" Value="4"/>
-                                                        </Style>
+                                                        <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="📋 " FontSize="12"/>
@@ -1925,7 +2222,7 @@
                                                 </Button>
                                             </StackPanel>
 
-                                            <!-- Author & Tags Inline Configuration (Right side of ribbon) -->
+                                            <!-- Author & Tags Inline -->
                                             <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="Author: " FontSize="11" Foreground="#6E7681" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                                 <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
@@ -1941,19 +2238,59 @@
                                             </StackPanel>
                                         </Grid>
                                     </Border>
+
+                                    <!-- B. Thread Studio Defaults Bar -->
+                                    <Border Grid.Row="1" Visibility="{Binding IsThreadModeActive, Converter={StaticResource BoolToVis}}"
+                                            Background="#12161F" BorderBrush="#21262D" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,8,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="Default Author: " FontSize="11.5" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,10,0">
+                                                    <TextBox Text="{Binding CanvasDefaultAuthor, UpdateSourceTrigger=PropertyChanged}"
+                                                             Background="Transparent" BorderThickness="0" Foreground="#E7E9EA" FontSize="12" MinWidth="110" CaretBrush="#1D9BF0"/>
+                                                </Border>
+
+                                                <TextBlock Text="Handle: " FontSize="11.5" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,10,0">
+                                                    <TextBox Text="{Binding CanvasDefaultHandle, UpdateSourceTrigger=PropertyChanged}"
+                                                             Background="Transparent" BorderThickness="0" Foreground="#8B949E" FontSize="12" MinWidth="100" CaretBrush="#1D9BF0"/>
+                                                </Border>
+
+                                                <TextBlock Text="Tags: " FontSize="11.5" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                                    <TextBox Text="{Binding CanvasDefaultTags, UpdateSourceTrigger=PropertyChanged}"
+                                                             Background="Transparent" BorderThickness="0" Foreground="#1D9BF0" FontSize="12" MinWidth="120" CaretBrush="#1D9BF0"/>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Border Background="#1A3B5C" CornerRadius="6" Padding="8,3">
+                                                    <TextBlock Text="{Binding CanvasThreadNodes.Count, StringFormat='{}{0} Steps in Thread'}"
+                                                               FontSize="11.5" FontWeight="SemiBold" Foreground="#1D9BF0"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
                                 </Grid>
                             </Border>
 
-                            <!-- 2. Word Document Desk & Page Canvas -->
-                            <ScrollViewer Grid.Row="1" Background="#0C1017" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Padding="20,24">
-                                <!-- Microsoft Word "Page Sheet" (Crisp elevated container) -->
+                            <!-- 2. Workspace: Word Document Paper Canvas OR Thread Studio Sequential Nodes -->
+                            <!-- WORKSPACE A: Word Document Page Sheet -->
+                            <ScrollViewer Grid.Row="1" Background="#0C1017" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Padding="20,24"
+                                          Visibility="{Binding IsThreadModeActive, Converter={StaticResource InverseBoolToVis}}">
                                 <Border MaxWidth="860" MinHeight="720" HorizontalAlignment="Center" VerticalAlignment="Top"
                                         Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="10"
                                         Margin="0,0,0,40">
                                     <Border.Effect>
                                         <DropShadowEffect Color="#000000" BlurRadius="24" ShadowDepth="4" Opacity="0.45"/>
                                     </Border.Effect>
-                                    
+
                                     <!-- Rich Document Canvas -->
                                     <RichTextBox x:Name="DocRichTextBox"
                                                  Background="Transparent"
@@ -1961,13 +2298,13 @@
                                                  Foreground="#E7E9EA"
                                                  CaretBrush="#1D9BF0"
                                                  FontSize="14.5"
-                                                 FontFamily="Segoe UI, Segoe UI Emoji, Arial"
+                                                 FontFamily="{StaticResource TweetContentFontFamily}"
                                                  Padding="32,28"
                                                  AcceptsTab="True"
                                                  AcceptsReturn="True"
                                                  VerticalScrollBarVisibility="Disabled"
                                                  IsDocumentEnabled="True">
-                                        <FlowDocument PagePadding="0" FontFamily="Segoe UI, Segoe UI Emoji, Arial" FontSize="14.5" Foreground="#E7E9EA">
+                                        <FlowDocument PagePadding="0" FontFamily="{StaticResource TweetContentFontFamily}" FontSize="14.5" Foreground="#E7E9EA">
                                             <Paragraph Margin="0,0,0,10">
                                                 <Run Text=""/>
                                             </Paragraph>
@@ -1976,10 +2313,175 @@
                                 </Border>
                             </ScrollViewer>
 
+                            <!-- WORKSPACE B: Thread Maker Studio Sequential Nodes -->
+                            <ScrollViewer Grid.Row="1" Background="#0A0D13" VerticalScrollBarVisibility="Auto" Padding="24,20"
+                                          Visibility="{Binding IsThreadModeActive, Converter={StaticResource BoolToVis}}">
+                                <StackPanel MaxWidth="820" HorizontalAlignment="Center">
+                                    <!-- Empty State Banner -->
+                                    <Border Visibility="{Binding CanvasThreadNodes.Count, Converter={StaticResource InverseBoolToVis}}"
+                                            Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="12" Padding="32" Margin="0,20,0,0">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="🧵" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                                            <TextBlock Text="Thread Studio is Empty" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                                            <TextBlock Text="Compose or paste a connected sequence of tweets. Each step will be linked in order." FontSize="13" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <Button Command="{Binding AddEmptyCanvasNodeCommand}" Padding="16,8" Background="#1D9BF0" Foreground="#FFFFFF" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="0,0,12,0">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                                    <TextBlock Text="➕ Add First Step" FontSize="13"/>
+                                                </Button>
+                                                <Button Command="{Binding PasteToCanvasCommand}" Padding="16,8" Background="#212836" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1" FontWeight="SemiBold" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                                    <TextBlock Text="📋 Paste from Clipboard" FontSize="13"/>
+                                                </Button>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Sequential Nodes List -->
+                                    <ItemsControl ItemsSource="{Binding CanvasThreadNodes}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type models:ThreadNode}">
+                                                <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,0,0,16">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="2" Opacity="0.3"/>
+                                                    </Border.Effect>
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/> <!-- Step Header (Number, Reorder, Delete) -->
+                                                            <RowDefinition Height="Auto"/> <!-- Content TextBox -->
+                                                            <RowDefinition Height="Auto"/> <!-- Emoji Palette Quick Bar -->
+                                                            <RowDefinition Height="Auto"/> <!-- Attached Media Previews -->
+                                                            <RowDefinition Height="Auto"/> <!-- Node Footer (+ Attach Media) -->
+                                                        </Grid.RowDefinitions>
+
+                                                        <!-- 1. Step Header -->
+                                                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <!-- Step Number Pill -->
+                                                            <Border Grid.Column="0" Background="#1A3B5C" CornerRadius="6" Padding="10,4" Margin="0,0,10,0">
+                                                                <TextBlock Text="{Binding StepNumber, StringFormat='Step #{0}'}" FontSize="12" FontWeight="Bold" Foreground="#1D9BF0"/>
+                                                            </Border>
+
+                                                            <!-- Author & Handle for this node -->
+                                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding AuthorName}" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,6,0"/>
+                                                                <TextBlock Text="{Binding AuthorHandle}" FontSize="11.5" Foreground="#8B949E"/>
+                                                            </StackPanel>
+
+                                                            <!-- Reorder (Up/Down) and Delete Actions -->
+                                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <!-- Move Up -->
+                                                                <Button Command="{Binding DataContext.MoveNodeUpCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        CommandParameter="{Binding}" ToolTip="Move Step Up"
+                                                                        Background="#212836" Foreground="#8B949E" BorderThickness="0" Width="26" Height="26" Cursor="Hand" Margin="0,0,4,0">
+                                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                                    <TextBlock Text="▲" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Button>
+                                                                <!-- Move Down -->
+                                                                <Button Command="{Binding DataContext.MoveNodeDownCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        CommandParameter="{Binding}" ToolTip="Move Step Down"
+                                                                        Background="#212836" Foreground="#8B949E" BorderThickness="0" Width="26" Height="26" Cursor="Hand" Margin="0,0,8,0">
+                                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                                    <TextBlock Text="▼" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Button>
+                                                                <!-- Delete Step -->
+                                                                <Button Command="{Binding DataContext.RemoveCanvasNodeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        CommandParameter="{Binding}" ToolTip="Delete Step"
+                                                                        Background="#332B1818" Foreground="#F87171" BorderBrush="#66DC2626" BorderThickness="1" Width="26" Height="26" Cursor="Hand">
+                                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                                    <TextBlock Text="✕" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Button>
+                                                            </StackPanel>
+                                                        </Grid>
+
+                                                        <!-- 2. Content TextBox -->
+                                                        <Border Grid.Row="1" Background="#0D1117" BorderBrush="#21262D" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                                            <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                                                     Background="Transparent" BorderThickness="0" Foreground="#FFFFFF"
+                                                                     FontSize="14" AcceptsReturn="True" TextWrapping="Wrap"
+                                                                     MinHeight="85" CaretBrush="#1D9BF0"
+                                                                     FontFamily="{StaticResource TweetContentFontFamily}"/>
+                                                        </Border>
+
+                                                        <!-- 3. Quick Emoji Palette Bar -->
+                                                        <Border Grid.Row="2" Background="#11151C" BorderBrush="#1C212A" BorderThickness="1" CornerRadius="6" Padding="6,3" Margin="0,0,0,8">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <TextBlock Text="Emojis:" FontSize="10.5" Foreground="#8B949E" VerticalAlignment="Center" Margin="2,0,6,0"/>
+                                                                <Button Content="🔥" Command="{Binding InsertEmojiCommand}" CommandParameter="🔥" Width="24" Height="22" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                                                <Button Content="🚀" Command="{Binding InsertEmojiCommand}" CommandParameter="🚀" Width="24" Height="22" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                                                <Button Content="💡" Command="{Binding InsertEmojiCommand}" CommandParameter="💡" Width="24" Height="22" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                                                <Button Content="🧵" Command="{Binding InsertEmojiCommand}" CommandParameter="🧵" Width="24" Height="22" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                                                <Button Content="✅" Command="{Binding InsertEmojiCommand}" CommandParameter="✅" Width="24" Height="22" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                                                <Button Content="❤️" Command="{Binding InsertEmojiCommand}" CommandParameter="❤️" Width="24" Height="22" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                                                <Button Content="💻" Command="{Binding InsertEmojiCommand}" CommandParameter="💻" Width="24" Height="22" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                                                <Button Content="📌" Command="{Binding InsertEmojiCommand}" CommandParameter="📌" Width="24" Height="22" Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+                                                                <Button Content="🪟 Win + ." Click="BtnNodeWindowsEmojiPicker_Click" ToolTip="Open Windows Built-in Emoji &amp; Symbol Picker (Win + .)"
+                                                                        Padding="6,1" Margin="8,0,0,0" Background="#161B22" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
+                                                                        FontSize="10.5" FontWeight="SemiBold" Cursor="Hand">
+                                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                                </Button>
+                                                            </StackPanel>
+                                                        </Border>
+
+                                                        <!-- 4. Attached Media Previews -->
+                                                        <ItemsControl Grid.Row="3" ItemsSource="{Binding AttachedImagePaths}"
+                                                                      Visibility="{Binding HasAttachedImages, Converter={StaticResource BoolToVis}}"
+                                                                      Margin="0,0,0,8">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Border Background="#0D1117" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="8" Margin="0,0,8,8" Width="90" Height="90" ClipToBounds="True">
+                                                                        <Grid>
+                                                                            <Image Source="{Binding}" Stretch="UniformToFill"/>
+                                                                            <!-- Delete Media Button -->
+                                                                            <Button Command="{Binding DataContext.RemoveMediaItemCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                    CommandParameter="{Binding}"
+                                                                                    HorizontalAlignment="Right" VerticalAlignment="Top" Margin="3"
+                                                                                    Width="20" Height="20" Background="#CC000000" Foreground="#F87171" BorderThickness="0" Cursor="Hand">
+                                                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="10"/></Style></Button.Resources>
+                                                                                <TextBlock Text="✕" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            </Button>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+
+                                                        <!-- 5. Node Footer (+ Attach Media Button) -->
+                                                        <Grid Grid.Row="4">
+                                                            <Button Command="{Binding DataContext.AddMediaToNodeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}" ToolTip="Attach Image, JFIF, GIF or Video to this step"
+                                                                    Padding="10,4" Background="#212836" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
+                                                                    HorizontalAlignment="Left" Cursor="Hand">
+                                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="🖼️+ " FontSize="11" Margin="0,0,4,0"/>
+                                                                    <TextBlock Text="Attach Media" FontSize="11.5" FontWeight="SemiBold"/>
+                                                                </StackPanel>
+                                                            </Button>
+
+                                                            <TextBlock Text="{Binding Content.Length, StringFormat='{}{0} chars'}"
+                                                                       FontSize="11" Foreground="#6E7681" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </ScrollViewer>
+
                             <!-- 3. Bottom Status Bar -->
                             <Border Grid.Row="2" Background="#0A0D13" BorderBrush="#1C212A" BorderThickness="0,1,0,0" Padding="16,8">
                                 <Grid>
-                                    <TextBlock Text="💡 Word Canvas: Supports rich formatted text, inline images, animated GIFs, and videos. Click 'Save &amp; Archive Post' to store offline."
+                                    <TextBlock Text="💡 Studio: Supports Word document rich canvas with native pasted images, and multi-step sequential Twitter threads."
                                                FontSize="11.5" Foreground="#8B949E"/>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="Offline ESE Windows Engine" FontSize="11" Foreground="#10B981" FontWeight="SemiBold"/>
@@ -2018,9 +2520,7 @@
                                             Background="#161B22" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
                                             Cursor="Hand">
                                         <Button.Resources>
-                                            <Style TargetType="Border">
-                                                <Setter Property="CornerRadius" Value="6"/>
-                                            </Style>
+                                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
                                         </Button.Resources>
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="⤢" FontSize="11" Margin="0,0,4,0"/>
@@ -2051,7 +2551,33 @@
                                 </StackPanel>
                             </Grid>
 
-                            <!-- 2. Date -->
+                            <!-- 2. Folder (with quick Move to Folder ComboBox) -->
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Folder" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="{StaticResource BadgeBgBrush}" CornerRadius="6" Padding="8,3" BorderBrush="#30363D" BorderThickness="1" Margin="0,0,8,0">
+                                        <TextBlock Text="{Binding SelectedPost.FolderName}" FontSize="12" FontWeight="SemiBold" Foreground="#1D9BF0"/>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- 3. Notes / Comment (Optional) -->
+                            <Grid Margin="0,0,0,14" Visibility="{Binding SelectedPost.HasComment, Converter={StaticResource BoolToVis}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Comment" FontSize="12" Foreground="#F0883E" VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                <Border Grid.Column="1" Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="8" Padding="10,7">
+                                    <TextBlock Text="{Binding SelectedPost.Comment}" FontSize="12.5" LineHeight="17" Foreground="#F0883E" TextWrapping="Wrap"/>
+                                </Border>
+                            </Grid>
+
+                            <!-- 4. Date -->
                             <Grid Margin="0,0,0,14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="70"/>
@@ -2061,7 +2587,7 @@
                                 <TextBlock Grid.Column="1" Text="{Binding SelectedPost.FormattedDate}" FontSize="12.5" Foreground="#E7E9EA" VerticalAlignment="Center"/>
                             </Grid>
 
-                            <!-- 3. Local Path -->
+                            <!-- 5. Local Path -->
                             <Grid Margin="0,0,0,16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="70"/>
@@ -2072,7 +2598,7 @@
                                            TextTrimming="CharacterEllipsis" ToolTip="{Binding SelectedPost.FolderPath}" VerticalAlignment="Center"/>
                             </Grid>
 
-                            <!-- 4. Tags List -->
+                            <!-- 6. Tags List -->
                             <Grid Margin="0,0,0,24">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="70"/>
@@ -2082,9 +2608,7 @@
                                 
                                 <ItemsControl Grid.Column="1" ItemsSource="{Binding SelectedPost.TagList}">
                                     <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel Orientation="Horizontal"/>
-                                        </ItemsPanelTemplate>
+                                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -2104,11 +2628,11 @@
 
                             <!-- Action Buttons -->
                             <StackPanel Margin="0,10,0,0">
-                                <!-- Open Theater Button (Cyan) -->
+                                <!-- Open Theater Button — Ghost/Outline Style -->
                                 <Button Style="{StaticResource InspectorActionButton}"
                                         Command="{Binding OpenTheaterModeCommand}"
                                         CommandParameter="{Binding SelectedPost}"
-                                        Background="#1D9BF0" Foreground="#FFFFFF" BorderThickness="0">
+                                        Background="Transparent" Foreground="#1D9BF0" BorderBrush="#1D9BF0" BorderThickness="1">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="⤢ " FontSize="13"/>
                                         <TextBlock Text="Open Split Media View"/>
@@ -2131,11 +2655,11 @@
                                         CommandParameter="{Binding SelectedPost}">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="✏️ " FontSize="12"/>
-                                        <TextBlock Text="Edit Post Content"/>
+                                        <TextBlock Text="Edit Post &amp; Media"/>
                                     </StackPanel>
                                 </Button>
 
-                                <!-- Delete Entry Button (Red) -->
+                                <!-- Delete Entry Button — dim gray, red on hover -->
                                 <Button Command="{Binding DeletePostCommand}"
                                         CommandParameter="{Binding SelectedPost}"
                                         Height="40" Margin="0,6,0,0" Cursor="Hand">
@@ -2145,14 +2669,16 @@
                                                     BorderBrush="Transparent" BorderThickness="1"
                                                     CornerRadius="8" Padding="14,0">
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <TextBlock Text="🗑️ " FontSize="12" Foreground="#F87171"/>
-                                                    <TextBlock Text="Delete Entry" FontSize="13" FontWeight="SemiBold" Foreground="#F87171"/>
+                                                    <TextBlock x:Name="delIcon" Text="🗑️ " FontSize="12" Foreground="#6E7681"/>
+                                                    <TextBlock x:Name="delText" Text="Delete Entry (Del)" FontSize="13" FontWeight="SemiBold" Foreground="#6E7681"/>
                                                 </StackPanel>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter TargetName="btnBorder" Property="Background" Value="#332B1818"/>
                                                     <Setter TargetName="btnBorder" Property="BorderBrush" Value="#66DC2626"/>
+                                                    <Setter TargetName="delIcon" Property="Foreground" Value="#F87171"/>
+                                                    <Setter TargetName="delText" Property="Foreground" Value="#F87171"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -2198,18 +2724,20 @@
                             <Border Visibility="{Binding IsTheaterMediaVideo, Converter={StaticResource InverseBoolToVis}}"
                                     Padding="40">
                                 <Image Source="{Binding CurrentTheaterMedia.FilePath}"
-                                       Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                       Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Border>
 
                             <!-- VIDEO PLAYER (When media is Video) -->
                             <Grid Visibility="{Binding IsTheaterMediaVideo, Converter={StaticResource BoolToVis}}">
-                                <!-- Media Element Video Player -->
+                                <!-- Media Element Video Player with HighQuality rendering -->
                                 <MediaElement x:Name="TheaterVideoPlayer"
                                               Source="{Binding CurrentTheaterMedia.FilePath}"
                                               LoadedBehavior="Manual"
                                               UnloadedBehavior="Close"
                                               ScrubbingEnabled="True"
                                               Stretch="Uniform"
+                                              RenderOptions.BitmapScalingMode="HighQuality"
                                               HorizontalAlignment="Center" VerticalAlignment="Center"
                                               MediaOpened="TheaterVideoPlayer_MediaOpened"
                                               MediaEnded="TheaterVideoPlayer_MediaEnded"/>
@@ -2365,12 +2893,23 @@
                                     <!-- Tweet Body Text (Large, Selectable) -->
                                     <TextBlock Text="{Binding TheaterPost.Content}"
                                                FontSize="15" LineHeight="24" Foreground="#E7E9EA"
-                                               TextWrapping="Wrap" Margin="0,0,0,20"/>
+                                               TextWrapping="Wrap" Margin="0,0,0,16"
+                                               FontFamily="{StaticResource TweetContentFontFamily}"/>
+
+                                    <!-- Notes / Comment in Theater (if present) -->
+                                    <Border Visibility="{Binding TheaterPost.HasComment, Converter={StaticResource BoolToVis}}"
+                                            Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="8"
+                                            Padding="12,8" Margin="0,0,0,16">
+                                        <StackPanel>
+                                            <TextBlock Text="💬 NOTE / COMMENT" FontSize="10" FontWeight="Bold" Foreground="#F0883E" Margin="0,0,0,4"/>
+                                            <TextBlock Text="{Binding TheaterPost.Comment}" FontSize="12.5" LineHeight="18" Foreground="#F0883E" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
 
                                     <!-- Formatted Date Timestamp (Twitter style) -->
                                     <Border BorderBrush="#1C212A" BorderThickness="0,1,0,1" Padding="0,12" Margin="0,0,0,16">
                                         <TextBlock Text="{Binding TheaterPost.FormattedDate, StringFormat='{}{0} · Local Offline Archive'}"
-                                                   FontSize="12.5" Foreground="#8B949E"/>
+                                                    FontSize="12.5" Foreground="#8B949E"/>
                                     </Border>
 
                                     <!-- Tags Pill Chips -->

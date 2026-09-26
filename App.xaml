@@ -20,6 +20,12 @@
         <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E7E9EA"/>
         <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8B949E"/>
 
+        <!-- Default UI Font Family (system fonts for icons and chrome) -->
+        <FontFamily x:Key="DefaultAppFontFamily">Segoe UI Variable Text, Segoe UI, Segoe UI Emoji, sans-serif</FontFamily>
+
+        <!-- Twemoji Font Family for tweet/post content text rendering -->
+        <FontFamily x:Key="TweetContentFontFamily">pack://application:,,,/Resources/Fonts/#Twemoji Mozilla, Segoe UI Variable Text, Segoe UI Emoji, Segoe UI, sans-serif</FontFamily>
+
         <!-- Universal Dark ComboBox Item Style -->
         <Style x:Key="UniversalDarkComboBoxItem" TargetType="ComboBoxItem">
             <Setter Property="Background" Value="#161B22"/>

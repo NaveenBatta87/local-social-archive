@@ -23,11 +23,30 @@ public class MediaItem
     public bool IsVideo => string.Equals(MediaType, "Video", StringComparison.OrdinalIgnoreCase) || IsVideoExtension(FilePath);
     public bool IsImage => !IsVideo;
 
+    public string? DisplayThumbnail
+    {
+        get
+        {
+            if (IsVideo && !string.IsNullOrWhiteSpace(ThumbnailPath) && File.Exists(ThumbnailPath))
+            {
+                return ThumbnailPath;
+            }
+            return FilePath;
+        }
+    }
+
     public static bool IsVideoExtension(string? path)
     {
         if (string.IsNullOrWhiteSpace(path)) return false;
         var ext = Path.GetExtension(path).ToLowerInvariant();
         return ext is ".mp4" or ".webm" or ".mov" or ".mkv" or ".avi" or ".m4v" or ".wmv" or ".flv";
+    }
+
+    public static bool IsImageExtension(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        var ext = Path.GetExtension(path).ToLowerInvariant();
+        return ext is ".png" or ".jpg" or ".jpeg" or ".jfif" or ".jif" or ".webp" or ".bmp" or ".gif";
     }
 
     private static string ResolvePath(string rawPath)

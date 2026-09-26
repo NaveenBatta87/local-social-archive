@@ -16,4 +16,10 @@ public partial class EditPostWindow : Window
             Close();
         };
     }
+
+    private void BtnWindowsEmojiPicker_Click(object sender, RoutedEventArgs e)
+    {
+        TxtContent.Focus();
+        Helpers.EmojiPacks.OpenWindowsEmojiPicker();
+    }
 }

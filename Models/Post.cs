@@ -12,6 +12,8 @@ public class Post
     public DateTime PostDate { get; set; } = DateTime.Now;
     public string FolderName { get; set; } = "Coding";
     public string Tags { get; set; } = string.Empty;
+    public string? Comment { get; set; }
+    public bool HasComment => !string.IsNullOrWhiteSpace(Comment);
     
     private string _folderPath = string.Empty;
     public string FolderPath
@@ -65,6 +67,11 @@ public class Post
     public string? SecondaryImage => SecondaryMedia?.FilePath;
     public string? ThirdImage => ThirdMedia?.FilePath;
     public string? FourthImage => FourthMedia?.FilePath;
+
+    public string? PrimaryThumbnail => PrimaryMedia?.DisplayThumbnail ?? PrimaryMedia?.FilePath;
+    public string? SecondaryThumbnail => SecondaryMedia?.DisplayThumbnail ?? SecondaryMedia?.FilePath;
+    public string? ThirdThumbnail => ThirdMedia?.DisplayThumbnail ?? ThirdMedia?.FilePath;
+    public string? FourthThumbnail => FourthMedia?.DisplayThumbnail ?? FourthMedia?.FilePath;
 
     public bool HasVideo => MediaItems.Any(m => m.IsVideo);
     public bool PrimaryIsVideo => PrimaryMedia?.IsVideo ?? false;

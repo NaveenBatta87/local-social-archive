@@ -23,7 +23,28 @@ public partial class MainViewModel : ObservableObject
     private ObservableCollection<Post> _posts = new();
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmptyFeed))]
     private ObservableCollection<Post> _filteredPosts = new();
+
+    public bool IsEmptyFeed => FilteredPosts == null || FilteredPosts.Count == 0;
+
+    partial void OnFilteredPostsChanged(ObservableCollection<Post>? oldValue, ObservableCollection<Post> newValue)
+    {
+        if (oldValue != null)
+        {
+            oldValue.CollectionChanged -= FilteredPosts_CollectionChanged;
+        }
+        if (newValue != null)
+        {
+            newValue.CollectionChanged += FilteredPosts_CollectionChanged;
+        }
+        OnPropertyChanged(nameof(IsEmptyFeed));
+    }
+
+    private void FilteredPosts_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(IsEmptyFeed));
+    }
 
     [ObservableProperty]
     private Post? _selectedPost;
@@ -117,6 +138,19 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _canvasDefaultTags = "#thread #offline";
 
+    [ObservableProperty]
+    private string _canvasMode = "Doc"; // "Doc" or "Thread"
+
+    [ObservableProperty]
+    private bool _isThreadModeActive;
+
+    public List<Helpers.EmojiCategory> EmojiCategories => Helpers.EmojiPacks.Categories;
+
+    partial void OnCanvasModeChanged(string value)
+    {
+        IsThreadModeActive = string.Equals(value, "Thread", StringComparison.OrdinalIgnoreCase);
+    }
+
     // ========== THEATER MODE (Twitter-style Split Screen: Left Media / Right Text) ==========
     [ObservableProperty]
     private bool _isTheaterModeOpen;
@@ -148,6 +182,8 @@ public partial class MainViewModel : ObservableObject
         string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         string baseDir = Path.Combine(userDocs, "LocalSocialArchive");
         _configFilePath = Path.Combine(baseDir, "collections_config.json");
+
+        _filteredPosts.CollectionChanged += FilteredPosts_CollectionChanged;
 
         InitializeHierarchy();
     }
@@ -1323,7 +1359,8 @@ public partial class MainViewModel : ObservableObject
                 newVm.Content,
                 newVm.FolderName,
                 newVm.Tags,
-                newVm.AttachedImagePaths
+                newVm.AttachedImagePaths,
+                string.IsNullOrWhiteSpace(newVm.Comment) ? null : newVm.Comment.Trim()
             );
 
             if (post != null)
@@ -1334,6 +1371,64 @@ public partial class MainViewModel : ObservableObject
                 SelectedPost = post;
                 StatusMessage = $"Archived tweet by {post.AuthorName} successfully!";
             }
+        }
+    }
+
+    [RelayCommand]
+    public async Task MovePostToFolderAsync(object? parameter)
+    {
+        Post? targetPost = null;
+        string? targetFolder = null;
+
+        if (parameter is object[] arr && arr.Length == 2)
+        {
+            targetPost = arr[0] as Post;
+            targetFolder = arr[1]?.ToString();
+        }
+        else if (parameter is Post p)
+        {
+            targetPost = p;
+        }
+        else if (parameter is string folder)
+        {
+            targetPost = SelectedPost ?? TheaterPost;
+            targetFolder = folder;
+        }
+
+        if (targetPost == null) targetPost = SelectedPost ?? TheaterPost;
+        if (targetPost == null) return;
+
+        if (string.IsNullOrWhiteSpace(targetFolder))
+        {
+            var available = Folders.Where(f => f.Name != "All Posts" && f.Name != targetPost.FolderName).Select(f => f.Name).ToList();
+            if (available.Count == 0) return;
+            targetFolder = available[0];
+        }
+
+        targetPost.FolderName = targetFolder;
+        await _dbService.UpdatePostAsync(targetPost);
+        await UpdateCountsAndSizeAsync();
+        ApplyFilter();
+        StatusMessage = $"Moved post by {targetPost.AuthorName} to folder '{targetFolder}'.";
+    }
+
+    [RelayCommand]
+    public void SetCanvasMode(string? mode)
+    {
+        if (string.IsNullOrWhiteSpace(mode)) return;
+        CanvasMode = mode;
+        IsThreadModeActive = string.Equals(mode, "Thread", StringComparison.OrdinalIgnoreCase);
+        StatusMessage = IsThreadModeActive
+            ? "Thread Maker Studio — Step-by-step sequential tweet thread composer."
+            : "Word Document Canvas — Rich formatted document note with media embedding.";
+    }
+
+    [RelayCommand]
+    public void InsertEmojiToNode(object? parameter)
+    {
+        if (parameter is object[] arr && arr.Length == 2 && arr[0] is ThreadNode node && arr[1] is string emoji)
+        {
+            node.Content = (node.Content ?? string.Empty) + emoji;
         }
     }
 
@@ -1363,7 +1458,9 @@ public partial class MainViewModel : ObservableObject
             CanvasSelectedFolder = SelectedFolder.Name;
         }
 
-        StatusMessage = "Word Canvas Studio — Hold images, text, GIFs, and videos like Microsoft Word.";
+        StatusMessage = IsThreadModeActive
+            ? "Thread Maker Studio — Step-by-step sequential tweet thread composer."
+            : "Word Canvas Studio — Hold images, text, GIFs, and videos like Microsoft Word.";
     }
 
     public async Task<Post?> ArchiveWordDocumentAsync(string title, string folder, string authorName, string authorHandle, string tags, string content, List<string> mediaPaths)

@@ -17,6 +17,9 @@ public partial class NewTweetViewModel : ObservableObject
     private string _content = string.Empty;
 
     [ObservableProperty]
+    private string _comment = string.Empty;
+
+    [ObservableProperty]
     private string _folderName = "Coding";
 
     [ObservableProperty]
@@ -63,8 +66,8 @@ public partial class NewTweetViewModel : ObservableObject
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Select Media Attachments (Images & Videos)",
-            Filter = "All Supported Media|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.gif;*.mp4;*.webm;*.mov;*.mkv;*.avi;*.wmv|Video Files (*.mp4, *.webm, *.mov)|*.mp4;*.webm;*.mov;*.mkv;*.avi;*.wmv|Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.gif|All Files|*.*",
+            Title = "Select Media Attachments (Images, GIFs & Videos)",
+            Filter = "All Supported Media|*.png;*.jpg;*.jpeg;*.jfif;*.jif;*.bmp;*.webp;*.gif;*.mp4;*.webm;*.mov;*.mkv;*.avi;*.wmv|Image Files (*.png, *.jpg, *.jfif, *.webp, *.gif)|*.png;*.jpg;*.jpeg;*.jfif;*.jif;*.bmp;*.webp;*.gif|Video Files (*.mp4, *.webm, *.mov)|*.mp4;*.webm;*.mov;*.mkv;*.avi;*.wmv|All Files|*.*",
             Multiselect = true
         };
 
@@ -90,11 +93,18 @@ public partial class NewTweetViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void InsertEmoji(string? emoji)
+    {
+        if (string.IsNullOrWhiteSpace(emoji)) return;
+        Content = (Content ?? string.Empty) + emoji;
+    }
+
+    [RelayCommand]
     private void Save()
     {
         if (string.IsNullOrWhiteSpace(Content) && AttachedImagePaths.Count == 0)
         {
-            System.Windows.MessageBox.Show("Please enter content or attach an image.", "Validation", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            System.Windows.MessageBox.Show("Please enter content or attach media.", "Validation", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
             return;
         }
 

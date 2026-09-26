@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using LocalSocialArchive.Helpers;
 using LocalSocialArchive.Models;
 using LocalSocialArchive.ViewModels;
 
@@ -30,6 +31,9 @@ public partial class MainWindow : Window
             Interval = TimeSpan.FromMilliseconds(250)
         };
         _videoTimer.Tick += VideoTimer_Tick;
+
+        // Intercept native paste in Word Canvas to handle DIBs (MS Word/Paint), browser PNGs, and dropped media
+        DataObject.AddPastingHandler(DocRichTextBox, OnDocRichTextBoxPasting);
 
         Loaded += async (s, e) =>
         {
@@ -205,12 +209,54 @@ public partial class MainWindow : Window
     }
 
     // ========== MICROSOFT WORD DOCUMENT CANVAS METHODS ==========
+    private void OnDocRichTextBoxPasting(object sender, DataObjectPastingEventArgs e)
+    {
+        try
+        {
+            // 1. Check if media files were pasted (images/videos/jfif/etc.)
+            var mediaFiles = ClipboardHelper.GetMediaFilesFromClipboard(e.DataObject);
+            if (mediaFiles.Count > 0)
+            {
+                e.CancelCommand();
+                e.Handled = true;
+                foreach (var file in mediaFiles)
+                {
+                    InsertMediaIntoFlowDocument(file);
+                }
+                return;
+            }
+
+            // 2. Check if an image or DIB (from MS Word, MS Paint, Chrome/Edge PNG) was pasted
+            var bmp = ClipboardHelper.GetImageFromClipboard(e.DataObject);
+            if (bmp != null)
+            {
+                e.CancelCommand();
+                e.Handled = true;
+
+                string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "CanvasStaging");
+                Directory.CreateDirectory(stagingDir);
+                string imgPath = Path.Combine(stagingDir, $"pasted_img_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.png");
+
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bmp));
+                using (var fs = File.Create(imgPath))
+                {
+                    encoder.Save(fs);
+                }
+                InsertMediaIntoFlowDocument(imgPath);
+                return;
+            }
+        }
+        catch { }
+    }
+
     private void BtnInsertImage_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new OpenFileDialog
         {
             Title = "Insert Image or GIF into Document",
-            Filter = "Images & GIFs (*.png;*.jpg;*.jpeg;*.gif;*.webp;*.bmp)|*.png;*.jpg;*.jpeg;*.gif;*.webp;*.bmp|All Files (*.*)|*.*",
+            Filter = "Images & GIFs (*.png;*.jpg;*.jpeg;*.jfif;*.jif;*.webp;*.bmp;*.gif)|*.png;*.jpg;*.jpeg;*.jfif;*.jif;*.webp;*.bmp;*.gif|All Files (*.*)|*.*",
             Multiselect = true
         };
 
@@ -228,7 +274,7 @@ public partial class MainWindow : Window
         var dlg = new OpenFileDialog
         {
             Title = "Insert Video into Document",
-            Filter = "Video Files (*.mp4;*.webm;*.avi;*.mov)|*.mp4;*.webm;*.avi;*.mov|All Files (*.*)|*.*",
+            Filter = "Video Files (*.mp4;*.webm;*.mov;*.mkv;*.avi;*.wmv)|*.mp4;*.webm;*.mov;*.mkv;*.avi;*.wmv|All Files (*.*)|*.*",
             Multiselect = true
         };
 
@@ -241,48 +287,73 @@ public partial class MainWindow : Window
         }
     }
 
+    private void BtnDocEmoji_Click(object sender, RoutedEventArgs e)
+    {
+        DocEmojiPopup.IsOpen = !DocEmojiPopup.IsOpen;
+    }
+
+    private void BtnOpenWindowsEmojiPicker_Click(object sender, RoutedEventArgs e)
+    {
+        DocEmojiPopup.IsOpen = false;
+        DocRichTextBox.Focus();
+        EmojiPacks.OpenWindowsEmojiPicker();
+    }
+
+    private void BtnNodeWindowsEmojiPicker_Click(object sender, RoutedEventArgs e)
+    {
+        EmojiPacks.OpenWindowsEmojiPicker();
+    }
+
+    private void BtnDocEmojiItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Content is string emoji)
+        {
+            if (DocRichTextBox.CaretPosition != null)
+            {
+                DocRichTextBox.CaretPosition.InsertTextInRun(emoji);
+            }
+            else
+            {
+                DocRichTextBox.AppendText(emoji);
+            }
+            DocEmojiPopup.IsOpen = false;
+            DocRichTextBox.Focus();
+        }
+    }
+
     private void BtnPasteIntoDoc_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            if (Clipboard.ContainsFileDropList())
+            var mediaFiles = ClipboardHelper.GetMediaFilesFromClipboard();
+            if (mediaFiles.Count > 0)
             {
-                var drop = Clipboard.GetFileDropList();
-                foreach (var f in drop)
+                foreach (var f in mediaFiles)
                 {
-                    if (!string.IsNullOrWhiteSpace(f) && File.Exists(f))
-                    {
-                        var ext = Path.GetExtension(f).ToLowerInvariant();
-                        if (ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp" or ".bmp" or ".mp4" or ".webm")
-                        {
-                            InsertMediaIntoFlowDocument(f);
-                        }
-                    }
+                    InsertMediaIntoFlowDocument(f);
                 }
+                return;
             }
-            else if (Clipboard.ContainsImage())
-            {
-                var img = Clipboard.GetImage();
-                if (img != null)
-                {
-                    string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "CanvasStaging");
-                    Directory.CreateDirectory(stagingDir);
-                    string imgPath = Path.Combine(stagingDir, $"pasted_img_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.png");
 
-                    var encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(img));
-                    using (var fs = File.Create(imgPath))
-                    {
-                        encoder.Save(fs);
-                    }
-                    InsertMediaIntoFlowDocument(imgPath);
-                }
-            }
-            else
+            var bmp = ClipboardHelper.GetImageFromClipboard();
+            if (bmp != null)
             {
-                DocRichTextBox.Paste();
+                string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "CanvasStaging");
+                Directory.CreateDirectory(stagingDir);
+                string imgPath = Path.Combine(stagingDir, $"pasted_img_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.png");
+
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bmp));
+                using (var fs = File.Create(imgPath))
+                {
+                    encoder.Save(fs);
+                }
+                InsertMediaIntoFlowDocument(imgPath);
+                return;
             }
+
+            DocRichTextBox.Paste();
         }
         catch
         {
