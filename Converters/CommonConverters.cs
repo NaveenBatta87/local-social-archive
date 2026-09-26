@@ -85,3 +85,20 @@ public class FileSizeFormatterConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+public class BoolToLockToggleTextConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool b)
+        {
+            return b ? "Disable Startup Lock" : "Enable Startup Lock";
+        }
+        return "Toggle Lock";
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

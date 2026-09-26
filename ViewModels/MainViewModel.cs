@@ -16,6 +16,7 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly IEseDatabaseService _dbService;
     private readonly IClipboardService _clipboardService;
+    private readonly ISecurityService _securityService;
     private readonly string _configFilePath;
 
     [ObservableProperty]
@@ -30,6 +31,15 @@ public partial class MainViewModel : ObservableObject
     // ========== TOP-LEVEL COLLECTIONS (Each contains a group of Folders) ==========
     [ObservableProperty]
     private ObservableCollection<CollectionGroup> _collections = new();
+
+    [ObservableProperty]
+    private ObservableCollection<CollectionGroup> _filteredCollections = new();
+
+    [ObservableProperty]
+    private ObservableCollection<FolderCategory> _matchedFolders = new();
+
+    [ObservableProperty]
+    private bool _hasMatchedFolders;
 
     [ObservableProperty]
     private CollectionGroup? _selectedCollection;
@@ -69,7 +79,13 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isGridView;
 
-    // ========== PANEL VISIBILITY (Inspector, Tags & Collections Hub) ==========
+    // ========== PANEL VISIBILITY (Sidebar, Inspector, Tags & Collections Hub) ==========
+    [ObservableProperty]
+    private bool _isSidebarExpanded = true;
+
+    [ObservableProperty]
+    private string _activeRailView = "Home"; // "Home", "Folders", "Canvas"
+
     [ObservableProperty]
     private bool _isInspectorVisible = true;
 
@@ -123,10 +139,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isTheaterMediaVideo;
 
-    public MainViewModel(IEseDatabaseService dbService, IClipboardService clipboardService)
+    public MainViewModel(IEseDatabaseService dbService, IClipboardService clipboardService, ISecurityService securityService)
     {
         _dbService = dbService;
         _clipboardService = clipboardService;
+        _securityService = securityService;
 
         string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         string baseDir = Path.Combine(userDocs, "LocalSocialArchive");
@@ -337,6 +354,7 @@ public partial class MainViewModel : ObservableObject
         }
 
         UpdateFilterDropdownOptions();
+        RefreshFilteredCollections();
     }
 
     private void UpdateFilterDropdownOptions()
@@ -628,31 +646,155 @@ public partial class MainViewModel : ObservableObject
         ApplyFilter();
     }
 
+    [RelayCommand]
+    public void ClearSearch()
+    {
+        SearchQuery = string.Empty;
+    }
+
+    private void RefreshFilteredCollections()
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            FilteredCollections = new ObservableCollection<CollectionGroup>(Collections);
+            MatchedFolders = new ObservableCollection<FolderCategory>();
+            HasMatchedFolders = false;
+            return;
+        }
+
+        string q = SearchQuery.Trim().ToLowerInvariant();
+        if (q.StartsWith("folder:", StringComparison.OrdinalIgnoreCase) || q.StartsWith("f:", StringComparison.OrdinalIgnoreCase))
+        {
+            q = q.Substring(q.IndexOf(':') + 1).Trim();
+        }
+
+        var matchedCols = new ObservableCollection<CollectionGroup>();
+        var matchingFolders = new List<FolderCategory>();
+
+        foreach (var col in Collections)
+        {
+            bool colMatches = (!string.IsNullOrWhiteSpace(col.Name) && col.Name.ToLowerInvariant().Contains(q)) ||
+                              (!string.IsNullOrWhiteSpace(col.Description) && col.Description.ToLowerInvariant().Contains(q));
+
+            var matchingFoldersInCol = col.Folders.Where(f =>
+                (!string.IsNullOrWhiteSpace(f.Name) && f.Name.ToLowerInvariant().Contains(q)) ||
+                (!string.IsNullOrWhiteSpace(f.Description) && f.Description.ToLowerInvariant().Contains(q)) ||
+                (!string.IsNullOrWhiteSpace(f.CollectionName) && f.CollectionName.ToLowerInvariant().Contains(q))
+            ).ToList();
+
+            foreach (var mf in matchingFoldersInCol)
+            {
+                if (!matchingFolders.Any(existing => string.Equals(existing.Name, mf.Name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    matchingFolders.Add(mf);
+                }
+            }
+
+            if (colMatches)
+            {
+                matchedCols.Add(new CollectionGroup
+                {
+                    Name = col.Name,
+                    IconGlyph = col.IconGlyph,
+                    Description = col.Description,
+                    AccentColor = col.AccentColor,
+                    IsExpanded = true,
+                    IsDeletable = col.IsDeletable,
+                    Folders = new ObservableCollection<FolderCategory>(col.Folders)
+                });
+            }
+            else if (matchingFoldersInCol.Count > 0)
+            {
+                matchedCols.Add(new CollectionGroup
+                {
+                    Name = col.Name,
+                    IconGlyph = col.IconGlyph,
+                    Description = col.Description,
+                    AccentColor = col.AccentColor,
+                    IsExpanded = true,
+                    IsDeletable = col.IsDeletable,
+                    Folders = new ObservableCollection<FolderCategory>(matchingFoldersInCol)
+                });
+            }
+        }
+
+        FilteredCollections = matchedCols;
+        MatchedFolders = new ObservableCollection<FolderCategory>(matchingFolders);
+        HasMatchedFolders = MatchedFolders.Count > 0;
+    }
+
     private void ApplyFilter()
     {
-        IEnumerable<Post> query = Posts;
+        RefreshFilteredCollections();
 
-        if (SelectedFolder != null && SelectedFolder.Name != "All Posts")
+        IEnumerable<Post> query = Posts;
+        string rawSearch = SearchQuery?.Trim() ?? string.Empty;
+
+        bool hasFolderPrefix = rawSearch.StartsWith("folder:", StringComparison.OrdinalIgnoreCase) ||
+                               rawSearch.StartsWith("f:", StringComparison.OrdinalIgnoreCase);
+
+        if (hasFolderPrefix)
         {
-            query = query.Where(p => string.Equals(p.FolderName, SelectedFolder.Name, StringComparison.OrdinalIgnoreCase));
+            string folderQ = rawSearch.Substring(rawSearch.IndexOf(':') + 1).Trim().ToLowerInvariant();
+            if (!string.IsNullOrEmpty(folderQ))
+            {
+                query = query.Where(p => !string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(folderQ));
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(rawSearch))
+        {
+            string q = rawSearch.ToLowerInvariant();
+
+            if (SelectedFolder != null && SelectedFolder.Name != "All Posts")
+            {
+                var inFolderQuery = query.Where(p => string.Equals(p.FolderName, SelectedFolder.Name, StringComparison.OrdinalIgnoreCase));
+                var inFolderFiltered = inFolderQuery.Where(p =>
+                    (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(q)) ||
+                    (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(q)) ||
+                    (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(q)) ||
+                    (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(q)) ||
+                    p.TagList.Any(t => t.ToLowerInvariant().Contains(q))
+                ).ToList();
+
+                if (inFolderFiltered.Count > 0)
+                {
+                    query = inFolderFiltered;
+                }
+                else
+                {
+                    // Search across all folders if none found in current folder
+                    query = query.Where(p =>
+                        (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(q)) ||
+                        (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(q)) ||
+                        (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(q)) ||
+                        (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(q)) ||
+                        p.TagList.Any(t => t.ToLowerInvariant().Contains(q))
+                    );
+                }
+            }
+            else
+            {
+                query = query.Where(p =>
+                    (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(q)) ||
+                    (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(q)) ||
+                    (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(q)) ||
+                    (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(q)) ||
+                    p.TagList.Any(t => t.ToLowerInvariant().Contains(q))
+                );
+            }
+        }
+        else
+        {
+            if (SelectedFolder != null && SelectedFolder.Name != "All Posts")
+            {
+                query = query.Where(p => string.Equals(p.FolderName, SelectedFolder.Name, StringComparison.OrdinalIgnoreCase));
+            }
         }
 
         if (SelectedTag != null)
         {
             string tagName = SelectedTag.Name.TrimStart('#').ToLowerInvariant();
             query = query.Where(p => p.TagList.Any(t => string.Equals(t, tagName, StringComparison.OrdinalIgnoreCase)));
-        }
-
-        if (!string.IsNullOrWhiteSpace(SearchQuery))
-        {
-            string q = SearchQuery.Trim().ToLowerInvariant();
-            query = query.Where(p =>
-                p.Content.ToLowerInvariant().Contains(q) ||
-                p.AuthorName.ToLowerInvariant().Contains(q) ||
-                p.AuthorHandle.ToLowerInvariant().Contains(q) ||
-                p.FolderName.ToLowerInvariant().Contains(q) ||
-                p.TagList.Any(t => t.ToLowerInvariant().Contains(q))
-            );
         }
 
         FilteredPosts = new ObservableCollection<Post>(query);
@@ -840,13 +982,30 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    // ========== SIDEBAR TOGGLE (VS Code Style Ctrl+B) ==========
+    [RelayCommand]
+    public void ToggleSidebar()
+    {
+        IsSidebarExpanded = !IsSidebarExpanded;
+    }
+
     // ========== NAVIGATION & HOME ==========
     [RelayCommand]
     public void NavigateHome()
     {
+        // If already on Home view and sidebar is open, clicking Home collapses the extended panel (VS Code behavior)
+        if (ActiveRailView == "Home" && !IsFoldersViewActive && !IsCanvasViewActive && IsSidebarExpanded)
+        {
+            IsSidebarExpanded = false;
+            return;
+        }
+
+        ActiveRailView = "Home";
+        IsSidebarExpanded = true;
         IsFoldersViewActive = false;
         IsCanvasViewActive = false;
-        if (Folders.Count > 0)
+
+        if (Folders.Count > 0 && (SelectedFolder == null || SelectedFolder.Name != "All Posts"))
         {
             SelectFolder(Folders[0]);
         }
@@ -868,8 +1027,18 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void ShowFoldersHub()
     {
+        // If already on Folders view and sidebar is open, clicking Folders Hub collapses the extended panel (VS Code behavior)
+        if (ActiveRailView == "Folders" && IsFoldersViewActive && IsSidebarExpanded)
+        {
+            IsSidebarExpanded = false;
+            return;
+        }
+
+        ActiveRailView = "Folders";
+        IsSidebarExpanded = true;
         IsFoldersViewActive = true;
         IsCanvasViewActive = false;
+
         if (IsTheaterModeOpen)
         {
             CloseTheaterMode();
@@ -915,7 +1084,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void OpenSettings()
     {
-        var settingsVm = new SettingsViewModel(_dbService, Folders, IsGridView, IsInspectorVisible, IsTagsVisible);
+        var settingsVm = new SettingsViewModel(_dbService, _securityService, Folders, IsGridView, IsInspectorVisible, IsTagsVisible);
         var settingsWin = new Views.SettingsWindow(settingsVm)
         {
             Owner = Application.Current.MainWindow
@@ -927,6 +1096,34 @@ public partial class MainViewModel : ObservableObject
             IsInspectorVisible = settingsVm.ShowInspectorByDefault;
             IsTagsVisible = settingsVm.ShowTagsByDefault;
             StatusMessage = "Settings updated.";
+        }
+    }
+
+    // ========== VAULT LOCK ==========
+    [RelayCommand]
+    public void LockVault()
+    {
+        if (!_securityService.HasPasswordSet)
+        {
+            var setPwdWin = new Views.SetPasswordWindow(_securityService)
+            {
+                Owner = Application.Current.MainWindow
+            };
+            if (setPwdWin.ShowDialog() != true) return;
+        }
+
+        var unlockWin = new Views.UnlockWindow(_securityService)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        if (unlockWin.ShowDialog() != true)
+        {
+            Application.Current.Shutdown();
+        }
+        else
+        {
+            StatusMessage = "Vault unlocked.";
         }
     }
 
@@ -1144,8 +1341,18 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void ShowThreadCanvas()
     {
+        // If already on Canvas view and sidebar is open, clicking Canvas collapses the extended panel (VS Code behavior)
+        if (ActiveRailView == "Canvas" && IsCanvasViewActive && IsSidebarExpanded)
+        {
+            IsSidebarExpanded = false;
+            return;
+        }
+
+        ActiveRailView = "Canvas";
+        IsSidebarExpanded = true;
         IsCanvasViewActive = true;
         IsFoldersViewActive = false;
+
         if (IsTheaterModeOpen)
         {
             CloseTheaterMode();

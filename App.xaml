@@ -9,6 +9,7 @@
         <converters:InverseBooleanConverter x:Key="InverseBool"/>
         <converters:NullToVisibilityConverter x:Key="NullToVis"/>
         <converters:FileSizeFormatterConverter x:Key="FileSizeFormatter"/>
+        <converters:BoolToLockToggleTextConverter x:Key="BoolToLockToggleTextConverter"/>
 
         <!-- Global Dark Theme Color Palette -->
         <SolidColorBrush x:Key="AppBgBrush" Color="#0C1017"/>

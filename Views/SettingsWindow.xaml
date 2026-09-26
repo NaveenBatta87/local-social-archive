@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:LocalSocialArchive.ViewModels"
         mc:Ignorable="d"
-        Title="Archive Settings &amp; Diagnostics" Height="680" Width="680"
-        MinHeight="550" MinWidth="580"
+        Title="Archive Settings &amp; Diagnostics" Height="720" Width="700"
+        MinHeight="580" MinWidth="600"
         WindowStartupLocation="CenterOwner"
         Background="#0C1017"
         Foreground="#E7E9EA"
@@ -20,9 +20,9 @@
         <SolidColorBrush x:Key="CardBorderBrush" Color="#2F3336"/>
 
         <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#8B949E"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
         </Style>
 
@@ -30,9 +30,9 @@
             <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="16,14"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="18,16"/>
+            <Setter Property="Margin" Value="0,0,0,18"/>
         </Style>
 
         <Style x:Key="ActionMiniButton" TargetType="Button">
@@ -40,7 +40,7 @@
             <Setter Property="Foreground" Value="#E7E9EA"/>
             <Setter Property="BorderBrush" Value="#2F3336"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Padding" Value="14,7"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -50,13 +50,38 @@
                         <Border x:Name="border" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#1D9BF0"/>
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryMiniButton" TargetType="Button">
+            <Setter Property="Background" Value="#1D9BF0"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1A8CD8"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -80,13 +105,13 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Width="36" Height="36" Background="#161B22" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="8" Margin="0,0,14,0">
-                    <TextBlock Text="⚙" FontSize="18" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border Grid.Column="0" Width="38" Height="38" Background="#161B22" BorderBrush="#1D9BF0" BorderThickness="1.5" CornerRadius="10" Margin="0,0,14,0">
+                    <TextBlock Text="⚙" FontSize="19" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="Archive Settings &amp; Diagnostics" FontSize="17" FontWeight="Bold" Foreground="#FFFFFF"/>
-                    <TextBlock Text="Configure offline storage, indexing preferences, and database health." FontSize="12" Foreground="#8B949E"/>
+                    <TextBlock Text="Archive Settings &amp; Security" FontSize="17" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    <TextBlock Text="Configure vault master password, offline storage, and indexing rules." FontSize="12" Foreground="#8B949E"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -94,6 +119,55 @@
         <!-- Scrollable Settings Cards -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
             <StackPanel>
+
+                <!-- SECTION 0: Vault Security & Master Password -->
+                <TextBlock Text="🔐 VAULT SECURITY &amp; MASTER PASSWORD" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <Border Style="{StaticResource SettingsCardStyle}" BorderBrush="#1D9BF0" BorderThickness="1.2">
+                    <StackPanel>
+                        <!-- Status and Header -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Offline Password Lock" FontSize="13.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    <Border Background="#1A3B5C" CornerRadius="6" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="PBKDF2 SHA-256" FontSize="10" FontWeight="Bold" Foreground="#1D9BF0"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="{Binding PasswordStatusText}" FontSize="12" Foreground="#8B949E" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Content="{Binding PasswordButtonText}" Style="{StaticResource PrimaryMiniButton}"
+                                    Command="{Binding ConfigurePasswordCommand}"
+                                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Separator Background="#21262D" Margin="0,4,0,12"/>
+
+                        <!-- Toggle on/off startup lock -->
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Require Master Password on App Startup" FontSize="12.5" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="When enabled, the app displays a secure dark lock screen before granting access." FontSize="11.5" Foreground="#8B949E"/>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Content="{Binding IsPasswordProtectionEnabled, Converter={StaticResource BoolToLockToggleTextConverter}, FallbackValue='Toggle Lock'}"
+                                    Style="{StaticResource ActionMiniButton}"
+                                    Command="{Binding ToggleProtectionCommand}"
+                                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
                 <!-- SECTION 1: ESE Database & Offline Storage -->
                 <TextBlock Text="🗄️ ESE DATABASE &amp; OFFLINE STORAGE" Style="{StaticResource SectionHeaderStyle}"/>
@@ -298,7 +372,7 @@
                         BorderThickness="0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="6"/>
+                            <Setter Property="CornerRadius" Value="8"/>
                         </Style>
                     </Button.Resources>
                 </Button>

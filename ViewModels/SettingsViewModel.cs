@@ -6,12 +6,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LocalSocialArchive.Models;
 using LocalSocialArchive.Services;
+using LocalSocialArchive.Views;
 
 namespace LocalSocialArchive.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly IEseDatabaseService _dbService;
+    private readonly ISecurityService _securityService;
     private readonly string _baseDirectory;
     private readonly string _mediaDirectory;
 
@@ -52,11 +54,30 @@ public partial class SettingsViewModel : ObservableObject
     private bool _showTagsByDefault = true;
 
     [ObservableProperty]
+    private bool _isPasswordProtectionEnabled;
+
+    [ObservableProperty]
+    private bool _hasPasswordSet;
+
+    [ObservableProperty]
+    private string _passwordStatusText = "Disabled";
+
+    [ObservableProperty]
+    private string _passwordButtonText = "Set Master Password";
+
+    [ObservableProperty]
     private string _statusNotification = "Settings ready";
 
-    public SettingsViewModel(IEseDatabaseService dbService, ObservableCollection<FolderCategory> currentFolders, bool isGridView, bool isInspectorVisible, bool isTagsVisible)
+    public SettingsViewModel(
+        IEseDatabaseService dbService,
+        ISecurityService securityService,
+        ObservableCollection<FolderCategory> currentFolders,
+        bool isGridView,
+        bool isInspectorVisible,
+        bool isTagsVisible)
     {
         _dbService = dbService;
+        _securityService = securityService;
 
         string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         _baseDirectory = Path.Combine(userDocs, "LocalSocialArchive");
@@ -81,7 +102,59 @@ public partial class SettingsViewModel : ObservableObject
             AvailableFolders.Add("Coding");
         }
 
+        RefreshSecurityState();
         RefreshMetrics();
+    }
+
+    public void RefreshSecurityState()
+    {
+        HasPasswordSet = _securityService.HasPasswordSet;
+        IsPasswordProtectionEnabled = _securityService.IsPasswordProtectionEnabled;
+
+        if (IsPasswordProtectionEnabled)
+        {
+            PasswordStatusText = "🔒 Vault is locked on startup (PBKDF2 SHA-256 Active)";
+            PasswordButtonText = "Change / Remove Password";
+        }
+        else if (HasPasswordSet)
+        {
+            PasswordStatusText = "🔓 Password configured but startup lock is disabled";
+            PasswordButtonText = "Change / Enable Password";
+        }
+        else
+        {
+            PasswordStatusText = "🔓 No master password configured (Unrestricted Access)";
+            PasswordButtonText = "Set Master Password";
+        }
+    }
+
+    [RelayCommand]
+    public void ConfigurePassword(Window? owner)
+    {
+        var setPwdWin = new SetPasswordWindow(_securityService)
+        {
+            Owner = owner ?? Application.Current.MainWindow
+        };
+
+        if (setPwdWin.ShowDialog() == true)
+        {
+            RefreshSecurityState();
+            StatusNotification = HasPasswordSet ? "Master password updated successfully!" : "Password removed.";
+        }
+    }
+
+    [RelayCommand]
+    public void ToggleProtection(Window? owner)
+    {
+        if (!HasPasswordSet)
+        {
+            ConfigurePassword(owner);
+            return;
+        }
+
+        _securityService.IsPasswordProtectionEnabled = !_securityService.IsPasswordProtectionEnabled;
+        RefreshSecurityState();
+        StatusNotification = IsPasswordProtectionEnabled ? "Startup password lock enabled." : "Startup password lock disabled.";
     }
 
     [RelayCommand]

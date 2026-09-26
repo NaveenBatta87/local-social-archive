@@ -34,3 +34,7 @@ C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Release\n
 C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Release\net8.0-windows\App.baml
 C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Release\net8.0-windows\Views\AddCollectionWindow.g.cs
 C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Release\net8.0-windows\Views\AddCollectionWindow.baml
+C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Release\net8.0-windows\Views\SetPasswordWindow.baml
+C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Release\net8.0-windows\Views\UnlockWindow.baml
+C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Release\net8.0-windows\Views\SetPasswordWindow.g.cs
+C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Release\net8.0-windows\Views\UnlockWindow.g.cs

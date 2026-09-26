@@ -284,7 +284,9 @@
         <KeyBinding Key="H" Modifiers="Control" Command="{Binding NavigateHomeCommand}"/>
         <KeyBinding Key="F" Modifiers="Control" Command="{Binding ShowFoldersHubCommand}"/>
         <KeyBinding Key="T" Modifiers="Control" Command="{Binding ShowThreadCanvasCommand}"/>
+        <KeyBinding Key="B" Modifiers="Control" Command="{Binding ToggleSidebarCommand}"/>
         <KeyBinding Key="I" Modifiers="Control" Command="{Binding ToggleInspectorCommand}"/>
+        <KeyBinding Key="L" Modifiers="Control" Command="{Binding LockVaultCommand}"/>
         <KeyBinding Key="OemComma" Modifiers="Control" Command="{Binding OpenSettingsCommand}"/>
         <KeyBinding Key="F5" Command="{Binding RefreshDataCommand}"/>
         <KeyBinding Key="Esc" Command="{Binding CloseTheaterModeCommand}"/>
@@ -328,13 +330,14 @@
                     <!-- Top Bar Search & Actions -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0"
                                 WindowChrome.IsHitTestVisibleInChrome="True">
-                        <!-- Search Box (Spacious Rounded) -->
-                        <Border Width="280" Height="36" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1"
+                        <!-- Search Box (Spacious Rounded with Clear Button) -->
+                        <Border Width="300" Height="36" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1"
                                 CornerRadius="10" Margin="0,0,12,0">
                             <Grid Margin="12,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="22"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="🔍" FontSize="12" Foreground="#8B949E"
                                            VerticalAlignment="Center"/>
@@ -346,7 +349,7 @@
                                             <Style.Resources>
                                                 <VisualBrush x:Key="HintBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
                                                     <VisualBrush.Visual>
-                                                        <TextBlock Text="Search archived posts..." Foreground="#6E7681" FontSize="12.5"/>
+                                                        <TextBlock Text="Search tweets, folders, #tags..." Foreground="#6E7681" FontSize="12.5"/>
                                                     </VisualBrush.Visual>
                                                 </VisualBrush>
                                             </Style.Resources>
@@ -358,6 +361,12 @@
                                         </Style>
                                     </TextBox.Style>
                                 </TextBox>
+                                <Button Grid.Column="2" Command="{Binding ClearSearchCommand}"
+                                        Visibility="{Binding SearchQuery, Converter={StaticResource NullToVis}}"
+                                        Background="Transparent" BorderThickness="0" Foreground="#8B949E"
+                                        Cursor="Hand" Width="18" Height="18" VerticalAlignment="Center" ToolTip="Clear Search">
+                                    <TextBlock Text="✕" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
                             </Grid>
                         </Border>
 
@@ -449,8 +458,8 @@
             <!-- ================= MAIN WORKSPACE (3-PANE LAYOUT) ================= -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="280" MinWidth="250" MaxWidth="360"/> <!-- Left Sidebar (Spacious) -->
-                    <ColumnDefinition Width="*"/>                                   <!-- Center Feed or Folders Hub -->
+                    <ColumnDefinition Width="Auto"/>                               <!-- Left Rail + Extended Sidebar (Collapsible) -->
+                    <ColumnDefinition Width="*"/>                                  <!-- Center Feed or Folders Hub -->
                     <ColumnDefinition Width="Auto"/>                               <!-- Right Inspector (Collapsible) -->
                 </Grid.ColumnDefinitions>
 
@@ -471,45 +480,57 @@
                                     <TextBlock Text="⚡" Foreground="#1D9BF0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
-                                <!-- Home Feed Button -->
-                                <Button Command="{Binding NavigateHomeCommand}" ToolTip="Home Feed (Ctrl+H)" Cursor="Hand">
+                                <!-- Home Feed Button (Click to toggle panel like VS Code) -->
+                                <Button Command="{Binding NavigateHomeCommand}" ToolTip="Home Feed (Ctrl+H / Toggle Sidebar)" Cursor="Hand">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource RailIconStyle}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsFoldersViewActive}" Value="False">
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding ActiveRailView}" Value="Home"/>
+                                                        <Condition Binding="{Binding IsSidebarExpanded}" Value="True"/>
+                                                    </MultiDataTrigger.Conditions>
                                                     <Setter Property="Background" Value="#161B22"/>
                                                     <Setter Property="Foreground" Value="#1D9BF0"/>
-                                                </DataTrigger>
+                                                </MultiDataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
                                     <TextBlock Text="🏠" FontSize="14"/>
                                 </Button>
 
-                                <!-- Folders Hub Grid Button -->
-                                <Button Command="{Binding ShowFoldersHubCommand}" ToolTip="Folders Hub Grid (Ctrl+F)" Cursor="Hand">
+                                <!-- Folders Hub Grid Button (Click to toggle panel like VS Code) -->
+                                <Button Command="{Binding ShowFoldersHubCommand}" ToolTip="Folders Hub Grid (Ctrl+F / Toggle Sidebar)" Cursor="Hand">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource RailIconStyle}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsFoldersViewActive}" Value="True">
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding ActiveRailView}" Value="Folders"/>
+                                                        <Condition Binding="{Binding IsSidebarExpanded}" Value="True"/>
+                                                    </MultiDataTrigger.Conditions>
                                                     <Setter Property="Background" Value="#1A3B5C"/>
                                                     <Setter Property="Foreground" Value="#1D9BF0"/>
-                                                </DataTrigger>
+                                                </MultiDataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
                                     <TextBlock Text="📁" FontSize="14"/>
                                 </Button>
 
-                                <!-- Word Document Canvas Button -->
-                                <Button Command="{Binding ShowThreadCanvasCommand}" ToolTip="Word Document Canvas (Ctrl+T)" Cursor="Hand">
+                                <!-- Word Document Canvas Button (Click to toggle panel like VS Code) -->
+                                <Button Command="{Binding ShowThreadCanvasCommand}" ToolTip="Word Document Canvas (Ctrl+T / Toggle Sidebar)" Cursor="Hand">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource RailIconStyle}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsCanvasViewActive}" Value="True">
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding ActiveRailView}" Value="Canvas"/>
+                                                        <Condition Binding="{Binding IsSidebarExpanded}" Value="True"/>
+                                                    </MultiDataTrigger.Conditions>
                                                     <Setter Property="Background" Value="#1A3B5C"/>
                                                     <Setter Property="Foreground" Value="#1D9BF0"/>
-                                                </DataTrigger>
+                                                </MultiDataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
@@ -531,6 +552,9 @@
 
                             <!-- Bottom Rail Icons -->
                             <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12">
+                                <Button Style="{StaticResource RailIconStyle}" ToolTip="Lock Vault (Ctrl+L)" Command="{Binding LockVaultCommand}">
+                                    <TextBlock Text="🔒" FontSize="14"/>
+                                </Button>
                                 <Button Style="{StaticResource RailIconStyle}" ToolTip="Archive Settings &amp; Diagnostics (Ctrl+,)" Command="{Binding OpenSettingsCommand}">
                                     <TextBlock Text="⚙" FontSize="15"/>
                                 </Button>
@@ -541,8 +565,12 @@
                         </Grid>
                     </Border>
 
-                    <!-- Navigation Category Tree & Tags -->
-                    <Grid Grid.Column="1" Margin="14,14,14,10">
+                    <!-- Navigation Category Tree & Tags (Collapsible Extended Panel) -->
+                    <Border Grid.Column="1" Width="235"
+                            Visibility="{Binding IsSidebarExpanded, Converter={StaticResource BoolToVis}}"
+                            Background="{StaticResource SidebarBgBrush}"
+                            BorderBrush="#1C212A" BorderThickness="0,0,1,0">
+                        <Grid Margin="14,14,14,10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/> <!-- Global All Posts Button -->
                             <RowDefinition Height="Auto"/> <!-- COLLECTIONS Header with Hub, Add Collection, and Add Folder Buttons -->
@@ -668,7 +696,7 @@
                         </Grid>
 
                         <!-- 3. Collections Accordion (Each contains Folders) -->
-                        <ItemsControl Grid.Row="2" ItemsSource="{Binding Collections}">
+                        <ItemsControl Grid.Row="2" ItemsSource="{Binding FilteredCollections}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Margin="0,3,0,6">
@@ -903,6 +931,7 @@
                             </StackPanel>
                         </Border>
                     </Grid>
+                    </Border>
                 </Grid>
 
                 <!-- ================= CENTER MAIN STAGE (POSTS FEED OR FOLDERS HUB) ================= -->
@@ -940,11 +969,43 @@
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Active Filter & Count -->
-                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding SelectedFolder.Name, FallbackValue='All Posts'}" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                                        <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="8" Padding="8,3" Margin="10,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding FilteredPosts.Count, StringFormat='{}{0} archived posts'}" FontSize="12" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
-                                        </Border>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding SelectedFolder.Name, FallbackValue='All Posts'}" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                            <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="8" Padding="8,3" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding FilteredPosts.Count, StringFormat='{}{0} archived posts'}" FontSize="12" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- Matching Folders Jump Row (Visible when search matches folders) -->
+                                        <ItemsControl ItemsSource="{Binding MatchedFolders}"
+                                                      Visibility="{Binding HasMatchedFolders, Converter={StaticResource BoolToVis}}"
+                                                      Margin="0,6,0,0">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Command="{Binding DataContext.SelectFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="8,3" Margin="0,0,6,4" Background="#1A3B5C" BorderBrush="#1D9BF0" BorderThickness="1"
+                                                            Cursor="Hand">
+                                                        <Button.Resources>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="CornerRadius" Value="6"/>
+                                                            </Style>
+                                                        </Button.Resources>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding IconGlyph}" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding Name}" FontSize="11.5" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding Count, StringFormat=' ({0})'}" FontSize="10.5" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </StackPanel>
 
                                     <!-- Right Actions: [ ☰ List | ⊞ Grid ] and [ ◨ Inspector ] -->
@@ -1490,7 +1551,7 @@
 
                             <!-- Collections Cards Visual Grid -->
                             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20">
-                                <ItemsControl ItemsSource="{Binding Collections}">
+                                <ItemsControl ItemsSource="{Binding FilteredCollections}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal"/>
