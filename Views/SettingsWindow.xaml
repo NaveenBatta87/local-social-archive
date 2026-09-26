@@ -1,0 +1,308 @@
+<Window x:Class="LocalSocialArchive.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LocalSocialArchive.ViewModels"
+        mc:Ignorable="d"
+        Title="Archive Settings &amp; Diagnostics" Height="680" Width="680"
+        MinHeight="550" MinWidth="580"
+        WindowStartupLocation="CenterOwner"
+        Background="#0C1017"
+        Foreground="#E7E9EA"
+        FontFamily="Segoe UI Variable Text, Segoe UI, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="CardBgBrush" Color="#161B22"/>
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#2F3336"/>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="SettingsCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <Style x:Key="ActionMiniButton" TargetType="Button">
+            <Setter Property="Background" Value="#212836"/>
+            <Setter Property="Foreground" Value="#E7E9EA"/>
+            <Setter Property="BorderBrush" Value="#2F3336"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1D9BF0"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#0C1017">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Title Bar / Header -->
+            <RowDefinition Height="*"/>   <!-- Settings Content -->
+            <RowDefinition Height="Auto"/> <!-- Bottom Actions -->
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#080B0F" BorderBrush="#1C212A" BorderThickness="0,0,0,1" Padding="24,18">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Width="36" Height="36" Background="#161B22" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="8" Margin="0,0,14,0">
+                    <TextBlock Text="⚙" FontSize="18" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="Archive Settings &amp; Diagnostics" FontSize="17" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    <TextBlock Text="Configure offline storage, indexing preferences, and database health." FontSize="12" Foreground="#8B949E"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Scrollable Settings Cards -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20">
+            <StackPanel>
+
+                <!-- SECTION 1: ESE Database & Offline Storage -->
+                <TextBlock Text="🗄️ ESE DATABASE &amp; OFFLINE STORAGE" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel>
+                        <!-- DB Engine Indicator -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Storage Engine" FontSize="13" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="Windows Extensible Storage Engine (esent.dll / ISAM B-Tree)" FontSize="12" Foreground="#8B949E"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#1A3B5C" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                                <TextBlock Text="● 100% OFFLINE" FontSize="11" FontWeight="Bold" Foreground="#1D9BF0"/>
+                            </Border>
+                        </Grid>
+
+                        <Separator Background="#21262D" Margin="0,4,0,12"/>
+
+                        <!-- Metrics Grid -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#12161F" CornerRadius="8" Padding="12,10" Margin="0,0,6,0">
+                                <StackPanel>
+                                    <TextBlock Text="ESE Database File" FontSize="11" Foreground="#8B949E"/>
+                                    <TextBlock Text="{Binding DatabaseSizeText}" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Background="#12161F" CornerRadius="8" Padding="12,10" Margin="3,0,3,0">
+                                <StackPanel>
+                                    <TextBlock Text="Media Assets Size" FontSize="11" Foreground="#8B949E"/>
+                                    <TextBlock Text="{Binding MediaSizeText}" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" Background="#12161F" CornerRadius="8" Padding="12,10" Margin="6,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Process RAM" FontSize="11" Foreground="#8B949E"/>
+                                    <TextBlock Text="{Binding RamUsageText}" FontSize="14" FontWeight="Bold" Foreground="#4ADE80" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Paths & Quick Open -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Database Path" FontSize="12" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="{Binding DatabasePath}" FontSize="11" Foreground="#6E7681" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Open DB Folder" Style="{StaticResource ActionMiniButton}"
+                                    Command="{Binding OpenDatabaseFolderCommand}" Margin="10,0,0,0"/>
+                        </Grid>
+
+                        <Grid Margin="0,6,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Media Vault Path" FontSize="12" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="{Binding MediaStoragePath}" FontSize="11" Foreground="#6E7681" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Open Media Folder" Style="{StaticResource ActionMiniButton}"
+                                    Command="{Binding OpenMediaFolderCommand}" Margin="10,0,0,0"/>
+                        </Grid>
+
+                        <!-- Action Buttons: Backup & Refresh -->
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <Button Content="💾 Create Database Backup" Style="{StaticResource ActionMiniButton}"
+                                    Command="{Binding BackupDatabaseCommand}" Margin="0,0,8,0"/>
+                            <Button Content="🔄 Refresh Metrics" Style="{StaticResource ActionMiniButton}"
+                                    Command="{Binding RefreshMetricsCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- SECTION 2: Ingestion & Archiving Rules -->
+                <TextBlock Text="📥 INGESTION &amp; ARCHIVING RULES" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel>
+                        <!-- Default Ingestion Folder -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="180"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Default Ingestion Folder" FontSize="13" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="Destination folder when using Quick Paste (Ctrl+V) from clipboard" FontSize="12" Foreground="#8B949E"/>
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableFolders}"
+                                      SelectedItem="{Binding SelectedDefaultFolder}" Height="34"
+                                      Style="{StaticResource UniversalDarkComboBoxStyle}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="📁" FontSize="12" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding}" FontSize="13" Foreground="#FFFFFF" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+
+                        <Separator Background="#21262D" Margin="0,0,0,12"/>
+
+                        <!-- Auto-Extract Hashtags Toggle -->
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Automatic Tag Extraction" FontSize="13" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="Automatically scan ingested post text for #hashtags and index them" FontSize="12" Foreground="#8B949E"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding AutoExtractHashtags}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- SECTION 3: UI & Workspace Layout Preferences -->
+                <TextBlock Text="🎨 WORKSPACE &amp; APPEARANCE" Style="{StaticResource SectionHeaderStyle}"/>
+
+                <Border Style="{StaticResource SettingsCardStyle}">
+                    <StackPanel>
+                        <!-- Default View Mode -->
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Feed Presentation Mode" FontSize="13" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="Choose between classic vertical list timeline or card grid tiles" FontSize="12" Foreground="#8B949E"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <RadioButton Content="List View" IsChecked="{Binding PreferGridView, Converter={StaticResource InverseBool}, Mode=OneWay}"
+                                             Foreground="#E7E9EA" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <RadioButton Content="Grid View" IsChecked="{Binding PreferGridView}"
+                                             Foreground="#E7E9EA" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Background="#21262D" Margin="0,0,0,12"/>
+
+                        <!-- Tags Visibility Preference -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Show Tags in Sidebar" FontSize="13" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="Display the interactive hashtag list below folders in left sidebar" FontSize="12" Foreground="#8B949E"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding ShowTagsByDefault}" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Separator Background="#21262D" Margin="0,0,0,12"/>
+
+                        <!-- Inspector Panel Preference -->
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Show Right Inspector Panel" FontSize="13" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                                <TextBlock Text="Display the post inspector details panel on the right side" FontSize="12" Foreground="#8B949E"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding ShowInspectorByDefault}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Bottom Actions / Close -->
+        <Border Grid.Row="2" Background="#080B0F" BorderBrush="#1C212A" BorderThickness="0,1,0,0" Padding="24,14">
+            <Grid>
+                <TextBlock Text="{Binding StatusNotification}" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
+                <Button Content="Done" Command="{Binding SaveSettingsCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                        HorizontalAlignment="Right" Width="100" Height="36"
+                        Background="#1D9BF0" Foreground="#FFFFFF" FontWeight="SemiBold"
+                        BorderThickness="0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

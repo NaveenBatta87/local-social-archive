@@ -1,0 +1,57 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "LocalSocialArchive/1.0.0": {
+        "dependencies": {
+          "CommunityToolkit.Mvvm": "8.4.2",
+          "ManagedEsent": "2.0.0"
+        },
+        "runtime": {
+          "LocalSocialArchive.dll": {}
+        }
+      },
+      "CommunityToolkit.Mvvm/8.4.2": {
+        "runtime": {
+          "lib/net8.0/CommunityToolkit.Mvvm.dll": {
+            "assemblyVersion": "8.4.0.0",
+            "fileVersion": "8.4.2.1"
+          }
+        }
+      },
+      "ManagedEsent/2.0.0": {
+        "runtime": {
+          "lib/netstandard2.0/Esent.Interop.dll": {
+            "assemblyVersion": "1.9.4.1",
+            "fileVersion": "1.9.4.1"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "LocalSocialArchive/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "CommunityToolkit.Mvvm/8.4.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-WadCzGEc2U+3e20avRLng4qNtt4zoOGWrdUISqJWrHe3/FSnrYjuM5Sb4yQb09LhkBXrrI4Zt3dLKgRMbItsrg==",
+      "path": "communitytoolkit.mvvm/8.4.2",
+      "hashPath": "communitytoolkit.mvvm.8.4.2.nupkg.sha512"
+    },
+    "ManagedEsent/2.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-mfQgs4CDooWEy/bJ3fQac3dbupDod1jTL4h+Py/W55/A2CNg6YT0X7PSnQCGnrCaFB+w+Qa+4bPN1MH/nv6GiQ==",
+      "path": "managedesent/2.0.0",
+      "hashPath": "managedesent.2.0.0.nupkg.sha512"
+    }
+  }
+}

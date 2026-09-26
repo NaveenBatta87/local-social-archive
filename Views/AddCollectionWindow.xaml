@@ -1,0 +1,136 @@
+<Window x:Class="LocalSocialArchive.Views.AddCollectionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LocalSocialArchive.ViewModels"
+        mc:Ignorable="d"
+        Title="New Collection" Height="360" Width="440"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#0C1017"
+        Foreground="#E7E9EA"
+        FontFamily="Segoe UI Variable Text, Segoe UI, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#8B949E"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#161B22"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#2F3336"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CaretBrush" Value="#1D9BF0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="txtBorder" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="txtBorder" Property="BorderBrush" Value="#485363"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="txtBorder" Property="BorderBrush" Value="#1D9BF0"/>
+                                <Setter TargetName="txtBorder" Property="Background" Value="#1A222D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Padding="24" Background="#0C1017">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Header -->
+                <RowDefinition Height="Auto"/> <!-- Collection Name & Icon -->
+                <RowDefinition Height="Auto"/> <!-- Description -->
+                <RowDefinition Height="*"/>    <!-- Action Buttons -->
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="28" Height="28" Background="#1A3B5C" CornerRadius="6" Margin="0,0,10,0">
+                        <TextBlock Text="🗂️" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                    </Border>
+                    <TextBlock Text="Create New Collection" FontSize="17" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="Collections group related folders together (e.g. Work, Coding, Personal)." FontSize="12" Foreground="#8B949E" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Name & Icon -->
+            <Grid Grid.Row="1" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Collection Name"/>
+                    <TextBox Text="{Binding CollectionName, UpdateSourceTrigger=PropertyChanged}" Height="36"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Icon"/>
+                    <ComboBox ItemsSource="{Binding AvailableIcons}"
+                              SelectedItem="{Binding SelectedIcon}"
+                              Height="36"
+                              Style="{StaticResource UniversalDarkComboBoxStyle}"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Description -->
+            <StackPanel Grid.Row="2" Margin="0,0,0,20">
+                <TextBlock Text="Description"/>
+                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Height="36"/>
+            </StackPanel>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                <Button Content="Cancel" Command="{Binding CancelCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                        Width="85" Height="36" Margin="0,0,10,0"
+                        Background="#161B22" Foreground="#E7E9EA" BorderBrush="#2F3336" BorderThickness="1"
+                        Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <Button Content="Create Collection" Command="{Binding SaveCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                        Width="140" Height="36"
+                        Background="#1D9BF0" Foreground="#FFFFFF" FontWeight="Bold"
+                        BorderThickness="0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
