@@ -1,11 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "5NG5wNU7iDc=",
+  "dgSpecHash": "3+cQxcUBmPU=",
   "success": true,
   "projectFilePath": "C:\\Users\\Naveen\\.gemini\\antigravity-ide\\scratch\\LocalSocialArchive\\LocalSocialArchive.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Naveen\\.nuget\\packages\\communitytoolkit.mvvm\\8.4.2\\communitytoolkit.mvvm.8.4.2.nupkg.sha512",
-    "C:\\Users\\Naveen\\.nuget\\packages\\managedesent\\2.0.0\\managedesent.2.0.0.nupkg.sha512"
+    "C:\\Users\\Naveen\\.nuget\\packages\\emoji.wpf\\0.3.4\\emoji.wpf.0.3.4.nupkg.sha512",
+    "C:\\Users\\Naveen\\.nuget\\packages\\jeremyansel.hlsl.targets\\1.0.13\\jeremyansel.hlsl.targets.1.0.13.nupkg.sha512",
+    "C:\\Users\\Naveen\\.nuget\\packages\\managedesent\\2.0.0\\managedesent.2.0.0.nupkg.sha512",
+    "C:\\Users\\Naveen\\.nuget\\packages\\stfu\\0.1.1\\stfu.0.1.1.nupkg.sha512"
   ],
   "logs": []
 }

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:LocalSocialArchive.ViewModels"
+        xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
         mc:Ignorable="d"
         Title="Edit Archived Post" Height="740" Width="600"
         WindowStartupLocation="CenterOwner"
@@ -219,10 +220,12 @@
                         </StackPanel>
                     </Grid>
 
-                    <TextBox x:Name="TxtContent" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True" TextWrapping="Wrap" Height="100"
-                             VerticalScrollBarVisibility="Auto"
-                             FontFamily="{StaticResource TweetContentFontFamily}"/>
+                    <emoji:RichTextBox x:Name="TxtContent" Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       AcceptsReturn="True" Height="100"
+                                       Background="#161B22" Foreground="#FFFFFF" BorderBrush="#2F3336" BorderThickness="1"
+                                       Padding="10" CaretBrush="#1D9BF0" FontSize="14"
+                                       VerticalScrollBarVisibility="Auto"
+                                       FontFamily="{StaticResource TweetContentFontFamily}"/>
                 </StackPanel>
 
                 <!-- Comment / Notes (Optional) -->
@@ -231,9 +234,12 @@
                         <TextBlock Text="&#xea6d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#1D9BF0" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <TextBlock Text="Comments / Personal Notes (Optional)" FontSize="12.5" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBox Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True" TextWrapping="Wrap" Height="65"
-                             VerticalScrollBarVisibility="Auto"/>
+                    <emoji:RichTextBox Text="{Binding Comment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       AcceptsReturn="True" Height="65"
+                                       Background="#161B22" Foreground="#FFFFFF" BorderBrush="#2F3336" BorderThickness="1"
+                                       Padding="8" CaretBrush="#1D9BF0" FontSize="13"
+                                       VerticalScrollBarVisibility="Auto"
+                                       FontFamily="{StaticResource TweetContentFontFamily}"/>
                 </StackPanel>
 
                 <!-- Media Attachments Management -->

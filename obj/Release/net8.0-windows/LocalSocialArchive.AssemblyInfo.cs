@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LocalSocialArchive")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9ef060d111dc9582beca0bb742917b00653dc72")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0de124664c04f8cb582a3d16869d5a8e44878577")]
 [assembly: System.Reflection.AssemblyProductAttribute("LocalSocialArchive")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LocalSocialArchive")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

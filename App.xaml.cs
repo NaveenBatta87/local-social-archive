@@ -13,6 +13,9 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Enable subpixel rendering for sharp, full-color vector emojis
+        Emoji.Wpf.EmojiData.EnableSubPixelRendering = true;
+
         // Prevent application from shutting down when UnlockWindow closes before MainWindow opens
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 

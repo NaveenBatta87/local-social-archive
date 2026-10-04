@@ -24,8 +24,8 @@
         <!-- Default UI Font Family (system fonts for icons and chrome) -->
         <FontFamily x:Key="DefaultAppFontFamily">Segoe UI Variable Text, Segoe UI, Segoe UI Emoji, sans-serif</FontFamily>
 
-        <!-- Twemoji Font Family for tweet/post content text rendering -->
-        <FontFamily x:Key="TweetContentFontFamily">pack://application:,,,/Resources/Fonts/#Twemoji Mozilla, Segoe UI Variable Text, Segoe UI Emoji, Segoe UI, sans-serif</FontFamily>
+        <!-- Emoji & Content Font Family for rich tweet/post content text rendering -->
+        <FontFamily x:Key="TweetContentFontFamily">Segoe UI Emoji, Segoe UI Variable Text, Segoe UI, sans-serif</FontFamily>
 
         <!-- VS Code Codicons OSS Font Family -->
         <FontFamily x:Key="CodiconFontFamily">pack://application:,,,/Resources/Fonts/#codicon</FontFamily>

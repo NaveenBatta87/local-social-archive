@@ -38,3 +38,7 @@ C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Debug\net
 C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Debug\net8.0-windows\Views\UnlockWindow.baml
 C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Debug\net8.0-windows\Views\SetPasswordWindow.g.cs
 C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\obj\Debug\net8.0-windows\Views\UnlockWindow.g.cs
+C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\bin\Debug\net8.0-windows\Emoji.Wpf.dll
+C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\bin\Debug\net8.0-windows\Typography.GlyphLayout.dll
+C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\bin\Debug\net8.0-windows\Typography.OpenFont.dll
+C:\Users\Naveen\.gemini\antigravity-ide\scratch\LocalSocialArchive\bin\Debug\net8.0-windows\Stfu.dll

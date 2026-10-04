@@ -47,6 +47,10 @@
               "target": "Package",
               "version": "[8.4.2, )"
             },
+            "Emoji.Wpf": {
+              "target": "Package",
+              "version": "[0.3.4, )"
+            },
             "ManagedEsent": {
               "target": "Package",
               "version": "[2.0.0, )"

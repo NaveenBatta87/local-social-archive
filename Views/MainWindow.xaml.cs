@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using System.Windows.Interop;
 using LocalSocialArchive.Helpers;
 using LocalSocialArchive.Models;
 using LocalSocialArchive.ViewModels;
@@ -38,6 +39,8 @@ public partial class MainWindow : Window
         Loaded += async (s, e) =>
         {
             await _viewModel.InitializeAsync();
+            var source = PresentationSource.FromVisual(this) as HwndSource;
+            source?.AddHook(WndProc);
         };
 
         _viewModel.RequestClearSelection += () =>
@@ -263,6 +266,141 @@ public partial class MainWindow : Window
     private static string FormatTimeSpan(TimeSpan ts)
     {
         return ts.TotalHours >= 1 ? ts.ToString(@"hh\:mm\:ss") : ts.ToString(@"mm\:ss");
+    }
+
+    // ========== THEATER TOUCHPAD & GESTURE CONTROLS ==========
+    private const int WM_MOUSEHWHEEL = 0x020E;
+    private int _swipeAccumulator;
+    private DateTime _lastSwipeTime = DateTime.MinValue;
+    private double _manipulationTranslationX;
+
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg == WM_MOUSEHWHEEL && _viewModel.IsTheaterModeOpen)
+        {
+            short delta = (short)((wParam.ToInt64() >> 16) & 0xFFFF);
+            HandleTouchpadHorizontalScroll(delta);
+            handled = true;
+        }
+        return IntPtr.Zero;
+    }
+
+    private void HandleTouchpadHorizontalScroll(short delta)
+    {
+        if (delta == 0) return;
+
+        if (_viewModel.IsTheaterMediaVideo)
+        {
+            // Touchpad 2-finger horizontal swipe/scroll: scrub video forward / backward
+            if (TheaterVideoPlayer.NaturalDuration.HasTimeSpan)
+            {
+                var duration = TheaterVideoPlayer.NaturalDuration.TimeSpan;
+                double stepSeconds = delta > 0 ? 5.0 : -5.0;
+                var target = TheaterVideoPlayer.Position + TimeSpan.FromSeconds(stepSeconds);
+                if (target < TimeSpan.Zero) target = TimeSpan.Zero;
+                if (target > duration) target = duration;
+                TheaterVideoPlayer.Position = target;
+                VideoProgressSlider.Value = target.TotalSeconds;
+                TxtVideoTime.Text = $"{FormatTimeSpan(target)} / {FormatTimeSpan(duration)}";
+            }
+        }
+        else
+        {
+            // Touchpad 2-finger horizontal swipe: course between images
+            if ((DateTime.Now - _lastSwipeTime).TotalMilliseconds < 250) return;
+
+            _swipeAccumulator += delta;
+            if (Math.Abs(_swipeAccumulator) >= 60)
+            {
+                if (_swipeAccumulator > 0)
+                {
+                    // Swiping right -> Next Image or next linked story part
+                    if (_viewModel.HasMultipleTheaterMedia)
+                        _viewModel.NextTheaterMediaCommand.Execute(null);
+                    else if (_viewModel.TheaterPost?.IsPartOfThread == true)
+                        _viewModel.SelectNextLinkedPartCommand.Execute(null);
+                }
+                else
+                {
+                    // Swiping left -> Previous Image or previous linked story part
+                    if (_viewModel.HasMultipleTheaterMedia)
+                        _viewModel.PreviousTheaterMediaCommand.Execute(null);
+                    else if (_viewModel.TheaterPost?.IsPartOfThread == true)
+                        _viewModel.SelectPreviousLinkedPartCommand.Execute(null);
+                }
+                _swipeAccumulator = 0;
+                _lastSwipeTime = DateTime.Now;
+            }
+        }
+    }
+
+    private void TheaterMediaStage_ManipulationDelta(object sender, ManipulationDeltaEventArgs e)
+    {
+        _manipulationTranslationX += e.DeltaManipulation.Translation.X;
+        e.Handled = true;
+    }
+
+    private void TheaterMediaStage_ManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
+    {
+        if (Math.Abs(_manipulationTranslationX) > 40)
+        {
+            if (_manipulationTranslationX < 0)
+            {
+                // Touch/gesture swiped left -> Next Image
+                if (_viewModel.IsTheaterMediaVideo)
+                    HandleTouchpadHorizontalScroll(120);
+                else if (_viewModel.HasMultipleTheaterMedia)
+                    _viewModel.NextTheaterMediaCommand.Execute(null);
+                else if (_viewModel.TheaterPost?.IsPartOfThread == true)
+                    _viewModel.SelectNextLinkedPartCommand.Execute(null);
+            }
+            else
+            {
+                // Touch/gesture swiped right -> Previous Image
+                if (_viewModel.IsTheaterMediaVideo)
+                    HandleTouchpadHorizontalScroll(-120);
+                else if (_viewModel.HasMultipleTheaterMedia)
+                    _viewModel.PreviousTheaterMediaCommand.Execute(null);
+                else if (_viewModel.TheaterPost?.IsPartOfThread == true)
+                    _viewModel.SelectPreviousLinkedPartCommand.Execute(null);
+            }
+        }
+        _manipulationTranslationX = 0;
+        e.Handled = true;
+    }
+
+    private void TheaterMediaStage_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (_viewModel.IsTheaterMediaVideo)
+        {
+            // Touchpad 2-finger vertical scroll on video: adjust volume smoothly
+            double step = e.Delta > 0 ? 0.05 : -0.05;
+            VideoVolumeSlider.Value = Math.Clamp(VideoVolumeSlider.Value + step, 0.0, 1.0);
+            e.Handled = true;
+        }
+    }
+
+    private void TheaterVideoPlayer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        double step = e.Delta > 0 ? 0.05 : -0.05;
+        VideoVolumeSlider.Value = Math.Clamp(VideoVolumeSlider.Value + step, 0.0, 1.0);
+        e.Handled = true;
+    }
+
+    private void TheaterVideoPlayer_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left)
+        {
+            if (e.ClickCount == 2)
+            {
+                TheaterVideoPlayer.Stretch = TheaterVideoPlayer.Stretch == Stretch.Uniform ? Stretch.UniformToFill : Stretch.Uniform;
+            }
+            else
+            {
+                BtnPlayPause_Click(sender, e);
+            }
+            e.Handled = true;
+        }
     }
 
     // ========== MICROSOFT WORD DOCUMENT CANVAS METHODS ==========
@@ -723,5 +861,119 @@ public partial class MainWindow : Window
         }
 
         return (sb.ToString().Trim(), mediaPaths);
+    }
+
+    // ========== DRAG AND DROP POSTS TO FOLDERS ==========
+    private Point _dragStartPoint;
+    private bool _isDraggingPost;
+
+    private void FeedList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStartPoint = e.GetPosition(this);
+    }
+
+    private void FeedList_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _isDraggingPost) return;
+
+        Point currentPoint = e.GetPosition(this);
+        Vector diff = _dragStartPoint - currentPoint;
+
+        if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+            Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+        {
+            if (e.OriginalSource is DependencyObject dep)
+            {
+                var lvi = FindVisualAncestor<ListViewItem>(dep);
+                if (lvi?.DataContext is Post post)
+                {
+                    _isDraggingPost = true;
+                    try
+                    {
+                        var postsToMove = _viewModel.SelectedPosts.Count > 1 && _viewModel.SelectedPosts.Contains(post)
+                            ? _viewModel.SelectedPosts.ToList()
+                            : new List<Post> { post };
+
+                        var data = new DataObject("LocalSocialArchive.Posts", postsToMove);
+                        DragDrop.DoDragDrop(lvi, data, DragDropEffects.Move);
+                    }
+                    finally
+                    {
+                        _isDraggingPost = false;
+                    }
+                }
+            }
+        }
+    }
+
+    private void Folder_DragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent("LocalSocialArchive.Posts"))
+        {
+            e.Effects = DragDropEffects.Move;
+            if (sender is Border b)
+            {
+                b.BorderBrush = (Brush)FindResource("AccentBrush");
+            }
+            e.Handled = true;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+    }
+
+    private void Folder_DragLeave(object sender, DragEventArgs e)
+    {
+        if (sender is Border b)
+        {
+            b.ClearValue(Border.BorderBrushProperty);
+        }
+    }
+
+    private async void Folder_Drop(object sender, DragEventArgs e)
+    {
+        if (sender is Border b)
+        {
+            b.ClearValue(Border.BorderBrushProperty);
+        }
+
+        if (e.Data.GetDataPresent("LocalSocialArchive.Posts"))
+        {
+            var posts = e.Data.GetData("LocalSocialArchive.Posts") as List<Post>;
+            if (posts != null && posts.Count > 0)
+            {
+                string? targetFolder = null;
+                if (sender is FrameworkElement fe)
+                {
+                    if (fe.DataContext is FolderCategory folderItem)
+                        targetFolder = folderItem.Name;
+                    else if (fe.DataContext is string folderName)
+                        targetFolder = folderName;
+                }
+
+                if (!string.IsNullOrEmpty(targetFolder) && targetFolder != "All Posts")
+                {
+                    if (posts.Count > 1)
+                    {
+                        await _viewModel.MoveSelectedPostsToFolderAsync(targetFolder);
+                    }
+                    else
+                    {
+                        await _viewModel.MovePostToFolderAsync(new object[] { posts[0], targetFolder });
+                    }
+                }
+            }
+        }
+    }
+
+    private static T? FindVisualAncestor<T>(DependencyObject current) where T : DependencyObject
+    {
+        while (current != null)
+        {
+            if (current is T match) return match;
+            current = VisualTreeHelper.GetParent(current);
+        }
+        return null;
     }
 }

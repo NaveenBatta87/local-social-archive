@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:LocalSocialArchive.ViewModels"
         xmlns:models="clr-namespace:LocalSocialArchive.Models"
         xmlns:converters="clr-namespace:LocalSocialArchive.Converters"
+        xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
         mc:Ignorable="d"
         Title="Local Social Archive" Height="820" Width="1320"
         MinHeight="620" MinWidth="980"
@@ -758,7 +759,8 @@
                                                       Margin="14,3,0,0">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Margin="0,2" CornerRadius="8" Cursor="Hand">
+                                                    <Border Margin="0,2" CornerRadius="8" Cursor="Hand"
+                                                            AllowDrop="True" DragOver="Folder_DragOver" DragLeave="Folder_DragLeave" Drop="Folder_Drop">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Background" Value="Transparent"/>
@@ -1225,6 +1227,8 @@
                             <!-- ================= 1. LIST VIEW (Full Width Timeline Cards) ================= -->
                             <ListView Grid.Row="2"
                                       x:Name="FeedListControl"
+                                      PreviewMouseLeftButtonDown="FeedList_PreviewMouseLeftButtonDown"
+                                      PreviewMouseMove="FeedList_PreviewMouseMove"
                                       ItemsSource="{Binding FilteredPosts}"
                                       SelectedItem="{Binding SelectedPost, Mode=TwoWay}"
                                       SelectionMode="Extended"
@@ -1503,9 +1507,9 @@
                                                 </Grid>
 
                                                 <!-- Tweet Content Text -->
-                                                <TextBlock Grid.Row="1" Text="{Binding Content}" FontSize="14.5" LineHeight="21"
-                                                           Foreground="#E7E9EA" TextWrapping="Wrap" Margin="0,12,0,10"
-                                                           FontFamily="{StaticResource TweetContentFontFamily}"/>
+                                                <emoji:TextBlock Grid.Row="1" Text="{Binding Content}" FontSize="14.5" LineHeight="21"
+                                                                 Foreground="#E7E9EA" TextWrapping="Wrap" Margin="0,12,0,10"
+                                                                 FontFamily="{StaticResource TweetContentFontFamily}"/>
 
                                                 <!-- Optional Note / Comment Bubble -->
                                                 <Border Grid.Row="2" Visibility="{Binding HasComment, Converter={StaticResource BoolToVis}}"
@@ -1513,7 +1517,7 @@
                                                         Padding="12,7" Margin="0,0,0,12">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="&#xea6d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#F0883E" VerticalAlignment="Top" Margin="0,2,6,0"/>
-                                                        <TextBlock Text="{Binding Comment}" FontSize="12.5" Foreground="#F0883E" TextWrapping="Wrap" LineHeight="18"/>
+                                                        <emoji:TextBlock Text="{Binding Comment}" FontSize="12.5" Foreground="#F0883E" TextWrapping="Wrap" LineHeight="18"/>
                                                     </StackPanel>
                                                 </Border>
 
@@ -1595,6 +1599,8 @@
                             <!-- ================= 2. GRID VIEW (Card Tiles Multi-Column Layout - Spacious & Rounded) ================= -->
                             <ListView Grid.Row="2"
                                       x:Name="FeedGridControl"
+                                      PreviewMouseLeftButtonDown="FeedList_PreviewMouseLeftButtonDown"
+                                      PreviewMouseMove="FeedList_PreviewMouseMove"
                                       ItemsSource="{Binding FilteredPosts}"
                                       SelectedItem="{Binding SelectedPost, Mode=TwoWay}"
                                       SelectionMode="Extended"
@@ -1874,10 +1880,10 @@
                                                 </Grid>
 
                                                 <!-- 3. Text Content -->
-                                                <TextBlock Grid.Row="2" Text="{Binding Content}" FontSize="12.5" LineHeight="18" Foreground="#C9D1D9"
-                                                           TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="60"
-                                                           Margin="16,0,16,10"
-                                                           FontFamily="{StaticResource TweetContentFontFamily}"/>
+                                                <emoji:TextBlock Grid.Row="2" Text="{Binding Content}" FontSize="12.5" LineHeight="18" Foreground="#C9D1D9"
+                                                                 TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="60"
+                                                                 Margin="16,0,16,10"
+                                                                 FontFamily="{StaticResource TweetContentFontFamily}"/>
 
                                                 <!-- 4. Optional Comment Pill in Tile -->
                                                 <Border Grid.Row="3" Visibility="{Binding HasComment, Converter={StaticResource BoolToVis}}"
@@ -1885,7 +1891,7 @@
                                                         Padding="8,4" Margin="16,0,16,10">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="&#xea6d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#F0883E" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                                        <TextBlock Text="{Binding Comment}" FontSize="11" Foreground="#F0883E" TextTrimming="CharacterEllipsis"/>
+                                                        <emoji:TextBlock Text="{Binding Comment}" FontSize="11" Foreground="#F0883E" TextTrimming="CharacterEllipsis"/>
                                                     </StackPanel>
                                                 </Border>
 
@@ -2122,7 +2128,8 @@
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <Border Background="#161B22" BorderBrush="#2F3336" BorderThickness="1"
-                                                                                CornerRadius="6" Padding="10,7" Margin="0,0,0,6" Cursor="Hand">
+                                                                                CornerRadius="6" Padding="10,7" Margin="0,0,0,6" Cursor="Hand"
+                                                                                AllowDrop="True" DragOver="Folder_DragOver" DragLeave="Folder_DragLeave" Drop="Folder_Drop">
                                                                             <Border.InputBindings>
                                                                                 <MouseBinding MouseAction="LeftClick"
                                                                                               Command="{Binding DataContext.OpenFolderFromHubCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -2691,24 +2698,24 @@
                                     </Border.Effect>
 
                                     <!-- Rich Document Canvas -->
-                                    <RichTextBox x:Name="DocRichTextBox"
-                                                 Background="Transparent"
-                                                 BorderThickness="0"
-                                                 Foreground="#E7E9EA"
-                                                 CaretBrush="#1D9BF0"
-                                                 FontSize="14.5"
-                                                 FontFamily="{StaticResource TweetContentFontFamily}"
-                                                 Padding="32,28"
-                                                 AcceptsTab="True"
-                                                 AcceptsReturn="True"
-                                                 VerticalScrollBarVisibility="Disabled"
-                                                 IsDocumentEnabled="True">
+                                    <emoji:RichTextBox x:Name="DocRichTextBox"
+                                                       Background="Transparent"
+                                                       BorderThickness="0"
+                                                       Foreground="#E7E9EA"
+                                                       CaretBrush="#1D9BF0"
+                                                       FontSize="14.5"
+                                                       FontFamily="{StaticResource TweetContentFontFamily}"
+                                                       Padding="32,28"
+                                                       AcceptsTab="True"
+                                                       AcceptsReturn="True"
+                                                       VerticalScrollBarVisibility="Disabled"
+                                                       IsDocumentEnabled="True">
                                         <FlowDocument PagePadding="0" FontFamily="{StaticResource TweetContentFontFamily}" FontSize="14.5" Foreground="#E7E9EA">
                                             <Paragraph Margin="0,0,0,10">
                                                 <Run Text=""/>
                                             </Paragraph>
                                         </FlowDocument>
-                                    </RichTextBox>
+                                    </emoji:RichTextBox>
                                 </Border>
                             </ScrollViewer>
 
@@ -2806,12 +2813,12 @@
 
                                                         <!-- 2. Content TextBox (Supports cursor pasting of text & images) -->
                                                         <Border Grid.Row="1" Background="#0D1117" BorderBrush="#21262D" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
-                                                            <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                                                                     DataObject.Pasting="NodeTextBox_Pasting"
-                                                                     Background="Transparent" BorderThickness="0" Foreground="#FFFFFF"
-                                                                     FontSize="14" AcceptsReturn="True" TextWrapping="Wrap"
-                                                                     MinHeight="85" CaretBrush="#1D9BF0"
-                                                                     FontFamily="{StaticResource TweetContentFontFamily}"/>
+                                                            <emoji:RichTextBox Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                               DataObject.Pasting="NodeTextBox_Pasting"
+                                                                               Background="Transparent" BorderThickness="0" Foreground="#FFFFFF"
+                                                                               FontSize="14" AcceptsReturn="True"
+                                                                               MinHeight="85" CaretBrush="#1D9BF0"
+                                                                               FontFamily="{StaticResource TweetContentFontFamily}"/>
                                                         </Border>
 
                                                         <!-- 3. Quick Emoji Palette Bar -->
@@ -3020,7 +3027,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0">
                                                     <TextBlock Text="{Binding AuthorName}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Text="{Binding ContentSnippet}" FontSize="11.5" Foreground="#8B949E" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
+                                                    <emoji:TextBlock Text="{Binding ContentSnippet}" FontSize="11.5" Foreground="#8B949E" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                                                 </StackPanel>
                                                 <Border Grid.Column="1" Background="#1A3B5C" CornerRadius="4" Padding="6,2" VerticalAlignment="Top" Margin="6,0,0,0">
                                                     <TextBlock Text="{Binding FolderName}" FontSize="10" Foreground="#38BDF8" FontWeight="SemiBold"/>
@@ -3114,7 +3121,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Comment" FontSize="12" Foreground="#F0883E" VerticalAlignment="Top" Margin="0,2,0,0"/>
                                 <Border Grid.Column="1" Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="8" Padding="10,7">
-                                    <TextBlock Text="{Binding SelectedPost.Comment}" FontSize="12.5" LineHeight="17" Foreground="#F0883E" TextWrapping="Wrap"/>
+                                    <emoji:TextBlock Text="{Binding SelectedPost.Comment}" FontSize="12.5" LineHeight="17" Foreground="#F0883E" TextWrapping="Wrap"/>
                                 </Border>
                             </Grid>
 
@@ -3331,7 +3338,11 @@
                     </Button>
 
                     <!-- ================= LEFT MEDIA STAGE ================= -->
-                    <Border Grid.Column="0" Background="#000000" ClipToBounds="True">
+                    <Border Grid.Column="0" Background="#000000" ClipToBounds="True" x:Name="TheaterMediaStage"
+                            IsManipulationEnabled="True"
+                            ManipulationDelta="TheaterMediaStage_ManipulationDelta"
+                            ManipulationCompleted="TheaterMediaStage_ManipulationCompleted"
+                            PreviewMouseWheel="TheaterMediaStage_PreviewMouseWheel">
                         <Grid>
                             <!-- IMAGE VIEWER (When media is Image) -->
                             <Border Visibility="{Binding IsTheaterMediaVideo, Converter={StaticResource InverseBoolToVis}}"
@@ -3352,6 +3363,9 @@
                                               Stretch="Uniform"
                                               RenderOptions.BitmapScalingMode="HighQuality"
                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Cursor="Hand"
+                                              MouseDown="TheaterVideoPlayer_MouseDown"
+                                              PreviewMouseWheel="TheaterVideoPlayer_PreviewMouseWheel"
                                               MediaOpened="TheaterVideoPlayer_MediaOpened"
                                               MediaEnded="TheaterVideoPlayer_MediaEnded"/>
 
@@ -3504,10 +3518,10 @@
                                     </Grid>
 
                                     <!-- Tweet Body Text (Large, Selectable) -->
-                                    <TextBlock Text="{Binding TheaterPost.Content}"
-                                               FontSize="15" LineHeight="24" Foreground="#E7E9EA"
-                                               TextWrapping="Wrap" Margin="0,0,0,16"
-                                               FontFamily="{StaticResource TweetContentFontFamily}"/>
+                                    <emoji:TextBlock Text="{Binding TheaterPost.Content}"
+                                                     FontSize="15" LineHeight="24" Foreground="#E7E9EA"
+                                                     TextWrapping="Wrap" Margin="0,0,0,16"
+                                                     FontFamily="{StaticResource TweetContentFontFamily}"/>
 
                                     <!-- Multi-Part Story Navigation in Theater Mode -->
                                     <Border Visibility="{Binding TheaterPost.IsPartOfThread, Converter={StaticResource BoolToVis}}"
@@ -3560,7 +3574,7 @@
                                                 <TextBlock Text="&#xea6d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#F0883E" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="NOTE / COMMENT" FontSize="10" FontWeight="Bold" Foreground="#F0883E" VerticalAlignment="Center"/>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding TheaterPost.Comment}" FontSize="12.5" LineHeight="18" Foreground="#F0883E" TextWrapping="Wrap"/>
+                                            <emoji:TextBlock Text="{Binding TheaterPost.Comment}" FontSize="12.5" LineHeight="18" Foreground="#F0883E" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </Border>
 
