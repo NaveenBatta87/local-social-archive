@@ -106,7 +106,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0" Width="38" Height="38" Background="#161B22" BorderBrush="#1D9BF0" BorderThickness="1.5" CornerRadius="10" Margin="0,0,14,0">
-                    <TextBlock Text="⚙" FontSize="19" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xea78;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="19" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -121,7 +121,7 @@
             <StackPanel>
 
                 <!-- SECTION 0: Vault Security & Master Password -->
-                <TextBlock Text="🔐 VAULT SECURITY &amp; MASTER PASSWORD" Style="{StaticResource SectionHeaderStyle}"/>
+                <TextBlock Text="VAULT SECURITY &amp; MASTER PASSWORD" Style="{StaticResource SectionHeaderStyle}"/>
 
                 <Border Style="{StaticResource SettingsCardStyle}" BorderBrush="#1D9BF0" BorderThickness="1.2">
                     <StackPanel>
@@ -170,7 +170,7 @@
                 </Border>
 
                 <!-- SECTION 1: ESE Database & Offline Storage -->
-                <TextBlock Text="🗄️ ESE DATABASE &amp; OFFLINE STORAGE" Style="{StaticResource SectionHeaderStyle}"/>
+                <TextBlock Text="ESE DATABASE &amp; OFFLINE STORAGE" Style="{StaticResource SectionHeaderStyle}"/>
 
                 <Border Style="{StaticResource SettingsCardStyle}">
                     <StackPanel>
@@ -259,7 +259,7 @@
                 </Border>
 
                 <!-- SECTION 2: Ingestion & Archiving Rules -->
-                <TextBlock Text="📥 INGESTION &amp; ARCHIVING RULES" Style="{StaticResource SectionHeaderStyle}"/>
+                <TextBlock Text="INGESTION &amp; ARCHIVING RULES" Style="{StaticResource SectionHeaderStyle}"/>
 
                 <Border Style="{StaticResource SettingsCardStyle}">
                     <StackPanel>
@@ -279,7 +279,7 @@
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="📁" FontSize="12" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding}" FontSize="13" Foreground="#FFFFFF" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </DataTemplate>
@@ -305,7 +305,7 @@
                 </Border>
 
                 <!-- SECTION 3: UI & Workspace Layout Preferences -->
-                <TextBlock Text="🎨 WORKSPACE &amp; APPEARANCE" Style="{StaticResource SectionHeaderStyle}"/>
+                <TextBlock Text="WORKSPACE &amp; APPEARANCE" Style="{StaticResource SectionHeaderStyle}"/>
 
                 <Border Style="{StaticResource SettingsCardStyle}">
                     <StackPanel>

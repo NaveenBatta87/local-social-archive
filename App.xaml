@@ -10,6 +10,7 @@
         <converters:NullToVisibilityConverter x:Key="NullToVis"/>
         <converters:FileSizeFormatterConverter x:Key="FileSizeFormatter"/>
         <converters:BoolToLockToggleTextConverter x:Key="BoolToLockToggleTextConverter"/>
+        <converters:CodiconGlyphConverter x:Key="CodiconGlyphConverter"/>
 
         <!-- Global Dark Theme Color Palette -->
         <SolidColorBrush x:Key="AppBgBrush" Color="#0C1017"/>
@@ -25,6 +26,9 @@
 
         <!-- Twemoji Font Family for tweet/post content text rendering -->
         <FontFamily x:Key="TweetContentFontFamily">pack://application:,,,/Resources/Fonts/#Twemoji Mozilla, Segoe UI Variable Text, Segoe UI Emoji, Segoe UI, sans-serif</FontFamily>
+
+        <!-- VS Code Codicons OSS Font Family -->
+        <FontFamily x:Key="CodiconFontFamily">pack://application:,,,/Resources/Fonts/#codicon</FontFamily>
 
         <!-- Universal Dark ComboBox Item Style -->
         <Style x:Key="UniversalDarkComboBoxItem" TargetType="ComboBoxItem">

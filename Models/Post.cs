@@ -26,6 +26,7 @@ public class Post
     public string? ThreadId { get; set; }
     public int ThreadIndex { get; set; } = 0;
     public bool IsPartOfThread => !string.IsNullOrWhiteSpace(ThreadId);
+    public string ThreadPartBadge => ThreadIndex > 0 ? $"Part {ThreadIndex}" : "Story";
 
     private static string ResolveFolderPath(string rawPath)
     {

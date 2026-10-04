@@ -71,7 +71,7 @@
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="28" Height="28" Background="#1D9BF0" CornerRadius="6" Margin="0,0,10,0">
-                        <TextBlock Text="📁" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                        <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="14" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <TextBlock Text="Create New Folder" FontSize="17" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                 </StackPanel>
@@ -88,7 +88,7 @@
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="🗂️" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#xeaf3;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding}" FontSize="13" Foreground="#FFFFFF" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataTemplate>

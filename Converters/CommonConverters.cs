@@ -102,3 +102,21 @@ public class BoolToLockToggleTextConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+public class CodiconGlyphConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is string s && !string.IsNullOrWhiteSpace(s))
+        {
+            return LocalSocialArchive.Helpers.Codicons.ToCodicon(s);
+        }
+        return LocalSocialArchive.Helpers.Codicons.Folder;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+

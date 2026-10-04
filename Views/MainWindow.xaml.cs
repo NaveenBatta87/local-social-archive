@@ -330,7 +330,17 @@ public partial class MainWindow : Window
                                 LineHeight = 22,
                                 Margin = new Thickness(0, 0, 0, 12)
                             };
-                            DocRichTextBox.Document.Blocks.Add(para);
+                            var caret = DocRichTextBox.CaretPosition;
+                            var curPara = caret?.Paragraph;
+                            if (curPara != null)
+                            {
+                                DocRichTextBox.Document.Blocks.InsertAfter(curPara, para);
+                            }
+                            else
+                            {
+                                DocRichTextBox.Document.Blocks.Add(para);
+                            }
+                            DocRichTextBox.CaretPosition = para.ContentEnd;
                         }
 
                         _ = Task.Run(async () =>
@@ -518,7 +528,113 @@ public partial class MainWindow : Window
         };
 
         var container = new BlockUIContainer(border);
-        DocRichTextBox.Document.Blocks.Add(container);
+        var doc = DocRichTextBox.Document;
+        var caret = DocRichTextBox.CaretPosition;
+        Paragraph? curPara = caret?.Paragraph;
+
+        if (curPara != null)
+        {
+            var rangeAfter = new TextRange(caret, curPara.ContentEnd);
+            string textAfter = rangeAfter.Text;
+
+            if (!string.IsNullOrWhiteSpace(textAfter))
+            {
+                rangeAfter.Text = string.Empty;
+                var nextPara = new Paragraph(new Run(textAfter.TrimStart('\r', '\n')))
+                {
+                    FontSize = curPara.FontSize,
+                    Foreground = curPara.Foreground,
+                    LineHeight = curPara.LineHeight,
+                    Margin = curPara.Margin
+                };
+
+                doc.Blocks.InsertAfter(curPara, container);
+                doc.Blocks.InsertAfter(container, nextPara);
+                DocRichTextBox.CaretPosition = nextPara.ContentStart;
+            }
+            else
+            {
+                doc.Blocks.InsertAfter(curPara, container);
+                var nextPara = new Paragraph
+                {
+                    FontSize = curPara.FontSize,
+                    Foreground = curPara.Foreground,
+                    LineHeight = curPara.LineHeight,
+                    Margin = curPara.Margin
+                };
+                doc.Blocks.InsertAfter(container, nextPara);
+                DocRichTextBox.CaretPosition = nextPara.ContentStart;
+            }
+        }
+        else
+        {
+            Block? curBlock = doc.Blocks.FirstOrDefault(b => b.ContentStart.CompareTo(caret) <= 0 && b.ContentEnd.CompareTo(caret) >= 0);
+            if (curBlock != null)
+            {
+                doc.Blocks.InsertAfter(curBlock, container);
+                var nextPara = new Paragraph();
+                doc.Blocks.InsertAfter(container, nextPara);
+                DocRichTextBox.CaretPosition = nextPara.ContentStart;
+            }
+            else
+            {
+                doc.Blocks.Add(container);
+                var nextPara = new Paragraph();
+                doc.Blocks.Add(nextPara);
+                DocRichTextBox.CaretPosition = nextPara.ContentStart;
+            }
+        }
+
+        DocRichTextBox.Focus();
+    }
+
+    private void NodeTextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+    {
+        try
+        {
+            if (sender is FrameworkElement fe && fe.DataContext is ThreadNode node)
+            {
+                var mediaFiles = ClipboardHelper.GetMediaFilesFromClipboard(e.DataObject);
+                if (mediaFiles.Count > 0)
+                {
+                    e.CancelCommand();
+                    e.Handled = true;
+                    foreach (var f in mediaFiles)
+                    {
+                        if (!node.AttachedImagePaths.Contains(f))
+                        {
+                            node.AttachedImagePaths.Add(f);
+                        }
+                    }
+                    return;
+                }
+
+                var bmp = ClipboardHelper.GetImageFromClipboard(e.DataObject);
+                if (bmp != null)
+                {
+                    e.CancelCommand();
+                    e.Handled = true;
+                    string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "ThreadStaging");
+                    Directory.CreateDirectory(stagingDir);
+                    string imgPath = Path.Combine(stagingDir, $"thread_pasted_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.png");
+
+                    var encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(bmp));
+                    using (var fs = File.Create(imgPath))
+                    {
+                        encoder.Save(fs);
+                    }
+
+                    if (!node.AttachedImagePaths.Contains(imgPath))
+                    {
+                        node.AttachedImagePaths.Add(imgPath);
+                    }
+                    return;
+                }
+            }
+        }
+        catch { }
     }
 
     private async void BtnArchiveDoc_Click(object sender, RoutedEventArgs e)

@@ -70,7 +70,7 @@
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="28" Height="28" Background="#1A3B5C" CornerRadius="6" Margin="0,0,10,0">
-                        <TextBlock Text="🗂️" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                        <TextBlock Text="&#xeaf3;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="14" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <TextBlock Text="Create New Collection" FontSize="17" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                 </StackPanel>

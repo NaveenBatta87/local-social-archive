@@ -47,6 +47,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedPostStoryParts))]
     private Post? _selectedPost;
 
     // ========== MULTI-SELECTION STATE ==========
@@ -833,8 +834,19 @@ public partial class MainViewModel : ObservableObject
 
         bool hasFolderPrefix = rawSearch.StartsWith("folder:", StringComparison.OrdinalIgnoreCase) ||
                                rawSearch.StartsWith("f:", StringComparison.OrdinalIgnoreCase);
+        bool hasThreadPrefix = rawSearch.StartsWith("thread:", StringComparison.OrdinalIgnoreCase) ||
+                               rawSearch.StartsWith("story:", StringComparison.OrdinalIgnoreCase);
 
-        if (hasFolderPrefix)
+        if (hasThreadPrefix)
+        {
+            string threadQ = rawSearch.Substring(rawSearch.IndexOf(':') + 1).Trim();
+            if (!string.IsNullOrEmpty(threadQ))
+            {
+                query = query.Where(p => string.Equals(p.ThreadId, threadQ, StringComparison.OrdinalIgnoreCase))
+                             .OrderBy(p => p.ThreadIndex);
+            }
+        }
+        else if (hasFolderPrefix)
         {
             string folderQ = rawSearch.Substring(rawSearch.IndexOf(':') + 1).Trim().ToLowerInvariant();
             if (!string.IsNullOrEmpty(folderQ))
@@ -1515,6 +1527,34 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public async Task MoveSelectedPostsToFolderAsync(object? parameter)
+    {
+        string? targetFolder = parameter as string;
+        if (string.IsNullOrWhiteSpace(targetFolder) || targetFolder == "All Posts") return;
+
+        var postsToMove = SelectedPosts.Count > 0 
+            ? SelectedPosts.ToList() 
+            : (SelectedPost != null ? new List<Post> { SelectedPost } : new List<Post>());
+
+        if (postsToMove.Count == 0) return;
+
+        int count = 0;
+        foreach (var p in postsToMove)
+        {
+            if (!string.Equals(p.FolderName, targetFolder, StringComparison.OrdinalIgnoreCase))
+            {
+                p.FolderName = targetFolder;
+                await _dbService.UpdatePostAsync(p);
+                count++;
+            }
+        }
+
+        await UpdateCountsAndSizeAsync();
+        ApplyFilter();
+        StatusMessage = $"Moved {count} post(s) to folder '{targetFolder}'.";
+    }
+
+    [RelayCommand]
     public async Task MovePostToFolderAsync(object? parameter)
     {
         Post? targetPost = null;
@@ -1531,8 +1571,14 @@ public partial class MainViewModel : ObservableObject
         }
         else if (parameter is string folder)
         {
-            targetPost = SelectedPost ?? TheaterPost;
             targetFolder = folder;
+        }
+
+        // If multiple posts are selected and a destination folder is provided, move all selected posts!
+        if (SelectedPosts.Count > 1 && !string.IsNullOrWhiteSpace(targetFolder))
+        {
+            await MoveSelectedPostsToFolderAsync(targetFolder);
+            return;
         }
 
         if (targetPost == null) targetPost = SelectedPost ?? TheaterPost;
@@ -1550,6 +1596,113 @@ public partial class MainViewModel : ObservableObject
         await UpdateCountsAndSizeAsync();
         ApplyFilter();
         StatusMessage = $"Moved post by {targetPost.AuthorName} to folder '{targetFolder}'.";
+    }
+
+    // ========== STORY LINKING COMMANDS & STATE ==========
+    [RelayCommand]
+    public async Task LinkSelectedPostsAsStoryAsync()
+    {
+        if (SelectedPosts.Count < 2)
+        {
+            MessageBox.Show("Please select 2 or more posts (using Ctrl+Click or Shift+Click) to link them together as a multi-part story.", "Link Story", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var ordered = SelectedPosts.OrderBy(p => p.PostDate).ToList();
+        string newThreadId = Guid.NewGuid().ToString("N");
+
+        for (int i = 0; i < ordered.Count; i++)
+        {
+            ordered[i].ThreadId = newThreadId;
+            ordered[i].ThreadIndex = i + 1;
+            await _dbService.UpdatePostAsync(ordered[i]);
+        }
+
+        ApplyFilter();
+        OnPropertyChanged(nameof(SelectedPostStoryParts));
+        StatusMessage = $"Successfully linked {ordered.Count} posts as a multi-part story (Parts 1 to {ordered.Count}).";
+        MessageBox.Show($"Linked {ordered.Count} posts into a story sequence!\n\nYou can now browse between parts seamlessly across the cards, detail pane, and theater mode.", "Story Linked", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    [RelayCommand]
+    public async Task UnlinkFromStoryAsync(object? parameter)
+    {
+        var targetPosts = new List<Post>();
+        if (parameter is Post p)
+        {
+            targetPosts.Add(p);
+        }
+        else if (SelectedPosts.Count > 0)
+        {
+            targetPosts.AddRange(SelectedPosts);
+        }
+        else if (SelectedPost != null)
+        {
+            targetPosts.Add(SelectedPost);
+        }
+
+        if (targetPosts.Count == 0) return;
+
+        int unlinkedCount = 0;
+        foreach (var post in targetPosts)
+        {
+            if (post.IsPartOfThread)
+            {
+                post.ThreadId = null;
+                post.ThreadIndex = 0;
+                await _dbService.UpdatePostAsync(post);
+                unlinkedCount++;
+            }
+        }
+
+        ApplyFilter();
+        OnPropertyChanged(nameof(SelectedPostStoryParts));
+        StatusMessage = $"Unlinked {unlinkedCount} post(s) from story.";
+    }
+
+    [RelayCommand]
+    public void ViewFullStory(object? parameter)
+    {
+        Post? post = parameter as Post ?? SelectedPost;
+        if (post == null || !post.IsPartOfThread) return;
+
+        SearchQuery = $"thread:{post.ThreadId}";
+        StatusMessage = $"Displaying all parts of story ({FilteredPosts.Count} parts).";
+    }
+
+    [RelayCommand]
+    public void JumpToStoryPart(object? parameter)
+    {
+        if (parameter is Post targetPost)
+        {
+            SelectedPost = targetPost;
+            StatusMessage = $"Viewing Part {targetPost.ThreadIndex}.";
+        }
+        else if (parameter is int targetIndex && SelectedPost != null && SelectedPost.IsPartOfThread)
+        {
+            var match = Posts.FirstOrDefault(p => p.ThreadId == SelectedPost.ThreadId && p.ThreadIndex == targetIndex);
+            if (match != null)
+            {
+                SelectedPost = match;
+                StatusMessage = $"Viewing Part {match.ThreadIndex}.";
+            }
+        }
+    }
+
+    public ObservableCollection<Post> SelectedPostStoryParts
+    {
+        get
+        {
+            if (SelectedPost == null || !SelectedPost.IsPartOfThread)
+                return new ObservableCollection<Post>();
+
+            var parts = Posts
+                .Where(p => p.ThreadId == SelectedPost.ThreadId)
+                .OrderBy(p => p.ThreadIndex)
+                .ToList();
+
+            return new ObservableCollection<Post>(parts);
+        }
     }
 
     [RelayCommand]

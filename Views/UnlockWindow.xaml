@@ -30,7 +30,7 @@
             <Grid Grid.Row="0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Border Width="48" Height="48" CornerRadius="24" Background="#161B22" BorderBrush="#1D9BF0" BorderThickness="2">
-                        <TextBlock Text="🔒" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xea75;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="22" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                 </StackPanel>
 
@@ -42,7 +42,7 @@
                             <Setter Property="CornerRadius" Value="14"/>
                         </Style>
                     </Button.Resources>
-                    <TextBlock Text="✕" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
             </Grid>
 
@@ -60,7 +60,7 @@
                         <ColumnDefinition Width="24"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="🔑" FontSize="14" Foreground="#8B949E" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="0" Text="&#xeb11;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="14" Foreground="#8B949E" VerticalAlignment="Center"/>
                     <PasswordBox x:Name="TxtPassword" Grid.Column="1"
                                  Background="Transparent" BorderThickness="0"
                                  Foreground="#FFFFFF" FontSize="15" CaretBrush="#1D9BF0"
@@ -73,7 +73,7 @@
             <Border x:Name="ErrorBorder" Grid.Row="3" Background="#261A1A" BorderBrush="#5C2626" BorderThickness="1"
                     CornerRadius="8" Padding="10,6" Margin="0,12,0,0" Visibility="Collapsed">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="⚠️ " FontSize="12" Foreground="#F87171"/>
+                    <TextBlock Text="&#xea6c;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#F87171" Margin="0,0,6,0"/>
                     <TextBlock x:Name="TxtError" Text="Incorrect master password. Please try again." FontSize="12" Foreground="#F87171" FontWeight="SemiBold"/>
                 </StackPanel>
             </Border>

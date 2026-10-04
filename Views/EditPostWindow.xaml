@@ -74,7 +74,7 @@
                 <StackPanel Grid.Row="0" Margin="0,0,0,18">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="28" Height="28" Background="#161B22" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="6" Margin="0,0,10,0">
-                            <TextBlock Text="✏️" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#xea73;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#1D9BF0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <TextBlock Text="Edit Post Details &amp; Media" FontSize="19" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                     </StackPanel>
@@ -117,7 +117,7 @@
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="📁" FontSize="12" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding}" FontSize="13" Foreground="#FFFFFF" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </DataTemplate>
@@ -227,7 +227,10 @@
 
                 <!-- Comment / Notes (Optional) -->
                 <StackPanel Grid.Row="4" Margin="0,0,0,14">
-                    <TextBlock Text="💬 Comments / Personal Notes (Optional)"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="&#xea6d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#1D9BF0" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Comments / Personal Notes (Optional)" FontSize="12.5" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
+                    </StackPanel>
                     <TextBox Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True" TextWrapping="Wrap" Height="65"
                              VerticalScrollBarVisibility="Auto"/>
@@ -237,7 +240,7 @@
                 <StackPanel Grid.Row="5" Margin="0,0,0,18">
                     <Grid Margin="0,0,0,8">
                         <TextBlock Text="Media Attachments (Images, GIFs, JFIF, Videos)" VerticalAlignment="Center"/>
-                        <Button Content="+ Add Media" Command="{Binding AddImagesCommand}"
+                        <Button Command="{Binding AddImagesCommand}"
                                 HorizontalAlignment="Right" Padding="12,5"
                                 Background="#161B22" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1"
                                 FontSize="12" FontWeight="SemiBold" Cursor="Hand">
@@ -246,6 +249,10 @@
                                     <Setter Property="CornerRadius" Value="6"/>
                                 </Style>
                             </Button.Resources>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xea60;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Add Media" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Button>
                     </Grid>
 
@@ -257,13 +264,15 @@
                                         CornerRadius="6" Padding="10,6" Margin="0,0,0,6">
                                     <Grid>
                                         <StackPanel Orientation="Horizontal" Margin="0,0,30,0" VerticalAlignment="Center">
-                                            <TextBlock Text="📎" FontSize="11" Foreground="#8B949E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#8B949E" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding}" FontSize="12" Foreground="#E7E9EA" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                         </StackPanel>
-                                        <Button Content="✕" Command="{Binding DataContext.RemoveImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        <Button Command="{Binding DataContext.RemoveImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                 CommandParameter="{Binding}"
                                                 HorizontalAlignment="Right" Background="Transparent" Foreground="#F87171"
-                                                BorderThickness="0" Cursor="Hand" Width="22" Height="22" FontWeight="Bold"/>
+                                                BorderThickness="0" Cursor="Hand" Width="22" Height="22">
+                                            <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Button>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

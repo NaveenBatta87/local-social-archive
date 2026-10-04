@@ -345,7 +345,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="🔍" FontSize="12" Foreground="#6E7681"
+                                <TextBlock Grid.Column="0" Text="&#xEA6D;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#6E7681"
                                            VerticalAlignment="Center"/>
                                 <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" BorderThickness="0" Foreground="#E7E9EA"
@@ -371,7 +371,7 @@
                                         Visibility="{Binding SearchQuery, Converter={StaticResource NullToVis}}"
                                         Background="Transparent" BorderThickness="0" Foreground="#6E7681"
                                         Cursor="Hand" Width="18" Height="18" VerticalAlignment="Center" ToolTip="Clear Search">
-                                    <TextBlock Text="✕" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xEA76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Button>
                             </Grid>
                         </Border>
@@ -385,7 +385,10 @@
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="btnBorder" Background="Transparent"
                                                 BorderBrush="#21262D" BorderThickness="1" CornerRadius="18" Padding="16,0">
-                                            <TextBlock Text="Quick Paste (Ctrl+V)" FontSize="12" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="&#xEAC2;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#8B949E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Quick Paste (Ctrl+V)" FontSize="12" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                            </StackPanel>
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
@@ -405,8 +408,8 @@
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="btnCompose" Width="36" Height="36" CornerRadius="18"
                                                 Background="#161B22" BorderBrush="#21262D" BorderThickness="1">
-                                            <TextBlock Text="+" FontSize="20" FontWeight="Light" Foreground="#8B949E"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                                            <TextBlock Text="&#xEA60;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16" Foreground="#8B949E"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
@@ -483,7 +486,7 @@
                             <StackPanel HorizontalAlignment="Center" Margin="0,10,0,0">
                                 <Border Width="34" Height="34" Background="#161B22" CornerRadius="6" Margin="0,0,0,12"
                                         BorderBrush="#1D9BF0" BorderThickness="1">
-                                    <TextBlock Text="⚡" Foreground="#1D9BF0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xEC10;" FontFamily="{StaticResource CodiconFontFamily}" Foreground="#1D9BF0" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
                                 <!-- Home Feed Button (Click to toggle panel like VS Code) -->
@@ -502,7 +505,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
-                                    <TextBlock Text="🏠" FontSize="14"/>
+                                    <TextBlock Text="&#xEB06;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16"/>
                                 </Button>
 
                                 <!-- Folders Hub Grid Button (Click to toggle panel like VS Code) -->
@@ -521,7 +524,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
-                                    <TextBlock Text="📁" FontSize="14"/>
+                                    <TextBlock Text="&#xEA83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16"/>
                                 </Button>
 
                                 <!-- Word Document Canvas Button (Click to toggle panel like VS Code) -->
@@ -540,32 +543,32 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
-                                    <TextBlock Text="📝" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xEC5E;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Button>
 
                                 <Button Style="{StaticResource RailIconStyle}" ToolTip="Add Tweet (Ctrl+N)" Command="{Binding CreateNewPostCommand}">
-                                    <TextBlock Text="✏️" FontSize="14"/>
+                                    <TextBlock Text="&#xEA73;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16"/>
                                 </Button>
 
                                 <Button Style="{StaticResource RailIconStyle}" ToolTip="Quick Paste (Ctrl+V)" Command="{Binding PasteFromClipboardCommand}">
-                                    <TextBlock Text="📋" FontSize="14"/>
+                                    <TextBlock Text="&#xEAC2;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16"/>
                                 </Button>
 
                                 <Button Style="{StaticResource RailIconStyle}" ToolTip="Refresh Database (F5)" Command="{Binding RefreshDataCommand}">
-                                    <TextBlock Text="🔄" FontSize="14"/>
+                                    <TextBlock Text="&#xEA77;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16"/>
                                 </Button>
                             </StackPanel>
 
                             <!-- Bottom Rail Icons -->
                             <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,12">
                                 <Button Style="{StaticResource RailIconStyle}" ToolTip="Lock Vault (Ctrl+L)" Command="{Binding LockVaultCommand}">
-                                    <TextBlock Text="🔒" FontSize="14"/>
+                                    <TextBlock Text="&#xEA75;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16"/>
                                 </Button>
                                 <Button Style="{StaticResource RailIconStyle}" ToolTip="Archive Settings &amp; Diagnostics (Ctrl+,)" Command="{Binding OpenSettingsCommand}">
-                                    <TextBlock Text="⚙" FontSize="15"/>
+                                    <TextBlock Text="&#xEAF8;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="16"/>
                                 </Button>
                                 <Border Width="28" Height="28" Background="#161B22" CornerRadius="14" ToolTip="Offline ESE Engine Active" Margin="0,4,0,0">
-                                    <TextBlock Text="🟢" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xEAB2;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </StackPanel>
                         </Grid>
@@ -614,7 +617,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="🌐" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" Text="&#xEB01;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#1D9BF0" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Column="1" Text="All Posts" FontSize="13" FontWeight="SemiBold" Foreground="#C9D1D9" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                 <TextBlock Grid.Column="2" Text="{Binding Posts.Count, StringFormat='{}{0:N0}'}" FontSize="11" Foreground="#6E7681" VerticalAlignment="Center"/>
                             </Grid>
@@ -644,15 +647,15 @@
                                     </StackPanel.Style>
                                     <Button Command="{Binding ShowFoldersHubCommand}" ToolTip="Hub Grid (Ctrl+F)"
                                             Background="Transparent" BorderThickness="0" Cursor="Hand" Width="20" Height="20" Margin="0,0,2,0">
-                                        <TextBlock Text="⊞" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="&#xEBEB;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Button>
                                     <Button Command="{Binding CreateNewCollectionCommand}" ToolTip="New Collection (Ctrl+Shift+C)"
                                             Background="Transparent" BorderThickness="0" Cursor="Hand" Width="20" Height="20" Margin="0,0,2,0">
-                                        <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                                        <TextBlock Text="&#xEA60;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Button>
                                     <Button Command="{Binding CreateNewFolderCommand}" ToolTip="New Folder (Ctrl+Shift+N)"
                                             Background="Transparent" BorderThickness="0" Cursor="Hand" Width="20" Height="20">
-                                        <TextBlock Text="📁+" FontSize="10" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="&#xEA83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Button>
                                 </StackPanel>
                             </Grid>
@@ -680,13 +683,13 @@
                                                         Command="{Binding DataContext.ToggleCollectionExpandCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}"
                                                         Background="Transparent" BorderThickness="0" Cursor="Hand" Width="18" Height="18">
-                                                    <TextBlock FontSize="10" Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
-                                                                <Setter Property="Text" Value="▾"/>
+                                                                <Setter Property="Text" Value="&#xEAB4;"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsExpanded}" Value="False">
-                                                                        <Setter Property="Text" Value="▸"/>
+                                                                        <Setter Property="Text" Value="&#xEAB6;"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -695,7 +698,8 @@
                                                 </Button>
 
                                                 <!-- Collection Icon -->
-                                                <TextBlock Grid.Column="1" Text="{Binding IconGlyph}" FontSize="13" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding IconGlyph, Converter={StaticResource CodiconGlyphConverter}}"
+                                                           FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#1D9BF0" VerticalAlignment="Center" Margin="0,0,4,0"/>
 
                                                 <!-- Collection Name -->
                                                 <TextBlock Grid.Column="2" Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
@@ -723,7 +727,7 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Button.Style>
-                                                    <TextBlock Text="+" FontSize="12" FontWeight="Bold" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="&#xEA60;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
                                                 <!-- Delete Collection Button (If deletable) — visible on row hover -->
@@ -743,7 +747,7 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Button.Style>
-                                                    <TextBlock Text="✕" FontSize="9.5" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="&#xEA76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="10" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
                                             </Grid>
                                         </Border>
@@ -790,7 +794,8 @@
                                                             </Grid.ColumnDefinitions>
 
                                                             <!-- Folder Icon -->
-                                                            <TextBlock Grid.Column="0" Text="{Binding IconGlyph}" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                                            <TextBlock Grid.Column="0" Text="{Binding IconGlyph, Converter={StaticResource CodiconGlyphConverter}}"
+                                                                       FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
 
                                                             <!-- Folder Name -->
                                                             <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12.5" VerticalAlignment="Center" Margin="4,0,0,0">
@@ -851,7 +856,7 @@
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </Button.Style>
-                                                                <TextBlock Text="✕" FontSize="9.5" FontWeight="Bold" Foreground="#6E7681"
+                                                                <TextBlock Text="&#xEA76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="10" Foreground="#6E7681"
                                                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Button>
                                                         </Grid>
@@ -941,7 +946,7 @@
                         <!-- DB Size Indicator -->
                         <Border Grid.Row="5" Margin="0,10,0,0" Padding="0,10,0,0" BorderBrush="#1C212A" BorderThickness="0,1,0,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="🗄️" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#xEACE;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#1D9BF0" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding DatabaseSizeText}" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
@@ -1050,7 +1055,7 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="☰" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xEB17;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="List" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -1076,7 +1081,7 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="⊞" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xEBEB;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Grid" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -1107,7 +1112,7 @@
                                                 </Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="◨" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xEBF4;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Inspector" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
@@ -1128,14 +1133,14 @@
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Border Background="#1D9BF0" CornerRadius="12" Padding="12,4" Margin="0,0,14,0">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock Text="✓" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xEAB2;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding SelectedPostsCount, StringFormat='{}{0} Selected'}" FontSize="12.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
                                         <TextBlock Text="Ctrl+Click to toggle • Shift+Click to range • Press Del to remove" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
                                     </StackPanel>
 
-                                    <!-- Right Actions: [ ☑ Select All ] [ ✕ Clear ] [ 🗑️ Delete Selected (N) ] -->
+                                    <!-- Right Actions: [ ☑ Select All ] [ ✕ Clear ] [ 📁 Move Selected ⌵ ] [ 🔗 Link Story ] [ 🗑️ Delete Selected (N) ] -->
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <!-- Select All Button -->
                                         <Button Command="{Binding SelectAllPostsCommand}" Margin="0,0,8,0" Padding="12,6"
@@ -1144,20 +1149,60 @@
                                                 <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="☑" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xEBB1;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Select All" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
 
                                         <!-- Clear Selection Button -->
-                                        <Button Command="{Binding ClearSelectionCommand}" Margin="0,0,12,0" Padding="12,6"
+                                        <Button Command="{Binding ClearSelectionCommand}" Margin="0,0,8,0" Padding="12,6"
                                                 Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Foreground="#C9D1D9" Cursor="Hand" ToolTip="Deselect All (Esc)">
                                             <Button.Resources>
                                                 <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="✕" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xEA76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Clear" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- Move Selected Dropdown Menu Button -->
+                                        <Menu Background="Transparent" Margin="0,0,8,0">
+                                            <MenuItem Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Foreground="#C9D1D9" Cursor="Hand" Padding="12,6">
+                                                <MenuItem.Header>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="&#xEA83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="#38BDF8"/>
+                                                        <TextBlock Text="{Binding SelectedPostsCount, StringFormat='{}Move ({0})'}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        <TextBlock Text=" &#xEAB4;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="9" Margin="4,0,0,0" VerticalAlignment="Center" Foreground="#8B949E"/>
+                                                    </StackPanel>
+                                                </MenuItem.Header>
+                                                <MenuItem.ItemsSource>
+                                                    <Binding Path="Folders"/>
+                                                </MenuItem.ItemsSource>
+                                                <MenuItem.ItemContainerStyle>
+                                                    <Style TargetType="MenuItem">
+                                                        <Setter Property="Header" Value="{Binding Name}"/>
+                                                        <Setter Property="Command" Value="{Binding DataContext.MoveSelectedPostsToFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                                        <Setter Property="CommandParameter" Value="{Binding Name}"/>
+                                                        <Setter Property="Background" Value="#161B22"/>
+                                                        <Setter Property="Foreground" Value="#E7E9EA"/>
+                                                        <Setter Property="FontSize" Value="12.5"/>
+                                                        <Setter Property="Padding" Value="10,6"/>
+                                                    </Style>
+                                                </MenuItem.ItemContainerStyle>
+                                            </MenuItem>
+                                        </Menu>
+
+                                        <!-- Link Selected Posts as Multi-Part Story Button -->
+                                        <Button Command="{Binding LinkSelectedPostsAsStoryCommand}" Margin="0,0,8,0" Padding="12,6"
+                                                Background="#1A3B5C" BorderBrush="#1D9BF0" BorderThickness="1" Foreground="#38BDF8" Cursor="Hand"
+                                                ToolTip="Link all selected posts into a multi-part story sequence">
+                                            <Button.Resources>
+                                                <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
+                                            </Button.Resources>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="&#xEB15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Link Story" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
 
@@ -1169,7 +1214,7 @@
                                                 <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="🗑️" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xEA81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="{Binding SelectedPostsCount, StringFormat='{}Delete Selected ({0})'}" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
@@ -1219,14 +1264,68 @@
                                                 BorderThickness="1" Padding="20" Cursor="Hand">
                                             <Border.ContextMenu>
                                                 <ContextMenu Background="#161B22" BorderBrush="#2F3336" Foreground="#E7E9EA">
-                                                    <MenuItem Header="⤢ Open Theater View"
-                                                              Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="✏️ Edit Post Content"
-                                                              Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="📁 Move to Folder..."
-                                                              ItemsSource="{Binding DataContext.Folders, RelativeSource={RelativeSource AncestorType=Window}}">
+                                                    <MenuItem Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Open Theater View" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+                                                    <MenuItem Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea73;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#E7E9EA" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Edit Post Content" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <!-- Multi-Part Story Linking Options -->
+                                                    <MenuItem Command="{Binding DataContext.ViewFullStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"
+                                                              Visibility="{Binding IsPartOfThread, Converter={StaticResource BoolToVis}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#38BDF8" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="View Full Story (Thread)" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <MenuItem Command="{Binding DataContext.UnlinkFromStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"
+                                                              Visibility="{Binding IsPartOfThread, Converter={StaticResource BoolToVis}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F87171" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Unlink from Story" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <MenuItem Command="{Binding DataContext.LinkSelectedPostsAsStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Visibility="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#38BDF8" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Link Selected as Multi-Part Story" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <Separator Background="#2F3336"/>
+
+                                                    <!-- Move to Folder Menu (Moves Selected posts if multiple, or this single post) -->
+                                                    <MenuItem ItemsSource="{Binding DataContext.Folders, RelativeSource={RelativeSource AncestorType=Window}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F59E0B" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Move to Folder..." VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
                                                         <MenuItem.ItemContainerStyle>
                                                             <Style TargetType="MenuItem">
                                                                 <Setter Property="Header" Value="{Binding Name}"/>
@@ -1235,21 +1334,49 @@
                                                             </Style>
                                                         </MenuItem.ItemContainerStyle>
                                                     </MenuItem>
-                                                    <MenuItem Header="📂 Open in Explorer"
-                                                              Command="{Binding DataContext.OpenLocalFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="📋 Copy Tweet Text"
-                                                              Command="{Binding DataContext.CopyPostTextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
+
+                                                    <MenuItem Command="{Binding DataContext.OpenLocalFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#8B949E" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Open in Explorer" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <MenuItem Command="{Binding DataContext.CopyPostTextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea7a;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#8B949E" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Copy Tweet Text" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
                                                     <Separator Background="#2F3336"/>
-                                                    <MenuItem Header="{Binding DataContext.SelectedPostsCount, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='🗑️ Delete {0} Selected Posts'}"
+
+                                                    <MenuItem Command="{Binding DataContext.DeleteSelectedPostsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               Foreground="#F87171" FontWeight="Bold"
-                                                              Command="{Binding DataContext.DeleteSelectedPostsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              Visibility="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
-                                                    <MenuItem Header="{Binding DataContext.DeleteSingleMenuHeader, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              Foreground="#F87171"
-                                                              Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
+                                                              Visibility="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F87171" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding DataContext.SelectedPostsCount, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='Delete {0} Selected Posts'}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <MenuItem Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}" Foreground="#F87171">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F87171" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding DataContext.DeleteSingleMenuHeader, RelativeSource={RelativeSource AncestorType=Window}}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
                                                 </ContextMenu>
                                             </Border.ContextMenu>
                                             <Border.Style>
@@ -1295,16 +1422,34 @@
                                                                    Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Border>
 
-                                                    <!-- Name, Handle, Timestamp & Folder Badge -->
+                                                    <!-- Name, Handle, Timestamp, Folder & Story Badges -->
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
                                                         <TextBlock Text="{Binding AuthorName}" FontSize="14.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                                                         <StackPanel Orientation="Horizontal" Margin="0,3,0,0" VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding AuthorHandle}" FontSize="12" Foreground="#8B949E"/>
                                                             <TextBlock Text=" · " FontSize="12" Foreground="#6E7681"/>
                                                             <TextBlock Text="{Binding RelativeTime}" FontSize="12" Foreground="#8B949E"/>
+                                                            
+                                                            <!-- Folder Badge -->
                                                             <Border Background="#21262D" CornerRadius="6"
                                                                     Padding="7,2" BorderBrush="#30363D" BorderThickness="1" Margin="8,0,0,0" VerticalAlignment="Center">
                                                                 <TextBlock Text="{Binding FolderName}" FontSize="11" FontWeight="SemiBold" Foreground="#1D9BF0"/>
+                                                            </Border>
+
+                                                            <!-- Story Part Badge (if part of multi-part story) -->
+                                                            <Border Background="#1A3B5C" CornerRadius="6"
+                                                                    Padding="7,2" BorderBrush="#1D9BF0" BorderThickness="1" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                                    Visibility="{Binding IsPartOfThread, Converter={StaticResource BoolToVis}}"
+                                                                    Cursor="Hand" ToolTip="Part of a multi-part story. Click to view full story.">
+                                                                <Border.InputBindings>
+                                                                    <MouseBinding MouseAction="LeftClick"
+                                                                                  Command="{Binding DataContext.ViewFullStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                  CommandParameter="{Binding}"/>
+                                                                </Border.InputBindings>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="10" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                                    <TextBlock Text="{Binding ThreadPartBadge}" FontSize="11" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                                                                </StackPanel>
                                                             </Border>
                                                         </StackPanel>
                                                     </StackPanel>
@@ -1330,7 +1475,7 @@
                                                                     <Setter Property="CornerRadius" Value="6"/>
                                                                 </Style>
                                                             </Button.Resources>
-                                                            <TextBlock Text="✏️" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="&#xea73;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#8B949E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
                                                         <!-- Delete Button -->
                                                         <Button Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -1341,7 +1486,7 @@
                                                                     <Setter Property="CornerRadius" Value="6"/>
                                                                 </Style>
                                                             </Button.Resources>
-                                                            <TextBlock Text="🗑️" FontSize="11" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#F87171" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
                                                         <!-- Theater View Button -->
                                                         <Button Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -1352,7 +1497,7 @@
                                                                     <Setter Property="CornerRadius" Value="6"/>
                                                                 </Style>
                                                             </Button.Resources>
-                                                            <TextBlock Text="⤢" FontSize="13" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#6E7681" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
                                                     </StackPanel>
                                                 </Grid>
@@ -1367,7 +1512,7 @@
                                                         Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="8"
                                                         Padding="12,7" Margin="0,0,0,12">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="💬 " FontSize="12" VerticalAlignment="Top" Margin="0,1,6,0"/>
+                                                        <TextBlock Text="&#xea6d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#F0883E" VerticalAlignment="Top" Margin="0,2,6,0"/>
                                                         <TextBlock Text="{Binding Comment}" FontSize="12.5" Foreground="#F0883E" TextWrapping="Wrap" LineHeight="18"/>
                                                     </StackPanel>
                                                 </Border>
@@ -1388,7 +1533,7 @@
                                                             <Border Visibility="{Binding PrimaryIsVideo, Converter={StaticResource BoolToVis}}"
                                                                     Background="#CC000000" CornerRadius="22" Width="44" Height="44"
                                                                     HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                                <TextBlock Text="▶" Foreground="#FFFFFF" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                                <TextBlock Text="&#xea9c;" FontFamily="{StaticResource CodiconFontFamily}" Foreground="#FFFFFF" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
                                                             </Border>
                                                         </Grid>
                                                     </Border>
@@ -1494,14 +1639,68 @@
                                                 BorderThickness="1" Cursor="Hand" ClipToBounds="False">
                                             <Border.ContextMenu>
                                                 <ContextMenu Background="#161B22" BorderBrush="#2F3336" Foreground="#E7E9EA">
-                                                    <MenuItem Header="⤢ Open Theater View"
-                                                              Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="✏️ Edit Post Content"
-                                                              Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="📁 Move to Folder..."
-                                                              ItemsSource="{Binding DataContext.Folders, RelativeSource={RelativeSource AncestorType=Window}}">
+                                                    <MenuItem Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#1D9BF0" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Open Theater View" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+                                                    <MenuItem Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea73;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#E7E9EA" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Edit Post Content" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <!-- Multi-Part Story Linking Options -->
+                                                    <MenuItem Command="{Binding DataContext.ViewFullStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"
+                                                              Visibility="{Binding IsPartOfThread, Converter={StaticResource BoolToVis}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#38BDF8" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="View Full Story (Thread)" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <MenuItem Command="{Binding DataContext.UnlinkFromStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}"
+                                                              Visibility="{Binding IsPartOfThread, Converter={StaticResource BoolToVis}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F87171" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Unlink from Story" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <MenuItem Command="{Binding DataContext.LinkSelectedPostsAsStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              Visibility="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#38BDF8" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Link Selected as Multi-Part Story" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <Separator Background="#2F3336"/>
+
+                                                    <!-- Move to Folder Menu -->
+                                                    <MenuItem ItemsSource="{Binding DataContext.Folders, RelativeSource={RelativeSource AncestorType=Window}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F59E0B" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Move to Folder..." VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
                                                         <MenuItem.ItemContainerStyle>
                                                             <Style TargetType="MenuItem">
                                                                 <Setter Property="Header" Value="{Binding Name}"/>
@@ -1510,21 +1709,49 @@
                                                             </Style>
                                                         </MenuItem.ItemContainerStyle>
                                                     </MenuItem>
-                                                    <MenuItem Header="📂 Open in Explorer"
-                                                              Command="{Binding DataContext.OpenLocalFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
-                                                    <MenuItem Header="📋 Copy Tweet Text"
-                                                              Command="{Binding DataContext.CopyPostTextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
+
+                                                    <MenuItem Command="{Binding DataContext.OpenLocalFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#8B949E" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Open in Explorer" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <MenuItem Command="{Binding DataContext.CopyPostTextCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea7a;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#8B949E" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="Copy Tweet Text" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
                                                     <Separator Background="#2F3336"/>
-                                                    <MenuItem Header="{Binding DataContext.SelectedPostsCount, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='🗑️ Delete {0} Selected Posts'}"
+
+                                                    <MenuItem Command="{Binding DataContext.DeleteSelectedPostsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                               Foreground="#F87171" FontWeight="Bold"
-                                                              Command="{Binding DataContext.DeleteSelectedPostsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              Visibility="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
-                                                    <MenuItem Header="{Binding DataContext.DeleteSingleMenuHeader, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              Foreground="#F87171"
-                                                              Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                              CommandParameter="{Binding}"/>
+                                                              Visibility="{Binding DataContext.HasMultipleSelection, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F87171" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding DataContext.SelectedPostsCount, RelativeSource={RelativeSource AncestorType=Window}, StringFormat='Delete {0} Selected Posts'}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
+
+                                                    <MenuItem Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}" Foreground="#F87171">
+                                                        <MenuItem.Header>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F87171" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding DataContext.DeleteSingleMenuHeader, RelativeSource={RelativeSource AncestorType=Window}}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </MenuItem.Header>
+                                                    </MenuItem>
                                                 </ContextMenu>
                                             </Border.ContextMenu>
                                             <Border.Style>
@@ -1567,7 +1794,7 @@
                                                                 Background="#CC000000" BorderBrush="#33FFFFFF" BorderThickness="1"
                                                                 CornerRadius="20" Width="40" Height="40"
                                                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                            <TextBlock Text="▶" Foreground="#FFFFFF" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                            <TextBlock Text="&#xea9c;" FontFamily="{StaticResource CodiconFontFamily}" Foreground="#FFFFFF" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
                                                         </Border>
 
                                                         <!-- Folder Pill Badge (Top-Right) -->
@@ -1576,20 +1803,56 @@
                                                             <TextBlock Text="{Binding FolderName}" FontSize="10.5" FontWeight="SemiBold" Foreground="#1D9BF0"/>
                                                         </Border>
 
+                                                        <!-- Story Badge Pill (Top-Center if part of thread) -->
+                                                        <Border Visibility="{Binding IsPartOfThread, Converter={StaticResource BoolToVis}}"
+                                                                Background="#E61A3B5C" CornerRadius="8" Padding="7,3"
+                                                                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="8"
+                                                                Cursor="Hand" ToolTip="Part of a multi-part story. Click to view full story.">
+                                                            <Border.InputBindings>
+                                                                <MouseBinding MouseAction="LeftClick"
+                                                                              Command="{Binding DataContext.ViewFullStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                              CommandParameter="{Binding}"/>
+                                                            </Border.InputBindings>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="9.5" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                                                <TextBlock Text="{Binding ThreadPartBadge}" FontSize="10" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </Border>
+
                                                         <!-- Media Counter Pill Badge (Top-Left if > 1) -->
                                                         <Border Visibility="{Binding HasMultipleMedia, Converter={StaticResource BoolToVis}}"
                                                                 Background="#CC0A0D13" CornerRadius="8" Padding="8,3"
                                                                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8">
-                                                            <TextBlock Text="{Binding MediaCount, StringFormat='📷 {0}'}" FontSize="10.5" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xea72;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="10" Foreground="#FFFFFF" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                                <TextBlock Text="{Binding MediaCount}" FontSize="10.5" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                                                            </StackPanel>
                                                         </Border>
                                                     </Grid>
                                                 </Border>
 
-                                                <!-- 1B. Top Folder Pill (When Post has NO Media) -->
+                                                <!-- 1B. Top Folder & Story Pills (When Post has NO Media) -->
                                                 <Grid Grid.Row="0" Visibility="{Binding HasMedia, Converter={StaticResource InverseBoolToVis}}" Margin="16,14,16,6">
-                                                    <Border Background="#1C2430" CornerRadius="8" Padding="8,3" HorizontalAlignment="Right">
-                                                        <TextBlock Text="{Binding FolderName}" FontSize="10.5" FontWeight="SemiBold" Foreground="#1D9BF0"/>
-                                                    </Border>
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                        <!-- Story Pill -->
+                                                        <Border Visibility="{Binding IsPartOfThread, Converter={StaticResource BoolToVis}}"
+                                                                Background="#1A3B5C" CornerRadius="8" Padding="7,3" Margin="0,0,6,0"
+                                                                Cursor="Hand" ToolTip="Part of a multi-part story. Click to view full story.">
+                                                            <Border.InputBindings>
+                                                                <MouseBinding MouseAction="LeftClick"
+                                                                              Command="{Binding DataContext.ViewFullStoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                              CommandParameter="{Binding}"/>
+                                                            </Border.InputBindings>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="9.5" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                                                <TextBlock Text="{Binding ThreadPartBadge}" FontSize="10" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <!-- Folder Pill -->
+                                                        <Border Background="#1C2430" CornerRadius="8" Padding="8,3">
+                                                            <TextBlock Text="{Binding FolderName}" FontSize="10.5" FontWeight="SemiBold" Foreground="#1D9BF0"/>
+                                                        </Border>
+                                                    </StackPanel>
                                                 </Grid>
 
                                                 <!-- 2. Author Header Row -->
@@ -1620,7 +1883,10 @@
                                                 <Border Grid.Row="3" Visibility="{Binding HasComment, Converter={StaticResource BoolToVis}}"
                                                         Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="6"
                                                         Padding="8,4" Margin="16,0,16,10">
-                                                    <TextBlock Text="{Binding Comment, StringFormat='💬 {0}'}" FontSize="11" Foreground="#F0883E" TextTrimming="CharacterEllipsis"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xea6d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#F0883E" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="{Binding Comment}" FontSize="11" Foreground="#F0883E" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
                                                 </Border>
 
                                                 <!-- 5. Bottom Row (Relative Time & Quick Actions) -->
@@ -1632,7 +1898,7 @@
                                                             <Button Command="{Binding DataContext.DeletePostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                     CommandParameter="{Binding}" ToolTip="Delete Post (Del)"
                                                                     Background="Transparent" BorderThickness="0" Cursor="Hand" Width="26" Height="26" Margin="0,0,6,0">
-                                                                <TextBlock Text="🗑️" FontSize="11" Foreground="#F87171" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#F87171" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Button>
                                                             <!-- View Button -->
                                                             <Button Command="{Binding DataContext.OpenTheaterModeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -1644,7 +1910,10 @@
                                                                         <Setter Property="CornerRadius" Value="6"/>
                                                                     </Style>
                                                                 </Button.Resources>
-                                                                <TextBlock Text="⤢ View" FontSize="11.5" FontWeight="SemiBold"/>
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11.5" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="View" FontSize="11.5" FontWeight="SemiBold"/>
+                                                                </StackPanel>
                                                             </Button>
                                                         </StackPanel>
                                                     </Grid>
@@ -1660,7 +1929,7 @@
                                     Visibility="{Binding IsEmptyFeed, Converter={StaticResource BoolToVis}}"
                                     VerticalAlignment="Center" HorizontalAlignment="Center" Padding="40">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <TextBlock Text="✦" FontSize="48" Foreground="#21262D" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                                    <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="48" Foreground="#21262D" HorizontalAlignment="Center" Margin="0,0,0,16"/>
                                     <TextBlock Text="Your archive is quiet" FontSize="16" FontWeight="SemiBold" Foreground="#6E7681" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                                     <TextBlock Text="Paste from clipboard or compose to add posts" FontSize="13" Foreground="#484F58" HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -1709,7 +1978,8 @@
 
                                     <StackPanel Grid.Column="0">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <TextBlock Text="🗂️ Collections Hub — Collections of Folders" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                            <TextBlock Text="&#xeb00;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="18" Foreground="#1D9BF0" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Text="Collections Hub — Collections of Folders" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                                             <Border Background="#1A3B5C" CornerRadius="6" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Collections.Count, StringFormat='{}{0} Collections'}" FontSize="11" FontWeight="SemiBold" Foreground="#1D9BF0"/>
                                             </Border>
@@ -1732,7 +2002,7 @@
                                                 </Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="🗂️+" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xeb00;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="New Collection" FontSize="12" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
@@ -1747,7 +2017,7 @@
                                                 </Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="+" FontSize="13" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xea67;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" FontWeight="Bold" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="New Folder" FontSize="12" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
@@ -1762,7 +2032,7 @@
                                                 </Style>
                                             </Button.Resources>
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="⤺" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xeb18;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="View Feed" FontSize="12" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
@@ -1802,7 +2072,8 @@
                                                         <!-- Colored Icon Circle -->
                                                         <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
                                                                 Background="#212836" BorderBrush="#2F3336" BorderThickness="1">
-                                                            <TextBlock Text="{Binding IconGlyph}" FontSize="18"
+                                                            <TextBlock Text="{Binding IconGlyph, Converter={StaticResource CodiconGlyphConverter}}"
+                                                                       FontFamily="{StaticResource CodiconFontFamily}" FontSize="18" Foreground="#1D9BF0"
                                                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Border>
 
@@ -1824,7 +2095,7 @@
                                                                 ToolTip="Delete Collection"
                                                                 Background="Transparent" BorderThickness="0" Cursor="Hand"
                                                                 Width="24" Height="24" VerticalAlignment="Top">
-                                                            <TextBlock Text="✕" FontSize="11" Foreground="#F87171" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#F87171" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
                                                     </Grid>
 
@@ -1870,14 +2141,14 @@
                                                                                 </Grid.ColumnDefinitions>
 
                                                                                 <!-- Folder Icon & Name -->
-                                                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding IconGlyph}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding IconGlyph, Converter={StaticResource CodiconGlyphConverter}}" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#F59E0B" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold" Foreground="#E7E9EA" VerticalAlignment="Center"/>
 
                                                                                 <!-- Post Count -->
                                                                                 <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding Count, StringFormat='{}{0} posts'}" FontSize="11" Foreground="#8B949E" VerticalAlignment="Center" Margin="0,0,8,0"/>
 
                                                                                 <!-- Browse Button -->
-                                                                                <Button Grid.Row="0" Grid.Column="3" Content="Browse →"
+                                                                                <Button Grid.Row="0" Grid.Column="3"
                                                                                         Command="{Binding DataContext.OpenFolderFromHubCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                                         CommandParameter="{Binding}"
                                                                                         Background="#212836" Foreground="#1D9BF0" FontSize="11" FontWeight="SemiBold"
@@ -1887,6 +2158,7 @@
                                                                                             <Setter Property="CornerRadius" Value="4"/>
                                                                                         </Style>
                                                                                     </Button.Resources>
+                                                                                    <TextBlock Text="Browse →"/>
                                                                                 </Button>
 
                                                                                 <!-- Thumbnail Previews (if any) -->
@@ -1981,8 +2253,8 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="📝 " FontSize="12" Margin="0,0,4,0"/>
-                                                        <TextBlock Text="Word Document" FontSize="12" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="&#xeb51;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Word Document" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
 
@@ -2008,8 +2280,8 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="🧵 " FontSize="12" Margin="0,0,4,0"/>
-                                                        <TextBlock Text="Thread Studio" FontSize="12" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Thread Studio" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
                                             </StackPanel>
@@ -2043,7 +2315,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="*"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="📁 " FontSize="11" Foreground="#8B949E" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="0" Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#F59E0B" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                                     <TextBox Grid.Column="1" Text="{Binding CanvasSelectedFolder, UpdateSourceTrigger=PropertyChanged}"
                                                              Background="Transparent" BorderThickness="0" Foreground="#1D9BF0" FontSize="12" FontWeight="SemiBold"
                                                              VerticalAlignment="Center" CaretBrush="#1D9BF0"/>
@@ -2064,7 +2336,7 @@
                                                             <Border x:Name="chkBorder" Background="#161B22" BorderBrush="#21262D" BorderThickness="1"
                                                                     CornerRadius="6" Padding="9,5">
                                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <TextBlock x:Name="chkIcon" Text="📄 " FontSize="11" VerticalAlignment="Center"/>
+                                                                    <TextBlock x:Name="chkIcon" Text="&#xeb51;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                                                     <TextBlock x:Name="chkText" Text="Auto-Split Pages" FontSize="11.5" FontWeight="SemiBold" Foreground="#8B949E" VerticalAlignment="Center"/>
                                                                 </StackPanel>
                                                             </Border>
@@ -2091,7 +2363,7 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="💾 " FontSize="13" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xea98;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Save &amp; Archive Post" FontSize="12.5" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -2104,7 +2376,10 @@
                                                             <Setter Property="CornerRadius" Value="6"/>
                                                         </Style>
                                                     </Button.Resources>
-                                                    <TextBlock Text="🧹 Clear" FontSize="12" VerticalAlignment="Center"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xeb05;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Clear" FontSize="12" VerticalAlignment="Center"/>
+                                                    </StackPanel>
                                                 </Button>
                                             </StackPanel>
 
@@ -2119,7 +2394,7 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="➕ " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xea67;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Add Step" FontSize="12" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -2133,7 +2408,7 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="📋 " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xea7a;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Paste" FontSize="12" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -2147,7 +2422,7 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="🔗 " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Save Series" FontSize="12" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -2161,7 +2436,7 @@
                                                         </Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="🧵 " FontSize="11" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                                         <TextBlock Text="Merge 1 Post" FontSize="12" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -2174,7 +2449,7 @@
                                                             <Setter Property="CornerRadius" Value="6"/>
                                                         </Style>
                                                     </Button.Resources>
-                                                    <TextBlock Text="🧹" FontSize="12" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="&#xeb05;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" VerticalAlignment="Center"/>
                                                 </Button>
                                             </StackPanel>
                                         </StackPanel>
@@ -2245,8 +2520,8 @@
                                                         <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="🖼️ " FontSize="12"/>
-                                                        <TextBlock Text="Image / JFIF" FontSize="12" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="&#xea72;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Image / JFIF" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
 
@@ -2258,8 +2533,8 @@
                                                         <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                     </Button.Resources>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="🎥 " FontSize="12"/>
-                                                        <TextBlock Text="Video" FontSize="12" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="&#xea9c;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Video" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
 
@@ -2272,8 +2547,8 @@
                                                             <Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style>
                                                         </Button.Resources>
                                                         <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="😊 " FontSize="12"/>
-                                                            <TextBlock Text="Emoji" FontSize="12" FontWeight="SemiBold"/>
+                                                            <TextBlock Text="&#xea89;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="Emoji" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Button>
                                                     <Popup x:Name="DocEmojiPopup" PlacementTarget="{Binding ElementName=BtnDocEmojiTrigger}"
@@ -2445,17 +2720,23 @@
                                     <Border Visibility="{Binding CanvasThreadNodes.Count, Converter={StaticResource InverseBoolToVis}}"
                                             Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="12" Padding="32" Margin="0,20,0,0">
                                         <StackPanel HorizontalAlignment="Center">
-                                            <TextBlock Text="🧵" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                                            <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="40" Foreground="#1D9BF0" HorizontalAlignment="Center" Margin="0,0,0,12"/>
                                             <TextBlock Text="Thread Studio is Empty" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" Margin="0,0,0,6"/>
                                             <TextBlock Text="Compose or paste a connected sequence of tweets. Each step will be linked in order." FontSize="13" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,0,0,20"/>
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                 <Button Command="{Binding AddEmptyCanvasNodeCommand}" Padding="16,8" Background="#1D9BF0" Foreground="#FFFFFF" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="0,0,12,0">
                                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                                    <TextBlock Text="➕ Add First Step" FontSize="13"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xea60;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Add First Step" FontSize="13" VerticalAlignment="Center"/>
+                                                    </StackPanel>
                                                 </Button>
                                                 <Button Command="{Binding PasteToCanvasCommand}" Padding="16,8" Background="#212836" Foreground="#1D9BF0" BorderBrush="#2F3336" BorderThickness="1" FontWeight="SemiBold" Cursor="Hand">
                                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                                    <TextBlock Text="📋 Paste from Clipboard" FontSize="13"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Paste from Clipboard" FontSize="13" VerticalAlignment="Center"/>
+                                                    </StackPanel>
                                                 </Button>
                                             </StackPanel>
                                         </StackPanel>
@@ -2504,28 +2785,29 @@
                                                                         CommandParameter="{Binding}" ToolTip="Move Step Up"
                                                                         Background="#212836" Foreground="#8B949E" BorderThickness="0" Width="26" Height="26" Cursor="Hand" Margin="0,0,4,0">
                                                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
-                                                                    <TextBlock Text="▲" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="&#xeb0b;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Button>
                                                                 <!-- Move Down -->
                                                                 <Button Command="{Binding DataContext.MoveNodeDownCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                         CommandParameter="{Binding}" ToolTip="Move Step Down"
                                                                         Background="#212836" Foreground="#8B949E" BorderThickness="0" Width="26" Height="26" Cursor="Hand" Margin="0,0,8,0">
                                                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
-                                                                    <TextBlock Text="▼" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="&#xea53;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Button>
                                                                 <!-- Delete Step -->
                                                                 <Button Command="{Binding DataContext.RemoveCanvasNodeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                         CommandParameter="{Binding}" ToolTip="Delete Step"
                                                                         Background="#332B1818" Foreground="#F87171" BorderBrush="#66DC2626" BorderThickness="1" Width="26" Height="26" Cursor="Hand">
                                                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
-                                                                    <TextBlock Text="✕" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Button>
                                                             </StackPanel>
                                                         </Grid>
 
-                                                        <!-- 2. Content TextBox -->
+                                                        <!-- 2. Content TextBox (Supports cursor pasting of text & images) -->
                                                         <Border Grid.Row="1" Background="#0D1117" BorderBrush="#21262D" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
                                                             <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                                                     DataObject.Pasting="NodeTextBox_Pasting"
                                                                      Background="Transparent" BorderThickness="0" Foreground="#FFFFFF"
                                                                      FontSize="14" AcceptsReturn="True" TextWrapping="Wrap"
                                                                      MinHeight="85" CaretBrush="#1D9BF0"
@@ -2570,7 +2852,7 @@
                                                                                     HorizontalAlignment="Right" VerticalAlignment="Top" Margin="3"
                                                                                     Width="20" Height="20" Background="#CC000000" Foreground="#F87171" BorderThickness="0" Cursor="Hand">
                                                                                 <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="10"/></Style></Button.Resources>
-                                                                                <TextBlock Text="✕" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                             </Button>
                                                                         </Grid>
                                                                     </Border>
@@ -2586,7 +2868,7 @@
                                                                     HorizontalAlignment="Left" Cursor="Hand">
                                                                 <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
                                                                 <StackPanel Orientation="Horizontal">
-                                                                    <TextBlock Text="🖼️+ " FontSize="11" Margin="0,0,4,0"/>
+                                                                    <TextBlock Text="&#xea72;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                                     <TextBlock Text="Attach Media" FontSize="11.5" FontWeight="SemiBold"/>
                                                                 </StackPanel>
                                                             </Button>
@@ -2656,7 +2938,7 @@
                                 <Button Command="{Binding CloseInspectorCommand}" ToolTip="Close Inspector Panel"
                                         Background="Transparent" Foreground="#8B949E" BorderThickness="0"
                                         Cursor="Hand" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <TextBlock Text="✕" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Button>
                             </Grid>
 
@@ -2664,18 +2946,53 @@
                             <Border Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,18">
                                 <StackPanel>
                                     <TextBlock Text="BULK ACTIONS" FontSize="11" FontWeight="Bold" Foreground="#8B949E" Margin="0,0,0,12"/>
-                                    <Button Command="{Binding DeleteSelectedPostsCommand}"
-                                            Background="#DA3633" BorderBrush="#F85149" BorderThickness="1" Foreground="#FFFFFF"
-                                            Padding="14,10" Cursor="Hand" Margin="0,0,0,8">
+
+                                    <!-- Bulk Move to Folder Menu -->
+                                    <Menu Background="Transparent" Margin="0,0,0,8">
+                                        <MenuItem Header="{Binding SelectedPostsCount, StringFormat='Move {0} Posts to Folder...'}"
+                                                  Background="#212836" BorderBrush="#2F3336" BorderThickness="1" Foreground="#1D9BF0"
+                                                  FontWeight="SemiBold" Padding="14,9"
+                                                  ItemsSource="{Binding Folders}">
+                                            <MenuItem.Icon>
+                                                <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#F59E0B" VerticalAlignment="Center"/>
+                                            </MenuItem.Icon>
+                                            <MenuItem.ItemContainerStyle>
+                                                <Style TargetType="MenuItem">
+                                                    <Setter Property="Header" Value="{Binding Name}"/>
+                                                    <Setter Property="Command" Value="{Binding DataContext.MoveSelectedPostsToFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                                    <Setter Property="CommandParameter" Value="{Binding Name}"/>
+                                                </Style>
+                                            </MenuItem.ItemContainerStyle>
+                                        </MenuItem>
+                                    </Menu>
+
+                                    <!-- Link Selected as Multi-Part Story -->
+                                    <Button Command="{Binding LinkSelectedPostsAsStoryCommand}"
+                                            Background="#1A3B5C" BorderBrush="#1D9BF0" BorderThickness="1" Foreground="#FFFFFF"
+                                            Padding="14,9" Cursor="Hand" Margin="0,0,0,8">
                                         <Button.Resources>
                                             <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
                                         </Button.Resources>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <TextBlock Text="🗑️" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="#38BDF8"/>
+                                            <TextBlock Text="Link as Multi-Part Story" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Delete Selected Posts -->
+                                    <Button Command="{Binding DeleteSelectedPostsCommand}"
+                                            Background="#DA3633" BorderBrush="#F85149" BorderThickness="1" Foreground="#FFFFFF"
+                                            Padding="14,9" Cursor="Hand" Margin="0,0,0,8">
+                                        <Button.Resources>
+                                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
+                                        </Button.Resources>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding SelectedPostsCount, StringFormat='{}Delete All {0} Posts'}" FontSize="12.5" FontWeight="Bold" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
 
+                                    <!-- Clear Selection -->
                                     <Button Command="{Binding ClearSelectionCommand}"
                                             Background="#21262D" BorderBrush="#30363D" BorderThickness="1" Foreground="#C9D1D9"
                                             Padding="14,8" Cursor="Hand">
@@ -2683,7 +3000,7 @@
                                             <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
                                         </Button.Resources>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <TextBlock Text="✕" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                             <TextBlock Text="Deselect All" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
@@ -2747,7 +3064,7 @@
                                             <Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style>
                                         </Button.Resources>
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="↗" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
                                             <TextBlock Text="Theater" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
@@ -2756,7 +3073,7 @@
                                     <Button Command="{Binding CloseInspectorCommand}" ToolTip="Close Inspector Panel"
                                             Background="Transparent" Foreground="#8B949E" BorderThickness="0"
                                             Cursor="Hand" Width="26" Height="26">
-                                        <TextBlock Text="✕" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Button>
                                 </StackPanel>
                             </Grid>
@@ -2801,29 +3118,81 @@
                                 </Border>
                             </Grid>
 
-                            <!-- 3.5 Linked Multi-Part Document Navigation -->
-                            <Grid Margin="0,0,0,14" Visibility="{Binding SelectedPost.IsPartOfThread, Converter={StaticResource BoolToVis}}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="70"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Linked" FontSize="12" Foreground="#8B949E" VerticalAlignment="Center"/>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Background="#1A3B5C" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,8,0">
-                                        <TextBlock Text="{Binding SelectedPost.ThreadIndex, StringFormat='Part {0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="#1D9BF0"/>
-                                    </Border>
-                                    <Button Command="{Binding SelectPreviousLinkedPartCommand}" ToolTip="Jump to Previous Linked Document"
-                                            Background="#161B22" BorderBrush="#21262D" BorderThickness="1" Foreground="#8B949E"
-                                            Cursor="Hand" Padding="8,3" Margin="0,0,5,0">
-                                        <TextBlock Text="◀ Prev" FontSize="11"/>
-                                    </Button>
-                                    <Button Command="{Binding SelectNextLinkedPartCommand}" ToolTip="Jump to Next Linked Document"
-                                            Background="#161B22" BorderBrush="#21262D" BorderThickness="1" Foreground="#8B949E"
-                                            Cursor="Hand" Padding="8,3">
-                                        <TextBlock Text="Next ▶" FontSize="11"/>
-                                    </Button>
+                            <!-- 3.5 Linked Multi-Part Story Navigation & Management -->
+                            <Border Visibility="{Binding SelectedPost.IsPartOfThread, Converter={StaticResource BoolToVis}}"
+                                    Background="#121820" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="8"
+                                    Padding="12,10" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#38BDF8" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="MULTI-PART STORY" FontSize="11" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SelectedPost.ThreadPartBadge}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!-- Interactive Story Parts Pill List -->
+                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,8">
+                                        <ItemsControl ItemsSource="{Binding SelectedPostStoryParts}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Command="{Binding DataContext.JumpToStoryPartCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="8,4" Margin="0,0,6,0" Cursor="Hand"
+                                                            Background="#161B22" BorderBrush="#30363D" BorderThickness="1" Foreground="#E7E9EA">
+                                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                        <TextBlock Text="{Binding ThreadPartBadge}" FontSize="11" FontWeight="SemiBold"/>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+
+                                    <!-- Story Action Buttons (Prev, Next, View Full Story, Unlink) -->
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="6"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Command="{Binding SelectPreviousLinkedPartCommand}" ToolTip="Jump to Previous Linked Part"
+                                                Background="#212836" BorderBrush="#30363D" BorderThickness="1" Foreground="#8B949E"
+                                                Cursor="Hand" Padding="6,4">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                            <TextBlock Text="◀ Prev Part" FontSize="11"/>
+                                        </Button>
+                                        <Button Grid.Column="2" Command="{Binding SelectNextLinkedPartCommand}" ToolTip="Jump to Next Linked Part"
+                                                Background="#212836" BorderBrush="#30363D" BorderThickness="1" Foreground="#8B949E"
+                                                Cursor="Hand" Padding="6,4">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                            <TextBlock Text="Next Part ▶" FontSize="11"/>
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="6"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Command="{Binding ViewFullStoryCommand}" CommandParameter="{Binding SelectedPost}"
+                                                Background="#1D9BF0" BorderThickness="0" Foreground="#FFFFFF"
+                                                Cursor="Hand" Padding="6,4" ToolTip="Filter feed to view all parts of this story">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                            <TextBlock Text="View Full Story" FontSize="11" FontWeight="Bold"/>
+                                        </Button>
+                                        <Button Grid.Column="2" Command="{Binding UnlinkFromStoryCommand}" CommandParameter="{Binding SelectedPost}"
+                                                Background="#211818" BorderBrush="#4A2525" BorderThickness="1" Foreground="#F87171"
+                                                Cursor="Hand" Padding="6,4" ToolTip="Detach post from this story thread">
+                                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                            <TextBlock Text="Unlink Post" FontSize="11"/>
+                                        </Button>
+                                    </Grid>
                                 </StackPanel>
-                            </Grid>
+                            </Border>
 
                             <!-- 4. Date -->
                             <Grid Margin="0,0,0,14">
@@ -2882,8 +3251,8 @@
                                         CommandParameter="{Binding SelectedPost}"
                                         Background="Transparent" Foreground="#1D9BF0" BorderBrush="#1D9BF0" BorderThickness="1">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="↗ " FontSize="13"/>
-                                        <TextBlock Text="Open Split Media View"/>
+                                        <TextBlock Text="&#xeb7d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Open Split Media View" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
@@ -2892,8 +3261,8 @@
                                         Command="{Binding OpenLocalFolderCommand}"
                                         CommandParameter="{Binding SelectedPost}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="📁 " FontSize="13"/>
-                                        <TextBlock Text="Open Local Folder"/>
+                                        <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Open Local Folder" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
@@ -2902,8 +3271,8 @@
                                         Command="{Binding EditPostCommand}"
                                         CommandParameter="{Binding SelectedPost}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="✏️ " FontSize="12"/>
-                                        <TextBlock Text="Edit Post &amp; Media"/>
+                                        <TextBlock Text="&#xea73;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Edit Post &amp; Media" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
@@ -2952,13 +3321,13 @@
                             Width="38" Height="38" Margin="16,16,0,0"
                             HorizontalAlignment="Left" VerticalAlignment="Top"
                             Background="#33FFFFFF" Foreground="#FFFFFF" BorderThickness="0"
-                            FontSize="14" FontWeight="Bold" Cursor="Hand" Panel.ZIndex="100">
+                            Cursor="Hand" Panel.ZIndex="100">
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="19"/>
                             </Style>
                         </Button.Resources>
-                        <TextBlock Text="✕" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
 
                     <!-- ================= LEFT MEDIA STAGE ================= -->
@@ -3014,7 +3383,7 @@
                                                             <Setter Property="CornerRadius" Value="17"/>
                                                         </Style>
                                                     </Button.Resources>
-                                                    <TextBlock x:Name="TxtPlayIcon" Text="▶" FontSize="13" Margin="2,0,0,0"
+                                                    <TextBlock x:Name="TxtPlayIcon" Text="&#xea9c;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="2,0,0,0"
                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
@@ -3027,7 +3396,7 @@
                                                             <Setter Property="CornerRadius" Value="17"/>
                                                         </Style>
                                                     </Button.Resources>
-                                                    <TextBlock Text="⏹" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="&#xea9f;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
 
                                                 <!-- Time Label -->
@@ -3036,7 +3405,7 @@
 
                                             <!-- Volume / Mute Controls -->
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                <TextBlock Text="🔊" FontSize="12" Foreground="#8B949E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="&#xea6c;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Foreground="#8B949E" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <Slider x:Name="VideoVolumeSlider" Width="90" Minimum="0" Maximum="1" Value="0.8"
                                                         ValueChanged="VideoVolumeSlider_ValueChanged" VerticalAlignment="Center"/>
                                             </StackPanel>
@@ -3051,26 +3420,26 @@
                                 <Button Command="{Binding PreviousTheaterMediaCommand}"
                                         Width="44" Height="44" HorizontalAlignment="Left" VerticalAlignment="Center"
                                         Margin="16,0,0,0" Background="#66000000" Foreground="#FFFFFF" BorderThickness="0"
-                                        FontSize="18" Cursor="Hand">
+                                        Cursor="Hand">
                                     <Button.Resources>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="22"/>
                                         </Style>
                                     </Button.Resources>
-                                    <TextBlock Text="◀" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-2,0,0,0"/>
+                                    <TextBlock Text="&#xea60;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-2,0,0,0"/>
                                 </Button>
 
                                 <!-- Next Button (Right Arrow) -->
                                 <Button Command="{Binding NextTheaterMediaCommand}"
                                         Width="44" Height="44" HorizontalAlignment="Right" VerticalAlignment="Center"
                                         Margin="0,0,16,0" Background="#66000000" Foreground="#FFFFFF" BorderThickness="0"
-                                        FontSize="18" Cursor="Hand">
+                                        Cursor="Hand">
                                     <Button.Resources>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="22"/>
                                         </Style>
                                     </Button.Resources>
-                                    <TextBlock Text="▶" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                    <TextBlock Text="&#xea61;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
                                 </Button>
 
                                 <!-- Counter Badge (e.g. 1 / 3) -->
@@ -3097,8 +3466,8 @@
                                     <TextBlock Text="Archived Tweet" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                                     <Button Command="{Binding CloseTheaterModeCommand}"
                                             HorizontalAlignment="Right" Background="Transparent" Foreground="#8B949E" BorderThickness="0"
-                                            FontSize="14" FontWeight="Bold" Cursor="Hand">
-                                        <TextBlock Text="✕"/>
+                                            Cursor="Hand">
+                                        <TextBlock Text="&#xea76;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" FontWeight="Bold"/>
                                     </Button>
                                 </Grid>
                             </Border>
@@ -3140,12 +3509,57 @@
                                                TextWrapping="Wrap" Margin="0,0,0,16"
                                                FontFamily="{StaticResource TweetContentFontFamily}"/>
 
+                                    <!-- Multi-Part Story Navigation in Theater Mode -->
+                                    <Border Visibility="{Binding TheaterPost.IsPartOfThread, Converter={StaticResource BoolToVis}}"
+                                            Background="#121820" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="8"
+                                            Padding="12,10" Margin="0,0,0,16">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,8">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xeb15;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Foreground="#38BDF8" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="STORY / THREAD PART" FontSize="11" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding TheaterPost.ThreadPartBadge}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            </Grid>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="6"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="6"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="0" Command="{Binding SelectPreviousLinkedPartCommand}" ToolTip="Jump to Previous Part"
+                                                        Background="#212836" BorderBrush="#30363D" BorderThickness="1" Foreground="#8B949E"
+                                                        Cursor="Hand" Padding="6,5">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                    <TextBlock Text="◀ Prev" FontSize="11"/>
+                                                </Button>
+                                                <Button Grid.Column="2" Command="{Binding SelectNextLinkedPartCommand}" ToolTip="Jump to Next Part"
+                                                        Background="#212836" BorderBrush="#30363D" BorderThickness="1" Foreground="#8B949E"
+                                                        Cursor="Hand" Padding="6,5">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                    <TextBlock Text="Next ▶" FontSize="11"/>
+                                                </Button>
+                                                <Button Grid.Column="4" Command="{Binding ViewFullStoryCommand}" CommandParameter="{Binding TheaterPost}"
+                                                        Background="#1D9BF0" BorderThickness="0" Foreground="#FFFFFF"
+                                                        Cursor="Hand" Padding="6,5" ToolTip="View full story in feed">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                                    <TextBlock Text="View All" FontSize="11" FontWeight="Bold"/>
+                                                </Button>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
                                     <!-- Notes / Comment in Theater (if present) -->
                                     <Border Visibility="{Binding TheaterPost.HasComment, Converter={StaticResource BoolToVis}}"
                                             Background="#1A1814" BorderBrush="#6B3F18" BorderThickness="1" CornerRadius="8"
                                             Padding="12,8" Margin="0,0,0,16">
                                         <StackPanel>
-                                            <TextBlock Text="💬 NOTE / COMMENT" FontSize="10" FontWeight="Bold" Foreground="#F0883E" Margin="0,0,0,4"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <TextBlock Text="&#xea6d;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="11" Foreground="#F0883E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="NOTE / COMMENT" FontSize="10" FontWeight="Bold" Foreground="#F0883E" VerticalAlignment="Center"/>
+                                            </StackPanel>
                                             <TextBlock Text="{Binding TheaterPost.Comment}" FontSize="12.5" LineHeight="18" Foreground="#F0883E" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </Border>
@@ -3192,8 +3606,8 @@
                                             Command="{Binding OpenLocalFolderCommand}"
                                             CommandParameter="{Binding TheaterPost}">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="📁 " FontSize="13"/>
-                                            <TextBlock Text="Open Local Media Folder"/>
+                                            <TextBlock Text="&#xea83;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Open Local Media Folder" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
 
@@ -3202,8 +3616,8 @@
                                             Command="{Binding CopyPostTextCommand}"
                                             CommandParameter="{Binding TheaterPost}">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="📋 " FontSize="13"/>
-                                            <TextBlock Text="Copy Tweet Text"/>
+                                            <TextBlock Text="&#xea7a;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Copy Tweet Text" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
 
@@ -3215,7 +3629,7 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Button Grid.Column="0" Content="Edit Post"
+                                        <Button Grid.Column="0"
                                                 Command="{Binding EditPostCommand}"
                                                 CommandParameter="{Binding TheaterPost}"
                                                 Height="36" Background="#212836" Foreground="#E7E9EA"
@@ -3225,9 +3639,13 @@
                                                     <Setter Property="CornerRadius" Value="6"/>
                                                 </Style>
                                             </Button.Resources>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <TextBlock Text="&#xea73;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Edit Post" VerticalAlignment="Center"/>
+                                            </StackPanel>
                                         </Button>
 
-                                        <Button Grid.Column="2" Content="Delete"
+                                        <Button Grid.Column="2"
                                                 Command="{Binding DeletePostCommand}"
                                                 CommandParameter="{Binding TheaterPost}"
                                                 Height="36" Background="#332B1818" Foreground="#F87171"
@@ -3237,6 +3655,10 @@
                                                     <Setter Property="CornerRadius" Value="6"/>
                                                 </Style>
                                             </Button.Resources>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                <TextBlock Text="&#xea81;" FontFamily="{StaticResource CodiconFontFamily}" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Delete" VerticalAlignment="Center"/>
+                                            </StackPanel>
                                         </Button>
                                     </Grid>
                                 </StackPanel>
