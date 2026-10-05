@@ -4,38 +4,15 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
+using LocalSocialArchive.Models;
+
 namespace LocalSocialArchive.Helpers;
 
 public static class ClipboardHelper
 {
-    private static readonly HashSet<string> SupportedImageExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".png", ".jpg", ".jpeg", ".jfif", ".jif", ".webp", ".bmp", ".gif"
-    };
-
-    private static readonly HashSet<string> SupportedVideoExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".mp4", ".webm", ".mov", ".mkv", ".avi", ".wmv", ".m4v", ".flv"
-    };
-
-    public static bool IsImageExtension(string? path)
-    {
-        if (string.IsNullOrWhiteSpace(path)) return false;
-        var ext = Path.GetExtension(path);
-        return SupportedImageExtensions.Contains(ext);
-    }
-
-    public static bool IsVideoExtension(string? path)
-    {
-        if (string.IsNullOrWhiteSpace(path)) return false;
-        var ext = Path.GetExtension(path);
-        return SupportedVideoExtensions.Contains(ext);
-    }
-
-    public static bool IsMediaExtension(string? path)
-    {
-        return IsImageExtension(path) || IsVideoExtension(path);
-    }
+    public static bool IsImageExtension(string? path) => MediaItem.IsImageExtension(path);
+    public static bool IsVideoExtension(string? path) => MediaItem.IsVideoExtension(path);
+    public static bool IsMediaExtension(string? path) => IsImageExtension(path) || IsVideoExtension(path);
 
     public static BitmapSource? GetImageFromClipboard(IDataObject? dataObject = null)
     {

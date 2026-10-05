@@ -1,0 +1,20 @@
+## Build and distribution outputs
+bin/
+obj/
+publish/
+publish_standalone/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## Visual Studio & JetBrains caches
+.vs/
+.idea/
+.vscode/
+
+## Local user database & staging files
+[Aa]rchiveData.edb*
+[Ee]seLogs/
+CanvasStaging/
+ThreadStaging/

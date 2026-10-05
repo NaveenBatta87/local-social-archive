@@ -428,17 +428,7 @@ public partial class MainWindow : Window
                 e.CancelCommand();
                 e.Handled = true;
 
-                string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "CanvasStaging");
-                Directory.CreateDirectory(stagingDir);
-                string imgPath = Path.Combine(stagingDir, $"pasted_img_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.png");
-
-                var encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bmp));
-                using (var fs = File.Create(imgPath))
-                {
-                    encoder.Save(fs);
-                }
+                string imgPath = SaveBitmapToStaging(bmp, "CanvasStaging");
                 InsertMediaIntoFlowDocument(imgPath);
                 return;
             }
@@ -588,17 +578,7 @@ public partial class MainWindow : Window
             var bmp = ClipboardHelper.GetImageFromClipboard();
             if (bmp != null)
             {
-                string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "CanvasStaging");
-                Directory.CreateDirectory(stagingDir);
-                string imgPath = Path.Combine(stagingDir, $"pasted_img_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.png");
-
-                var encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bmp));
-                using (var fs = File.Create(imgPath))
-                {
-                    encoder.Save(fs);
-                }
+                string imgPath = SaveBitmapToStaging(bmp, "CanvasStaging");
                 InsertMediaIntoFlowDocument(imgPath);
                 return;
             }
@@ -609,6 +589,22 @@ public partial class MainWindow : Window
         {
             DocRichTextBox.Paste();
         }
+    }
+
+    private static string SaveBitmapToStaging(BitmapSource bmp, string subfolder, string prefix = "pasted_img")
+    {
+        string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", subfolder);
+        Directory.CreateDirectory(stagingDir);
+        string imgPath = Path.Combine(stagingDir, $"{prefix}_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N")[..6]}.png");
+
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bmp));
+        using (var fs = File.Create(imgPath))
+        {
+            encoder.Save(fs);
+        }
+        return imgPath;
     }
 
     private void InsertMediaIntoFlowDocument(string filePath)
@@ -752,17 +748,7 @@ public partial class MainWindow : Window
                 {
                     e.CancelCommand();
                     e.Handled = true;
-                    string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "ThreadStaging");
-                    Directory.CreateDirectory(stagingDir);
-                    string imgPath = Path.Combine(stagingDir, $"thread_pasted_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.png");
-
-                    var encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(bmp));
-                    using (var fs = File.Create(imgPath))
-                    {
-                        encoder.Save(fs);
-                    }
+                    string imgPath = SaveBitmapToStaging(bmp, "ThreadStaging", "thread_pasted");
 
                     if (!node.AttachedImagePaths.Contains(imgPath))
                     {
