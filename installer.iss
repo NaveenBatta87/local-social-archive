@@ -4,7 +4,7 @@
 #define MyAppName "Local Social Archive"
 #define MyAppVersion "2.4.1"
 #define MyAppPublisher "Local Social Archive"
-#define MyAppURL "https://github.com/naveenbatta96-creator/LocalSocialArchive"
+#define MyAppURL "https://github.com/NaveenBatta87/local-social-archive"
 #define MyAppExeName "LocalSocialArchive.exe"
 
 [Setup]

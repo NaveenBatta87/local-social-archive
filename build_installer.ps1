@@ -56,3 +56,14 @@ if (Test-Path $SetupExe) {
     Write-Host "`nInstaller created successfully!" -ForegroundColor Green
     Write-Host "Path: $SetupExe ($("{0:F2}" -f $SizeMB) MB)`n" -ForegroundColor Green
 }
+
+# 3. Create Portable Zip
+Write-Host "`n[3/3] Creating Portable Zip package..." -ForegroundColor Yellow
+$PortableZip = Join-Path $ScriptDir "dist\installer\LocalSocialArchive-Portable.zip"
+if (Test-Path $PortableZip) { Remove-Item $PortableZip -Force }
+$ExePath = Join-Path $PublishDir "LocalSocialArchive.exe"
+Compress-Archive -Path $ExePath -DestinationPath $PortableZip -CompressionLevel Optimal
+if (Test-Path $PortableZip) {
+    $ZipSizeMB = (Get-Item $PortableZip).Length / 1MB
+    Write-Host "Portable Zip created: $PortableZip ($("{0:F2}" -f $ZipSizeMB) MB)`n" -ForegroundColor Green
+}
