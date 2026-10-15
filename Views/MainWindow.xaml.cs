@@ -33,14 +33,30 @@ public partial class MainWindow : Window
         };
         _videoTimer.Tick += VideoTimer_Tick;
 
-        // Intercept native paste in Word Canvas to handle DIBs (MS Word/Paint), browser PNGs, and dropped media
-        DataObject.AddPastingHandler(DocRichTextBox, OnDocRichTextBoxPasting);
+        PreviewKeyDown += MainWindow_PreviewKeyDown;
 
         Loaded += async (s, e) =>
         {
-            await _viewModel.InitializeAsync();
-            var source = PresentationSource.FromVisual(this) as HwndSource;
-            source?.AddHook(WndProc);
+            StoragePathHelper.LogDiagnostic("MainWindow Loaded event fired. Initializing ViewModel...");
+            try
+            {
+                await _viewModel.InitializeAsync();
+                StoragePathHelper.LogDiagnostic("ViewModel initialization completed.");
+            }
+            catch (Exception ex)
+            {
+                StoragePathHelper.LogDiagnostic($"[MainWindow.Loaded Error] {ex}");
+            }
+
+            try
+            {
+                var source = PresentationSource.FromVisual(this) as HwndSource;
+                source?.AddHook(WndProc);
+            }
+            catch (Exception ex)
+            {
+                StoragePathHelper.LogDiagnostic($"[WndProc Hook Notice] {ex.Message}");
+            }
         };
 
         _viewModel.RequestClearSelection += () =>
@@ -89,7 +105,13 @@ public partial class MainWindow : Window
                     targetList.SelectedItems.Add(item);
                 }
             }
+            else if (e.PropertyName == nameof(MainViewModel.SelectedThemeName))
+            {
+                ApplyTheme(_viewModel.SelectedThemeName);
+            }
         };
+
+        ApplyTheme(_viewModel.SelectedThemeName);
     }
 
     private void FeedListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -402,460 +424,105 @@ public partial class MainWindow : Window
             e.Handled = true;
         }
     }
-
-    // ========== MICROSOFT WORD DOCUMENT CANVAS METHODS ==========
-    private void OnDocRichTextBoxPasting(object sender, DataObjectPastingEventArgs e)
+    // ========== GLOBAL KEYBOARD ACCELERATOR MANAGEMENT (PREVENTS INPUT HIJACK) ==========
+    private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        try
+        // Ctrl+K to jump to search bar instantly
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.K)
         {
-            // 1. Check if media files were pasted (images/videos/jfif/etc.)
-            var mediaFiles = ClipboardHelper.GetMediaFilesFromClipboard(e.DataObject);
-            if (mediaFiles.Count > 0)
+            SearchInputBox.Focus();
+            SearchInputBox.SelectAll();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Escape && SearchInputBox.IsFocused)
+        {
+            _viewModel.ClearSearch();
+            Keyboard.ClearFocus();
+            e.Handled = true;
+            return;
+        }
+
+        // When focused on an active text input control (e.g. search box, tags box, comments, etc.)
+        if (Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase or PasswordBox)
+        {
+            // Allow native editing keys to pass through untouched
+            if (e.Key is Key.Delete or Key.Back or Key.Left or Key.Right or Key.Up or Key.Down or Key.Home or Key.End)
             {
-                e.CancelCommand();
-                e.Handled = true;
-                foreach (var file in mediaFiles)
-                {
-                    InsertMediaIntoFlowDocument(file);
-                }
                 return;
             }
 
-            // 2. Check if an image or DIB (from MS Word, MS Paint, Chrome/Edge PNG) was pasted
-            var bmp = ClipboardHelper.GetImageFromClipboard(e.DataObject);
-            if (bmp != null)
+            // Allow native clipboard operations to pass through untouched (Ctrl+V, Ctrl+C, Ctrl+X, Ctrl+A, Ctrl+Z, Ctrl+Y)
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key is Key.V or Key.C or Key.X or Key.A or Key.Z or Key.Y)
             {
-                e.CancelCommand();
-                e.Handled = true;
-
-                string imgPath = SaveBitmapToStaging(bmp, "CanvasStaging");
-                InsertMediaIntoFlowDocument(imgPath);
                 return;
-            }
-
-            // 3. Check if HTML from web/forum with embedded images was pasted
-            if (HtmlClipboardHelper.HasHtml(e.DataObject))
-            {
-                string? html = HtmlClipboardHelper.GetHtml(e.DataObject);
-                if (!string.IsNullOrWhiteSpace(html))
-                {
-                    var imgSources = HtmlClipboardHelper.ExtractImageSources(html);
-                    if (imgSources.Count > 0)
-                    {
-                        e.CancelCommand();
-                        e.Handled = true;
-
-                        string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                        string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "CanvasStaging");
-                        Directory.CreateDirectory(stagingDir);
-
-                        string text = HtmlClipboardHelper.ConvertHtmlToFormattedText(html);
-                        if (!string.IsNullOrWhiteSpace(text))
-                        {
-                            var para = new Paragraph(new Run(text))
-                            {
-                                FontSize = 14.5,
-                                LineHeight = 22,
-                                Margin = new Thickness(0, 0, 0, 12)
-                            };
-                            var caret = DocRichTextBox.CaretPosition;
-                            var curPara = caret?.Paragraph;
-                            if (curPara != null)
-                            {
-                                DocRichTextBox.Document.Blocks.InsertAfter(curPara, para);
-                            }
-                            else
-                            {
-                                DocRichTextBox.Document.Blocks.Add(para);
-                            }
-                            DocRichTextBox.CaretPosition = para.ContentEnd;
-                        }
-
-                        _ = Task.Run(async () =>
-                        {
-                            var localImages = await HtmlClipboardHelper.DownloadHtmlImagesAsync(html, stagingDir);
-                            Dispatcher.Invoke(() =>
-                            {
-                                foreach (var img in localImages)
-                                {
-                                    InsertMediaIntoFlowDocument(img);
-                                }
-                            });
-                        });
-
-                        return;
-                    }
-                }
-            }
-        }
-        catch { }
-    }
-
-    private void BtnInsertImage_Click(object sender, RoutedEventArgs e)
-    {
-        var dlg = new OpenFileDialog
-        {
-            Title = "Insert Image or GIF into Document",
-            Filter = "Images & GIFs (*.png;*.jpg;*.jpeg;*.jfif;*.jif;*.webp;*.bmp;*.gif)|*.png;*.jpg;*.jpeg;*.jfif;*.jif;*.webp;*.bmp;*.gif|All Files (*.*)|*.*",
-            Multiselect = true
-        };
-
-        if (dlg.ShowDialog() == true)
-        {
-            foreach (var file in dlg.FileNames)
-            {
-                InsertMediaIntoFlowDocument(file);
-            }
-        }
-    }
-
-    private void BtnInsertVideo_Click(object sender, RoutedEventArgs e)
-    {
-        var dlg = new OpenFileDialog
-        {
-            Title = "Insert Video into Document",
-            Filter = "Video Files (*.mp4;*.webm;*.mov;*.mkv;*.avi;*.wmv)|*.mp4;*.webm;*.mov;*.mkv;*.avi;*.wmv|All Files (*.*)|*.*",
-            Multiselect = true
-        };
-
-        if (dlg.ShowDialog() == true)
-        {
-            foreach (var file in dlg.FileNames)
-            {
-                InsertMediaIntoFlowDocument(file);
-            }
-        }
-    }
-
-    private void BtnDocEmoji_Click(object sender, RoutedEventArgs e)
-    {
-        DocEmojiPopup.IsOpen = !DocEmojiPopup.IsOpen;
-    }
-
-    private void BtnOpenWindowsEmojiPicker_Click(object sender, RoutedEventArgs e)
-    {
-        DocEmojiPopup.IsOpen = false;
-        DocRichTextBox.Focus();
-        EmojiPacks.OpenWindowsEmojiPicker();
-    }
-
-    private void BtnNodeWindowsEmojiPicker_Click(object sender, RoutedEventArgs e)
-    {
-        EmojiPacks.OpenWindowsEmojiPicker();
-    }
-
-    private void BtnDocEmojiItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button btn && btn.Content is string emoji)
-        {
-            if (DocRichTextBox.CaretPosition != null)
-            {
-                DocRichTextBox.CaretPosition.InsertTextInRun(emoji);
-            }
-            else
-            {
-                DocRichTextBox.AppendText(emoji);
-            }
-            DocEmojiPopup.IsOpen = false;
-            DocRichTextBox.Focus();
-        }
-    }
-
-    private void BtnPasteIntoDoc_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var mediaFiles = ClipboardHelper.GetMediaFilesFromClipboard();
-            if (mediaFiles.Count > 0)
-            {
-                foreach (var f in mediaFiles)
-                {
-                    InsertMediaIntoFlowDocument(f);
-                }
-                return;
-            }
-
-            var bmp = ClipboardHelper.GetImageFromClipboard();
-            if (bmp != null)
-            {
-                string imgPath = SaveBitmapToStaging(bmp, "CanvasStaging");
-                InsertMediaIntoFlowDocument(imgPath);
-                return;
-            }
-
-            DocRichTextBox.Paste();
-        }
-        catch
-        {
-            DocRichTextBox.Paste();
-        }
-    }
-
-    private static string SaveBitmapToStaging(BitmapSource bmp, string subfolder, string prefix = "pasted_img")
-    {
-        string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", subfolder);
-        Directory.CreateDirectory(stagingDir);
-        string imgPath = Path.Combine(stagingDir, $"{prefix}_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N")[..6]}.png");
-
-        var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(BitmapFrame.Create(bmp));
-        using (var fs = File.Create(imgPath))
-        {
-            encoder.Save(fs);
-        }
-        return imgPath;
-    }
-
-    private void InsertMediaIntoFlowDocument(string filePath)
-    {
-        if (!File.Exists(filePath)) return;
-        var ext = Path.GetExtension(filePath).ToLowerInvariant();
-        bool isVideo = ext is ".mp4" or ".webm" or ".avi" or ".mov";
-
-        FrameworkElement contentElement;
-        if (isVideo)
-        {
-            var media = new MediaElement
-            {
-                Source = new Uri(filePath, UriKind.Absolute),
-                LoadedBehavior = MediaState.Play,
-                UnloadedBehavior = MediaState.Manual,
-                Width = 540,
-                Height = 310,
-                Stretch = Stretch.Uniform,
-                Margin = new Thickness(0, 4, 0, 4)
-            };
-            contentElement = media;
-        }
-        else
-        {
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.UriSource = new Uri(filePath, UriKind.Absolute);
-            bmp.EndInit();
-            bmp.Freeze();
-
-            var img = new Image
-            {
-                Source = bmp,
-                MaxWidth = 580,
-                MaxHeight = 440,
-                Stretch = Stretch.Uniform,
-                Margin = new Thickness(0, 4, 0, 4)
-            };
-            contentElement = img;
-        }
-
-        var border = new Border
-        {
-            CornerRadius = new CornerRadius(8),
-            Background = new SolidColorBrush(Color.FromRgb(12, 16, 23)),
-            BorderBrush = new SolidColorBrush(Color.FromRgb(47, 51, 54)),
-            BorderThickness = new Thickness(1),
-            Padding = new Thickness(4),
-            Margin = new Thickness(0, 8, 0, 8),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Child = contentElement,
-            Tag = filePath
-        };
-
-        var container = new BlockUIContainer(border);
-        var doc = DocRichTextBox.Document;
-        var caret = DocRichTextBox.CaretPosition;
-        Paragraph? curPara = caret?.Paragraph;
-
-        if (curPara != null)
-        {
-            var rangeAfter = new TextRange(caret, curPara.ContentEnd);
-            string textAfter = rangeAfter.Text;
-
-            if (!string.IsNullOrWhiteSpace(textAfter))
-            {
-                rangeAfter.Text = string.Empty;
-                var nextPara = new Paragraph(new Run(textAfter.TrimStart('\r', '\n')))
-                {
-                    FontSize = curPara.FontSize,
-                    Foreground = curPara.Foreground,
-                    LineHeight = curPara.LineHeight,
-                    Margin = curPara.Margin
-                };
-
-                doc.Blocks.InsertAfter(curPara, container);
-                doc.Blocks.InsertAfter(container, nextPara);
-                DocRichTextBox.CaretPosition = nextPara.ContentStart;
-            }
-            else
-            {
-                doc.Blocks.InsertAfter(curPara, container);
-                var nextPara = new Paragraph
-                {
-                    FontSize = curPara.FontSize,
-                    Foreground = curPara.Foreground,
-                    LineHeight = curPara.LineHeight,
-                    Margin = curPara.Margin
-                };
-                doc.Blocks.InsertAfter(container, nextPara);
-                DocRichTextBox.CaretPosition = nextPara.ContentStart;
             }
         }
         else
         {
-            Block? curBlock = doc.Blocks.FirstOrDefault(b => b.ContentStart.CompareTo(caret) <= 0 && b.ContentEnd.CompareTo(caret) >= 0);
-            if (curBlock != null)
+            // Global Feed Shortcuts (only active when not typing inside a text box)
+            if (e.Key == Key.Delete && Keyboard.Modifiers == ModifierKeys.None)
             {
-                doc.Blocks.InsertAfter(curBlock, container);
-                var nextPara = new Paragraph();
-                doc.Blocks.InsertAfter(container, nextPara);
-                DocRichTextBox.CaretPosition = nextPara.ContentStart;
-            }
-            else
-            {
-                doc.Blocks.Add(container);
-                var nextPara = new Paragraph();
-                doc.Blocks.Add(nextPara);
-                DocRichTextBox.CaretPosition = nextPara.ContentStart;
-            }
-        }
-
-        DocRichTextBox.Focus();
-    }
-
-    private void NodeTextBox_Pasting(object sender, DataObjectPastingEventArgs e)
-    {
-        try
-        {
-            if (sender is FrameworkElement fe && fe.DataContext is ThreadNode node)
-            {
-                var mediaFiles = ClipboardHelper.GetMediaFilesFromClipboard(e.DataObject);
-                if (mediaFiles.Count > 0)
+                if (_viewModel.SelectedPost != null || _viewModel.HasMultipleSelection)
                 {
-                    e.CancelCommand();
+                    _viewModel.DeletePostCommand.Execute(_viewModel.SelectedPost);
                     e.Handled = true;
-                    foreach (var f in mediaFiles)
-                    {
-                        if (!node.AttachedImagePaths.Contains(f))
-                        {
-                            node.AttachedImagePaths.Add(f);
-                        }
-                    }
-                    return;
                 }
-
-                var bmp = ClipboardHelper.GetImageFromClipboard(e.DataObject);
-                if (bmp != null)
+            }
+            else if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                _viewModel.PasteFromClipboardCommand.Execute(null);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.T && (Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Shift)) == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                _viewModel.OpenStoryCanvasCommand.Execute(null);
+                e.Handled = true;
+            }
+            else if (_viewModel.IsTheaterModeOpen)
+            {
+                if (e.Key == Key.Left)
                 {
-                    e.CancelCommand();
+                    _viewModel.PreviousTheaterMediaCommand.Execute(null);
                     e.Handled = true;
-                    string imgPath = SaveBitmapToStaging(bmp, "ThreadStaging", "thread_pasted");
-
-                    if (!node.AttachedImagePaths.Contains(imgPath))
-                    {
-                        node.AttachedImagePaths.Add(imgPath);
-                    }
-                    return;
                 }
-            }
-        }
-        catch { }
-    }
-
-    private async void BtnArchiveDoc_Click(object sender, RoutedEventArgs e)
-    {
-        var (content, mediaList) = ExtractContentFromDoc(DocRichTextBox.Document);
-
-        var post = await _viewModel.ArchiveWordDocumentAsync(
-            _viewModel.CanvasThreadTitle,
-            _viewModel.CanvasSelectedFolder,
-            _viewModel.CanvasDefaultAuthor,
-            _viewModel.CanvasDefaultHandle,
-            _viewModel.CanvasDefaultTags,
-            content,
-            mediaList
-        );
-
-        if (post != null)
-        {
-            var res = MessageBox.Show(
-                $"Document successfully saved and archived into folder '{post.FolderName}'!\n\nWould you like to clear the document canvas for a new note?",
-                "Document Archived",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Information);
-
-            if (res == MessageBoxResult.Yes)
-            {
-                ClearDocument();
-            }
-        }
-    }
-
-    private void BtnClearDoc_Click(object sender, RoutedEventArgs e)
-    {
-        var res = MessageBox.Show("Are you sure you want to clear this document canvas?", "Clear Canvas", MessageBoxButton.YesNo, MessageBoxImage.Question);
-        if (res == MessageBoxResult.Yes)
-        {
-            ClearDocument();
-        }
-    }
-
-    private void ClearDocument()
-    {
-        DocRichTextBox.Document.Blocks.Clear();
-        DocRichTextBox.Document.Blocks.Add(new Paragraph());
-        _viewModel.CanvasThreadTitle = "Untitled Document";
-    }
-
-    private static (string text, List<string> mediaPaths) ExtractContentFromDoc(FlowDocument doc)
-    {
-        var sb = new StringBuilder();
-        var mediaPaths = new List<string>();
-
-        foreach (var block in doc.Blocks)
-        {
-            if (block is Paragraph p)
-            {
-                var tr = new TextRange(p.ContentStart, p.ContentEnd);
-                var text = tr.Text.Trim();
-                if (!string.IsNullOrWhiteSpace(text))
+                else if (e.Key == Key.Right)
                 {
-                    sb.AppendLine(text);
-                    sb.AppendLine();
+                    _viewModel.NextTheaterMediaCommand.Execute(null);
+                    e.Handled = true;
                 }
-
-                foreach (var inline in p.Inlines)
-                {
-                    if (inline is InlineUIContainer uic && uic.Child is FrameworkElement fe && fe.Tag is string pth && File.Exists(pth))
-                    {
-                        if (!mediaPaths.Contains(pth)) mediaPaths.Add(pth);
-                    }
-                }
-            }
-            else if (block is BlockUIContainer buic && buic.Child is FrameworkElement fe && fe.Tag is string path && File.Exists(path))
-            {
-                if (!mediaPaths.Contains(path)) mediaPaths.Add(path);
-            }
-            else if (block is List list)
-            {
-                foreach (var item in list.ListItems)
-                {
-                    var tr = new TextRange(item.ContentStart, item.ContentEnd);
-                    sb.AppendLine($"- {tr.Text.Trim()}");
-                }
-                sb.AppendLine();
             }
         }
-
-        return (sb.ToString().Trim(), mediaPaths);
     }
 
-    // ========== DRAG AND DROP POSTS TO FOLDERS ==========
+    // ========== DRAG AND DROP POSTS TO FOLDERS & RIGHT-CLICK SELECTION ==========
     private Point _dragStartPoint;
     private bool _isDraggingPost;
 
     private void FeedList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         _dragStartPoint = e.GetPosition(this);
+    }
+
+    private void FeedList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject dep)
+        {
+            var lvi = FindVisualAncestor<ListViewItem>(dep);
+            if (lvi?.DataContext is Post post)
+            {
+                // If not already in multi-selection, select this post exclusively
+                if (!_viewModel.SelectedPosts.Contains(post))
+                {
+                    _viewModel.SelectedPost = post;
+                    _viewModel.SelectedPosts.Clear();
+                    _viewModel.SelectedPosts.Add(post);
+                    lvi.IsSelected = true;
+                    lvi.Focus();
+                }
+            }
+        }
     }
 
     private void FeedList_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -876,9 +543,12 @@ public partial class MainWindow : Window
                     _isDraggingPost = true;
                     try
                     {
+                        // Package multiple selected posts, or if part of a thread, package the whole thread
                         var postsToMove = _viewModel.SelectedPosts.Count > 1 && _viewModel.SelectedPosts.Contains(post)
                             ? _viewModel.SelectedPosts.ToList()
-                            : new List<Post> { post };
+                            : (post.IsPartOfThread && !string.IsNullOrEmpty(post.ThreadId)
+                                ? _viewModel.Posts.Where(p => p.ThreadId == post.ThreadId).ToList()
+                                : new List<Post> { post });
 
                         var data = new DataObject("LocalSocialArchive.Posts", postsToMove);
                         DragDrop.DoDragDrop(lvi, data, DragDropEffects.Move);
@@ -942,11 +612,26 @@ public partial class MainWindow : Window
                 {
                     if (posts.Count > 1)
                     {
-                        await _viewModel.MoveSelectedPostsToFolderAsync(targetFolder);
+                        // Check if these posts comprise an entire thread
+                        if (posts.All(p => p.IsPartOfThread && p.ThreadId == posts[0].ThreadId))
+                        {
+                            await _viewModel.MoveThreadToFolderAsync(new object[] { posts[0], targetFolder });
+                        }
+                        else
+                        {
+                            await _viewModel.MoveSelectedPostsToFolderAsync(targetFolder);
+                        }
                     }
                     else
                     {
-                        await _viewModel.MovePostToFolderAsync(new object[] { posts[0], targetFolder });
+                        if (posts[0].IsPartOfThread)
+                        {
+                            await _viewModel.MoveThreadToFolderAsync(new object[] { posts[0], targetFolder });
+                        }
+                        else
+                        {
+                            await _viewModel.MovePostToFolderAsync(new object[] { posts[0], targetFolder });
+                        }
                     }
                 }
             }
@@ -961,5 +646,384 @@ public partial class MainWindow : Window
             current = VisualTreeHelper.GetParent(current);
         }
         return null;
+    }
+
+    // ========== CONTEXT MENU & FOLDER DROPDOWN DYNAMIC POPULATION & HANDLERS ==========
+    private Post? GetPostFromMenuItem(object sender)
+    {
+        if (sender is MenuItem mi)
+        {
+            var cm = mi.Parent as ContextMenu ?? FindVisualAncestor<ContextMenu>(mi);
+            if (cm?.PlacementTarget is FrameworkElement fe && fe.DataContext is Post p)
+                return p;
+        }
+        return _viewModel.SelectedPost;
+    }
+
+    private void CardContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ContextMenu cm) return;
+
+        Post? post = null;
+        if (cm.PlacementTarget is FrameworkElement fe && fe.DataContext is Post p)
+        {
+            post = p;
+        }
+        if (post == null) post = _viewModel.SelectedPost;
+        if (post == null) return;
+
+        foreach (var item in cm.Items)
+        {
+            if (item is MenuItem mi)
+            {
+                if (Equals(mi.Tag, "MovePost"))
+                {
+                    PopulateFolderSubmenu(mi, async folderName =>
+                    {
+                        await _viewModel.MovePostToFolderAsync(new object[] { post, folderName });
+                    });
+                }
+                else if (Equals(mi.Tag, "MoveThread"))
+                {
+                    if (post.IsPartOfThread && !string.IsNullOrEmpty(post.ThreadId))
+                    {
+                        mi.Visibility = Visibility.Visible;
+                        PopulateFolderSubmenu(mi, async folderName =>
+                        {
+                            await _viewModel.MoveThreadToFolderAsync(new object[] { post, folderName });
+                        });
+                    }
+                    else
+                    {
+                        mi.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+        }
+    }
+
+    private void PopulateFolderSubmenu(MenuItem root, Func<string, Task> onFolderSelected)
+    {
+        root.Items.Clear();
+
+        // 1. "Create New Folder..." option at top
+        var createNewItem = new MenuItem
+        {
+            Header = "➕  Create New Folder...",
+            FontWeight = FontWeights.SemiBold,
+            Background = new SolidColorBrush(Color.FromRgb(0x1F, 0x2A, 0x38)),
+            Foreground = new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8)),
+            FontSize = 12.5,
+            Padding = new Thickness(12, 7, 12, 7)
+        };
+        createNewItem.Click += async (s, args) =>
+        {
+            string? newFolderName = _viewModel.PromptCreateFolder();
+            if (!string.IsNullOrWhiteSpace(newFolderName))
+            {
+                await onFolderSelected(newFolderName);
+            }
+        };
+        root.Items.Add(createNewItem);
+
+        root.Items.Add(new Separator { Background = new SolidColorBrush(Color.FromRgb(0x2F, 0x33, 0x36)), Margin = new Thickness(0, 2, 0, 2) });
+
+        // 2. Existing destination folders
+        foreach (var folder in _viewModel.DestinationFolders)
+        {
+            var mi = new MenuItem
+            {
+                Header = $"📁  {folder.Name}",
+                Background = new SolidColorBrush(Color.FromRgb(0x16, 0x1B, 0x22)),
+                Foreground = new SolidColorBrush(Color.FromRgb(0xE7, 0xE9, 0xEA)),
+                FontSize = 12.5,
+                Padding = new Thickness(12, 6, 12, 6)
+            };
+            string folderName = folder.Name;
+            mi.Click += async (s, args) =>
+            {
+                await onFolderSelected(folderName);
+            };
+            root.Items.Add(mi);
+        }
+    }
+
+    private void MoveSelectedMenu_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is MenuItem root && !root.IsSubmenuOpen)
+        {
+            PopulateFolderSubmenu(root, async folderName =>
+            {
+                await _viewModel.MoveSelectedPostsToFolderAsync(folderName);
+            });
+            root.IsSubmenuOpen = true;
+            e.Handled = true;
+        }
+    }
+
+    private void MoveSelectedMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem root)
+        {
+            PopulateFolderSubmenu(root, async folderName =>
+            {
+                await _viewModel.MoveSelectedPostsToFolderAsync(folderName);
+            });
+        }
+    }
+
+    private void InspectorMovePost_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is MenuItem root && !root.IsSubmenuOpen)
+        {
+            PopulateFolderSubmenu(root, async folderName =>
+            {
+                await _viewModel.MovePostToFolderAsync(folderName);
+            });
+            root.IsSubmenuOpen = true;
+            e.Handled = true;
+        }
+    }
+
+    private void InspectorMovePost_Opened(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem root)
+        {
+            PopulateFolderSubmenu(root, async folderName =>
+            {
+                await _viewModel.MovePostToFolderAsync(folderName);
+            });
+        }
+    }
+
+    private void InspectorMoveThread_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is MenuItem root && !root.IsSubmenuOpen)
+        {
+            PopulateFolderSubmenu(root, async folderName =>
+            {
+                await _viewModel.MoveThreadToFolderAsync(folderName);
+            });
+            root.IsSubmenuOpen = true;
+            e.Handled = true;
+        }
+    }
+
+    private void InspectorMoveThread_Opened(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem root)
+        {
+            PopulateFolderSubmenu(root, async folderName =>
+            {
+                await _viewModel.MoveThreadToFolderAsync(folderName);
+            });
+        }
+    }
+
+    private void ContextOpenTheater_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.OpenTheaterMode(GetPostFromMenuItem(sender));
+    }
+
+    private async void ContextEditPost_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.EditPostAsync(GetPostFromMenuItem(sender));
+    }
+
+    private void ContextOpenThreadReader_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.OpenThreadReader(GetPostFromMenuItem(sender));
+    }
+
+    private void ContextViewFullStory_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.ViewFullStory(GetPostFromMenuItem(sender));
+    }
+
+    private async void ContextUnlinkStory_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.UnlinkFromStoryAsync(GetPostFromMenuItem(sender));
+    }
+
+    private async void ContextLinkStory_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.LinkSelectedPostsAsStoryAsync();
+    }
+
+    private void ContextOpenExplorer_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.OpenLocalFolder(GetPostFromMenuItem(sender));
+    }
+
+    private void ContextCopyTweet_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.CopyPostText(GetPostFromMenuItem(sender));
+    }
+
+    private async void ContextDeletePost_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.DeletePostAsync(GetPostFromMenuItem(sender));
+    }
+
+    private async void ContextDeleteSelected_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.DeleteSelectedPostsAsync();
+    }
+
+    private async void ContextPasteComments_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.OpenPasteCommentsWindowAsync(GetPostFromMenuItem(sender));
+    }
+
+    private async void ContextQuickPasteComments_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.QuickPasteClipboardCommentsAsync(GetPostFromMenuItem(sender));
+    }
+
+    private async void InlineCommentBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && sender is TextBox tb)
+        {
+            var text = tb.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(text)) return;
+            var targetPost = tb.Tag as Post ?? _viewModel.SelectedPost;
+            if (targetPost != null)
+            {
+                tb.Text = string.Empty;
+                await _viewModel.AddInlineCommentAsync(new object[] { targetPost, text });
+            }
+        }
+    }
+
+    private async void PostInlineComment_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe)
+        {
+            var parentGrid = fe.Parent as Grid ?? FindVisualAncestor<Grid>(fe);
+            if (parentGrid != null)
+            {
+                TextBox? tb = null;
+                foreach (var child in parentGrid.Children)
+                {
+                    if (child is TextBox t)
+                    {
+                        tb = t;
+                        break;
+                    }
+                }
+
+                if (tb != null)
+                {
+                    var text = tb.Text?.Trim();
+                    if (!string.IsNullOrWhiteSpace(text))
+                    {
+                        var targetPost = tb.Tag as Post ?? fe.DataContext as Post ?? _viewModel.SelectedPost;
+                        if (targetPost != null)
+                        {
+                            tb.Text = string.Empty;
+                            await _viewModel.AddInlineCommentAsync(new object[] { targetPost, text });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void ApplyTheme(string? themeName)
+    {
+        string bgHex, sidebarHex, cardHex, borderHex, accentHex, accentHoverHex, accentBadgeHex;
+
+        switch (themeName)
+        {
+            case "Deep Slate":
+                bgHex = "#0D1117";
+                sidebarHex = "#161B22";
+                cardHex = "#1C2128";
+                borderHex = "#30363D";
+                accentHex = "#1D9BF0";
+                accentHoverHex = "#38BDF8";
+                accentBadgeHex = "#1A2F45";
+                break;
+            case "OLED Black":
+                bgHex = "#000000";
+                sidebarHex = "#0A0A0A";
+                cardHex = "#141414";
+                borderHex = "#262626";
+                accentHex = "#E7E9EA";
+                accentHoverHex = "#FFFFFF";
+                accentBadgeHex = "#222222";
+                break;
+            case "Azure Glow":
+                bgHex = "#0A131F";
+                sidebarHex = "#0E1B2B";
+                cardHex = "#132438";
+                borderHex = "#1E3550";
+                accentHex = "#38BDF8";
+                accentHoverHex = "#60CDFF";
+                accentBadgeHex = "#0F3354";
+                break;
+            case "Emerald Forest":
+                bgHex = "#091612";
+                sidebarHex = "#0E1E19";
+                cardHex = "#132B23";
+                borderHex = "#1C3F34";
+                accentHex = "#10B981";
+                accentHoverHex = "#34D399";
+                accentBadgeHex = "#0D382B";
+                break;
+            case "Amethyst Violet":
+                bgHex = "#130C1C";
+                sidebarHex = "#191124";
+                cardHex = "#221730";
+                borderHex = "#35244C";
+                accentHex = "#A855F7";
+                accentHoverHex = "#C084FC";
+                accentBadgeHex = "#341952";
+                break;
+            case "Windows Dark":
+            default:
+                bgHex = "#1C2028";
+                sidebarHex = "#181C23";
+                cardHex = "#202530";
+                borderHex = "#2F3644";
+                accentHex = "#4CC2FF";
+                accentHoverHex = "#38BDF8";
+                accentBadgeHex = "#1A2D42";
+                break;
+        }
+
+        var bgBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(bgHex));
+        var sidebarBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(sidebarHex));
+        var cardBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(cardHex));
+        var borderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(borderHex));
+        var accentBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(accentHex));
+        var accentHoverBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(accentHoverHex));
+        var accentBadgeBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(accentBadgeHex));
+
+        bgBrush.Freeze();
+        sidebarBrush.Freeze();
+        cardBrush.Freeze();
+        borderBrush.Freeze();
+        accentBrush.Freeze();
+        accentHoverBrush.Freeze();
+        accentBadgeBrush.Freeze();
+
+        Resources["BgDarkBrush"] = bgBrush;
+        Resources["SidebarBgBrush"] = sidebarBrush;
+        Resources["RailBgBrush"] = sidebarBrush;
+        Resources["CardBgBrush"] = cardBrush;
+        Resources["CardBorderBrush"] = borderBrush;
+        Resources["AccentBrush"] = accentBrush;
+        Resources["AccentHoverBrush"] = accentHoverBrush;
+        Resources["AccentBadgeBgBrush"] = accentBadgeBrush;
+        Resources["InspectorBgBrush"] = sidebarBrush;
+
+        if (Application.Current != null)
+        {
+            Application.Current.Resources["AppBgBrush"] = bgBrush;
+            Application.Current.Resources["CardBgBrush"] = cardBrush;
+            Application.Current.Resources["CardBorderBrush"] = borderBrush;
+            Application.Current.Resources["AccentBrush"] = accentBrush;
+        }
     }
 }

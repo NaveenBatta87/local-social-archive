@@ -1,9 +1,11 @@
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace LocalSocialArchive.Models;
 
-public class Post
+public partial class Post : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string AuthorName { get; set; } = "Offline User";
@@ -14,6 +16,27 @@ public class Post
     public string Tags { get; set; } = string.Empty;
     public string? Comment { get; set; }
     public bool HasComment => !string.IsNullOrWhiteSpace(Comment);
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasComments))]
+    [NotifyPropertyChangedFor(nameof(CommentCount))]
+    [NotifyPropertyChangedFor(nameof(CommentCountBadge))]
+    private ObservableCollection<PostComment> _comments = new();
+
+    [ObservableProperty]
+    private bool _isCommentsExpanded;
+
+    public bool HasComments => Comments != null && Comments.Count > 0;
+    public int CommentCount => Comments?.Count ?? 0;
+    public string CommentCountBadge => (Comments?.Count ?? 0) > 0 ? Comments!.Count.ToString() : string.Empty;
+
+    public void RefreshCommentCounts()
+    {
+        OnPropertyChanged(nameof(Comments));
+        OnPropertyChanged(nameof(HasComments));
+        OnPropertyChanged(nameof(CommentCount));
+        OnPropertyChanged(nameof(CommentCountBadge));
+    }
     
     private string _folderPath = string.Empty;
     public string FolderPath
@@ -26,6 +49,8 @@ public class Post
     public string? ThreadId { get; set; }
     public int ThreadIndex { get; set; } = 0;
     public bool IsPartOfThread => !string.IsNullOrWhiteSpace(ThreadId);
+    public bool HasStory => IsPartOfThread;
+    public bool IsThreadStart => ThreadIndex <= 1;
     public string ThreadPartBadge => ThreadIndex > 0 ? $"Part {ThreadIndex}" : "Story";
 
     private static string ResolveFolderPath(string rawPath)
@@ -57,6 +82,8 @@ public class Post
     public bool HasSingleMedia => MediaItems.Count == 1;
     public bool HasMultipleMedia => MediaItems.Count > 1;
     public bool HasTwoMedia => MediaItems.Count == 2;
+    public bool HasThreeMedia => MediaItems.Count == 3;
+    public bool HasFourOrMoreMedia => MediaItems.Count >= 4;
     public bool HasThreeOrMoreMedia => MediaItems.Count >= 3;
 
     public MediaItem? PrimaryMedia => MediaItems.Count > 0 ? MediaItems[0] : null;

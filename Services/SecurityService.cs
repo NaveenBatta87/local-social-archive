@@ -16,11 +16,7 @@ public class SecurityService : ISecurityService
 
     public SecurityService()
     {
-        string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string baseDir = Path.Combine(userDocs, "LocalSocialArchive");
-        Directory.CreateDirectory(baseDir);
-        _securityConfigPath = Path.Combine(baseDir, "vault_security.json");
-
+        _securityConfigPath = LocalSocialArchive.Helpers.StoragePathHelper.SecurityConfigPath;
         LoadConfig();
     }
 

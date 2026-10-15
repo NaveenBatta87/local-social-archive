@@ -3,6 +3,9 @@ bin/
 obj/
 publish/
 publish_standalone/
+standalone/
+dist/
+*.zip
 *.user
 *.userosscache
 *.sln.docstates
@@ -16,5 +19,7 @@ publish_standalone/
 ## Local user database & staging files
 [Aa]rchiveData.edb*
 [Ee]seLogs/
+archive.db*
 CanvasStaging/
 ThreadStaging/
+Media/

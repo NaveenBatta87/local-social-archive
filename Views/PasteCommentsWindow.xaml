@@ -1,0 +1,323 @@
+<Window x:Class="LocalSocialArchive.Views.PasteCommentsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
+        xmlns:vm="clr-namespace:LocalSocialArchive.ViewModels"
+        mc:Ignorable="d"
+        Title="Archive Comments · Local Social Archive"
+        Height="720" Width="1040"
+        MinHeight="600" MinWidth="850"
+        WindowStartupLocation="CenterOwner"
+        Background="#0D1117"
+        Foreground="#E7E9EA"
+        FontFamily="{StaticResource DefaultAppFontFamily}">
+
+    <Window.Resources>
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#21262D"/>
+            <Setter Property="Foreground" Value="#E7E9EA"/>
+            <Setter Property="BorderBrush" Value="#30363D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#30363D"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#8B949E"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#161B22"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#1D9BF0"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,9"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1A8CD8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1570AD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- 0: Header -->
+            <RowDefinition Height="*"/>    <!-- 1: Split Content (Paste on Left, Preview on Right) -->
+            <RowDefinition Height="Auto"/> <!-- 2: Bottom Actions Footer -->
+        </Grid.RowDefinitions>
+
+        <!-- ================= 0: WINDOW HEADER & POST CONTEXT ================= -->
+        <Border Grid.Row="0" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,0,0,1" Padding="24,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="💬" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Paste &amp; Store Comments" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                        <Border Background="#21262D" CornerRadius="6" Padding="8,2" Margin="12,0,0,0" BorderBrush="#30363D" BorderThickness="1">
+                            <TextBlock Text="{Binding PostHandle}" FontSize="12" Foreground="#1D9BF0" FontWeight="SemiBold"/>
+                        </Border>
+                    </StackPanel>
+                    <TextBlock Text="{Binding PostPreviewSnippet, StringFormat='Post snippet: &quot;{0}&quot;'}" FontSize="12.5" Foreground="#8B949E" Margin="26,4,0,0" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <!-- Existing comments count badge -->
+                <Border Grid.Column="1" Background="#1F242C" BorderBrush="#38444D" BorderThickness="1" CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Existing in Post: " FontSize="12" Foreground="#8B949E"/>
+                        <TextBlock Text="{Binding ExistingCommentCount}" FontSize="12" FontWeight="Bold" Foreground="#4CC2FF"/>
+                        <TextBlock Text=" comments" FontSize="12" Foreground="#8B949E"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ================= 1: SPLIT PANELS (INPUT vs LIVE PREVIEW) ================= -->
+        <Grid Grid.Row="1" Margin="20,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.05*"/>  <!-- Left: Raw Input / Paste Box -->
+                <ColumnDefinition Width="16"/>     <!-- Split Gap -->
+                <ColumnDefinition Width="1.15*"/>  <!-- Right: Live YouTube-Style Comments Preview -->
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT PANEL: Paste Area -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Paste Action Row -->
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Paste Raw Comments" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource ActionButtonStyle}" Command="{Binding PasteFromClipboardCommand}" ToolTip="Paste directly from Windows Clipboard (Ctrl+V)" Margin="0,0,8,0" Background="#1D2E42" BorderBrush="#1D9BF0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📋 " FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="Paste from Clipboard" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource ActionButtonStyle}" Command="{Binding ClearTextCommand}" ToolTip="Clear input text" Padding="10,6">
+                            <TextBlock Text="Clear" FontSize="12" Foreground="#8B949E"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Large Multi-line Text Area -->
+                <Border Grid.Row="1" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="10" Padding="12">
+                    <Grid>
+                        <TextBox Text="{Binding RawText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Disabled"
+                                 Background="Transparent"
+                                 Foreground="#E7E9EA"
+                                 CaretBrush="#1D9BF0"
+                                 BorderThickness="0"
+                                 FontSize="13.5"
+                                 FontFamily="{StaticResource TweetContentFontFamily}"/>
+
+                        <!-- Watermark / Empty Placeholder -->
+                        <TextBlock Text="Paste comments copied from YouTube (or Twitter / social media) here...&#x0a;&#x0a;Example:&#x0a;@RickeGnool&#x0a;2 years ago&#x0a;While it's sad that Aang died when he was just in his 60s I try to look at it more positively...&#x0a;843&#x0a;Reply&#x0a;15 replies"
+                                   Foreground="#484F58"
+                                   FontSize="13"
+                                   IsHitTestVisible="False"
+                                   LineHeight="20"
+                                   Margin="4,4,0,0"
+                                   Visibility="{Binding RawText, Converter={StaticResource NullToVis}}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Helper Hint & Detection Status -->
+                <Border Grid.Row="2" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,10,0,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding DetectionSummary}" FontSize="12.5" FontWeight="SemiBold" Foreground="#38BDF8" TextWrapping="Wrap"/>
+                        <TextBlock Text="💡 Tip: On YouTube, drag-select multiple comments on the page, press Ctrl+C, then click 'Paste from Clipboard'. Handles, timestamps, like counts, and reply counts are auto-parsed!" FontSize="11.5" Foreground="#8B949E" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- RIGHT PANEL: Live YouTube-Style Comments Preview -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Preview Header -->
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Live Preview" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                        <Border Background="#21262D" CornerRadius="12" Padding="8,2" Margin="10,0,0,0" BorderBrush="#30363D" BorderThickness="1">
+                            <TextBlock Text="{Binding ParsedCountText}" FontSize="11.5" FontWeight="SemiBold" Foreground="#E7E9EA"/>
+                        </Border>
+                    </StackPanel>
+
+                    <Button Style="{StaticResource ActionButtonStyle}" Command="{Binding AddManualCommentCommand}" HorizontalAlignment="Right" Padding="10,5">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="+ Add Manual Row" FontSize="11.5" Foreground="#8B949E"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- YouTube Comments Scrollable Preview List -->
+                <Border Grid.Row="1" Background="#161B22" BorderBrush="#30363D" BorderThickness="1" CornerRadius="10" Padding="14">
+                    <Grid>
+                        <!-- List of Parsed Comments in YouTube Style -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Visibility="{Binding HasParsedComments, Converter={StaticResource BoolToVis}}">
+                            <ItemsControl ItemsSource="{Binding ParsedComments}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <!-- YouTube Comment Card Preview -->
+                                        <Border Margin="0,0,0,16" Padding="0,0,0,14" BorderBrush="#21262D" BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="42"/> <!-- Avatar Circle -->
+                                                    <ColumnDefinition Width="*"/>  <!-- Comment Content & Metadata -->
+                                                    <ColumnDefinition Width="Auto"/> <!-- Remove button -->
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Avatar Circle -->
+                                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                                        Background="{Binding AvatarBackground, Converter={StaticResource HexToBrush}}"
+                                                        HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,2,0,0">
+                                                    <TextBlock Text="{Binding AvatarInitial}" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <!-- Comment Body -->
+                                                <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                    <!-- Author Handle & Timestamp Row -->
+                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                        <TextBox Text="{Binding AuthorHandle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Background="Transparent" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12.5" BorderThickness="0" Padding="0" Cursor="IBeam"/>
+                                                        <TextBlock Text=" · " FontSize="12" Foreground="#6E7681" Margin="4,0,4,0" VerticalAlignment="Center"/>
+                                                        <TextBox Text="{Binding TimeAgo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Background="Transparent" Foreground="#8B949E" FontSize="12" BorderThickness="0" Padding="0" Cursor="IBeam"/>
+                                                    </StackPanel>
+
+                                                    <!-- Comment Text (Editable in preview) -->
+                                                    <TextBox Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             TextWrapping="Wrap" AcceptsReturn="True"
+                                                             Background="#0D1117" Foreground="#F0F6FC"
+                                                             BorderBrush="#21262D" BorderThickness="1"
+                                                             Padding="8,6" FontSize="13"
+                                                             CaretBrush="#1D9BF0" Margin="0,2,0,6"
+                                                             FontFamily="{StaticResource TweetContentFontFamily}"/>
+
+                                                    <!-- YouTube Reactions Row: Likes, Dislike, Replies -->
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <!-- Like icon & count -->
+                                                        <TextBlock Text="👍" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                        <TextBox Text="{Binding LikeCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Background="Transparent" Foreground="#8B949E" FontSize="11.5" BorderThickness="0" Padding="0" Margin="0,0,12,0" VerticalAlignment="Center"/>
+
+                                                        <!-- Dislike icon -->
+                                                        <TextBlock Text="👎" FontSize="11" Margin="0,0,12,0" VerticalAlignment="Center" Opacity="0.7"/>
+
+                                                        <!-- Reply text -->
+                                                        <TextBlock Text="Reply" FontSize="11" Foreground="#8B949E" Margin="0,0,12,0" VerticalAlignment="Center"/>
+
+                                                        <!-- Replies Badge (if any) -->
+                                                        <Border Visibility="{Binding HasReplies, Converter={StaticResource BoolToVis}}" Background="#102538" BorderBrush="#1D9BF0" BorderThickness="1" CornerRadius="10" Padding="8,2">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="⌵ " FontSize="10" Foreground="#38BDF8" FontWeight="Bold"/>
+                                                                <TextBlock Text="{Binding ReplyCount}" FontSize="10.5" Foreground="#38BDF8" FontWeight="SemiBold"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <!-- Delete / Exclude Button -->
+                                                <Button Grid.Column="2"
+                                                        Command="{Binding DataContext.RemoveCommentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip="Remove this comment"
+                                                        Background="Transparent" BorderThickness="0"
+                                                        Foreground="#8B949E" Cursor="Hand" Width="26" Height="26" VerticalAlignment="Top">
+                                                    <TextBlock Text="✕" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <!-- Empty State View -->
+                        <StackPanel Visibility="{Binding HasParsedComments, Converter={StaticResource InverseBoolToVis}}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
+                            <TextBlock Text="💬" FontSize="42" HorizontalAlignment="Center" Opacity="0.3" Margin="0,0,0,12"/>
+                            <TextBlock Text="No Comments Detected Yet" FontSize="15" FontWeight="SemiBold" Foreground="#8B949E" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Paste comments text into the box on the left, or click 'Paste from Clipboard' to import automatically." FontSize="12.5" Foreground="#6E7681" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,0" MaxWidth="340" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ================= 2: BOTTOM ACTIONS FOOTER ================= -->
+        <Border Grid.Row="2" Background="#161B22" BorderBrush="#30363D" BorderThickness="0,1,0,0" Padding="24,14">
+            <Grid>
+                <!-- Append to existing option -->
+                <CheckBox Content="Append to existing comments"
+                          IsChecked="{Binding AppendToExisting, Mode=TwoWay}"
+                          Foreground="#E7E9EA" FontSize="13" VerticalAlignment="Center"/>
+
+                <!-- Right Side Buttons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource ActionButtonStyle}" Command="{Binding CancelCommand}" Margin="0,0,10,0" Padding="16,8">
+                        <TextBlock Text="Cancel" FontSize="13"/>
+                    </Button>
+                    <Button Style="{StaticResource PrimaryActionButtonStyle}" Command="{Binding SaveCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="💾 " FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ParsedComments.Count, StringFormat='Save {0} Comments to Post'}" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

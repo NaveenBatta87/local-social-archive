@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LocalSocialArchive.Helpers;
 using LocalSocialArchive.Models;
 using LocalSocialArchive.Services;
 
@@ -17,10 +18,132 @@ public partial class MainViewModel : ObservableObject
     private readonly IEseDatabaseService _dbService;
     private readonly IClipboardService _clipboardService;
     private readonly ISecurityService _securityService;
+    private readonly ISettingsService _settingsService;
+    private readonly ITweetImporterService _tweetImporterService;
     private readonly string _configFilePath;
 
     [ObservableProperty]
+    private string _defaultFolder = "Coding";
+
+    [ObservableProperty]
+    private bool _autoExtractHashtags = true;
+
+    partial void OnIsGridViewChanged(bool value)
+    {
+        _settingsService.IsGridView = value;
+        _settingsService.Save();
+    }
+
+    partial void OnIsInspectorVisibleChanged(bool value)
+    {
+        _settingsService.IsInspectorVisible = value;
+        _settingsService.Save();
+    }
+
+    partial void OnIsTagsVisibleChanged(bool value)
+    {
+        _settingsService.IsTagsVisible = value;
+        _settingsService.Save();
+    }
+
+    partial void OnIsSidebarExpandedChanged(bool value)
+    {
+        _settingsService.IsSidebarExpanded = value;
+        _settingsService.Save();
+    }
+
+    partial void OnDefaultFolderChanged(string value)
+    {
+        _settingsService.DefaultFolder = value;
+        _settingsService.Save();
+    }
+
+    partial void OnAutoExtractHashtagsChanged(bool value)
+    {
+        _settingsService.AutoExtractHashtags = value;
+        _settingsService.Save();
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GridCardMinHeight))]
+    [NotifyPropertyChangedFor(nameof(GridMediaHeight))]
+    [NotifyPropertyChangedFor(nameof(GridColumnLabel))]
+    private double _gridCardWidth = 320;
+
+    public double GridCardMinHeight => Math.Round(GridCardWidth * 0.90);
+    public double GridMediaHeight => Math.Round(Math.Max(100, GridCardWidth * 0.58));
+
+    public string GridColumnLabel => GridCardWidth switch
+    {
+        <= 215 => "5+ Cols",
+        <= 275 => "4 Cols",
+        <= 365 => "3 Cols",
+        <= 455 => "2 Cols",
+        _ => "1-2 Cols"
+    };
+
+    partial void OnGridCardWidthChanged(double value)
+    {
+        _settingsService.GridCardWidth = value;
+        _settingsService.Save();
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AppScalePercentageText))]
+    private double _appScale = 1.25;
+
+    public string AppScalePercentageText => $"{(int)Math.Round(AppScale * 100)}%";
+
+    partial void OnAppScaleChanged(double value)
+    {
+        _settingsService.AppScale = value;
+        _settingsService.Save();
+    }
+
+    [ObservableProperty]
     private ObservableCollection<Post> _posts = new();
+
+    partial void OnPostsChanged(ObservableCollection<Post> value)
+    {
+        OnPropertyChanged(nameof(QuickFilterAllCount));
+        OnPropertyChanged(nameof(QuickFilterThreadsCount));
+        OnPropertyChanged(nameof(QuickFilterMediaCount));
+        OnPropertyChanged(nameof(QuickFilterNotesCount));
+    }
+
+    // ========== QUICK FILTER CHIPS STATE ==========
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsQuickFilterAll))]
+    [NotifyPropertyChangedFor(nameof(IsQuickFilterThreads))]
+    [NotifyPropertyChangedFor(nameof(IsQuickFilterMedia))]
+    [NotifyPropertyChangedFor(nameof(IsQuickFilterNotes))]
+    private string _activeQuickFilter = "All";
+
+    public bool IsQuickFilterAll => string.Equals(ActiveQuickFilter, "All", StringComparison.OrdinalIgnoreCase);
+    public bool IsQuickFilterThreads => string.Equals(ActiveQuickFilter, "Threads", StringComparison.OrdinalIgnoreCase);
+    public bool IsQuickFilterMedia => string.Equals(ActiveQuickFilter, "Media", StringComparison.OrdinalIgnoreCase);
+    public bool IsQuickFilterNotes => string.Equals(ActiveQuickFilter, "Notes", StringComparison.OrdinalIgnoreCase);
+    public bool IsQuickFilterComments => string.Equals(ActiveQuickFilter, "Comments", StringComparison.OrdinalIgnoreCase);
+
+    public int QuickFilterAllCount => Posts.Count;
+    public int QuickFilterThreadsCount => Posts.Count(p => p.IsPartOfThread);
+    public int QuickFilterMediaCount => Posts.Count(p => p.HasMedia);
+    public int QuickFilterNotesCount => Posts.Count(p => p.HasComment);
+    public int QuickFilterCommentsCount => Posts.Count(p => p.HasComments);
+
+    [RelayCommand]
+    public void SetQuickFilter(string filter)
+    {
+        if (string.Equals(ActiveQuickFilter, filter, StringComparison.OrdinalIgnoreCase) && filter != "All")
+        {
+            ActiveQuickFilter = "All";
+        }
+        else
+        {
+            ActiveQuickFilter = filter ?? "All";
+        }
+        ApplyFilter();
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEmptyFeed))]
@@ -125,9 +248,33 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private CollectionGroup? _selectedCollection;
 
+    // ========== WINDOWS 11 FILE EXPLORER VIEW (Minimal Collections & Folders Hub) ==========
+    [ObservableProperty]
+    private ObservableCollection<FolderCategory> _explorerDisplayFolders = new();
+
+    [ObservableProperty]
+    private string _selectedExplorerCollection = "All Folders";
+
+    [ObservableProperty]
+    private ObservableCollection<ExplorerPillItem> _explorerCollectionPills = new();
+
+    [ObservableProperty]
+    private string _explorerSearchText = string.Empty;
+
+    [ObservableProperty]
+    private bool _isExplorerViewDetails;
+
+    [ObservableProperty]
+    private string _explorerSortMode = "Name"; // "Name", "Count", "Recent"
+
+    [ObservableProperty]
+    private FolderCategory? _selectedExplorerFolder;
+
     // ========== FLAT FOLDERS (For quick lookup, filter dropdowns, and "All Posts") ==========
     [ObservableProperty]
     private ObservableCollection<FolderCategory> _folders = new();
+
+    public IEnumerable<FolderCategory> DestinationFolders => Folders.Where(f => !string.Equals(f.Name, "All Posts", StringComparison.OrdinalIgnoreCase));
 
     [ObservableProperty]
     private FolderCategory? _selectedFolder;
@@ -165,7 +312,7 @@ public partial class MainViewModel : ObservableObject
     private bool _isSidebarExpanded = true;
 
     [ObservableProperty]
-    private string _activeRailView = "Home"; // "Home", "Folders", "Canvas"
+    private string _activeRailView = "Home"; // "Home", "Feed", "Folders"
 
     [ObservableProperty]
     private bool _isInspectorVisible = true;
@@ -176,46 +323,27 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isFoldersViewActive;
 
-    // ========== THREAD CANVAS STUDIO (Visual Sequential Tweet Scratchpad) ==========
+    // ========== WINDOWS 11 FLUENT DASHBOARD & USER INFO ==========
     [ObservableProperty]
-    private bool _isCanvasViewActive;
-
-    [ObservableProperty]
-    private ObservableCollection<ThreadNode> _canvasThreadNodes = new();
+    private string _currentUserDisplayName = Environment.UserName;
 
     [ObservableProperty]
-    private string _canvasThreadTitle = "New Twitter / X Thread";
+    private string _machineDeviceName = Environment.MachineName;
 
     [ObservableProperty]
-    private string _canvasDefaultAuthor = "Offline User";
+    private bool _isHomeDashboardActive = true;
 
     [ObservableProperty]
-    private string _canvasDefaultHandle = "@offline";
+    private string _selectedThemeName = "Windows Dark";
 
-    [ObservableProperty]
-    private string _canvasSelectedFolder = "Coding";
-
-    [ObservableProperty]
-    private string _canvasDefaultTags = "#thread #offline";
-
-    [ObservableProperty]
-    private string _canvasMode = "Doc"; // "Doc" or "Thread"
-
-    [ObservableProperty]
-    private bool _isThreadModeActive;
-
-    [ObservableProperty]
-    private bool _canvasAutoSplitPages = true;
-
-    [ObservableProperty]
-    private int _canvasPageCharacterLimit = 3500;
-
-    public List<Helpers.EmojiCategory> EmojiCategories => Helpers.EmojiPacks.Categories;
-
-    partial void OnCanvasModeChanged(string value)
+    partial void OnSelectedThemeNameChanged(string value)
     {
-        IsThreadModeActive = string.Equals(value, "Thread", StringComparison.OrdinalIgnoreCase);
+        _settingsService.ThemeName = value;
+        _settingsService.Save();
     }
+
+    [ObservableProperty]
+    private ObservableCollection<FolderCategory> _topDashboardFolders = new();
 
     // ========== THEATER MODE (Twitter-style Split Screen: Left Media / Right Text) ==========
     [ObservableProperty]
@@ -239,15 +367,30 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isTheaterMediaVideo;
 
-    public MainViewModel(IEseDatabaseService dbService, IClipboardService clipboardService, ISecurityService securityService)
+    public MainViewModel(
+        IEseDatabaseService dbService, 
+        IClipboardService clipboardService, 
+        ISecurityService securityService, 
+        ISettingsService? settingsService = null,
+        ITweetImporterService? tweetImporterService = null)
     {
         _dbService = dbService;
         _clipboardService = clipboardService;
         _securityService = securityService;
+        _settingsService = settingsService ?? new SettingsService();
+        _tweetImporterService = tweetImporterService ?? new TweetImporterService(_dbService);
 
-        string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string baseDir = Path.Combine(userDocs, "LocalSocialArchive");
-        _configFilePath = Path.Combine(baseDir, "collections_config.json");
+        _isGridView = _settingsService.IsGridView;
+        _isInspectorVisible = _settingsService.IsInspectorVisible;
+        _isTagsVisible = _settingsService.IsTagsVisible;
+        _isSidebarExpanded = _settingsService.IsSidebarExpanded;
+        _defaultFolder = !string.IsNullOrWhiteSpace(_settingsService.DefaultFolder) ? _settingsService.DefaultFolder : "Coding";
+        _autoExtractHashtags = _settingsService.AutoExtractHashtags;
+        _gridCardWidth = _settingsService.GridCardWidth >= 180 && _settingsService.GridCardWidth <= 600 ? _settingsService.GridCardWidth : 320;
+        _appScale = _settingsService.AppScale >= 0.75 && _settingsService.AppScale <= 2.0 ? _settingsService.AppScale : 1.25;
+        _selectedThemeName = !string.IsNullOrWhiteSpace(_settingsService.ThemeName) ? _settingsService.ThemeName : "Windows Dark";
+
+        _configFilePath = LocalSocialArchive.Helpers.StoragePathHelper.CollectionsConfigPath;
 
         _filteredPosts.CollectionChanged += FilteredPosts_CollectionChanged;
 
@@ -448,6 +591,11 @@ public partial class MainViewModel : ObservableObject
         }
 
         Folders = flat;
+        OnPropertyChanged(nameof(DestinationFolders));
+
+        TopDashboardFolders = new ObservableCollection<FolderCategory>(
+            flat.Where(f => !string.Equals(f.Name, "All Posts", StringComparison.OrdinalIgnoreCase)).Take(4)
+        );
 
         if (SelectedFolder == null || !Folders.Any(f => f.Name == SelectedFolder.Name))
         {
@@ -457,6 +605,7 @@ public partial class MainViewModel : ObservableObject
 
         UpdateFilterDropdownOptions();
         RefreshFilteredCollections();
+        UpdateExplorerDisplayFolders();
     }
 
     private void UpdateFilterDropdownOptions()
@@ -566,7 +715,42 @@ public partial class MainViewModel : ObservableObject
             DatabaseSizeText = $"DB Size: {bytes / (1024.0 * 1024.0):F1} MB";
         }
 
-        var folderCounts = await _dbService.GetFolderCountsAsync();
+        // Fast RAM-based count aggregation from in-memory Posts (zero disk I/O)
+        var folderCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["All Posts"] = Posts.Count,
+            ["Coding"] = 0,
+            ["SAP Projects"] = 0,
+            ["Memes"] = 0,
+            ["Reference"] = 0
+        };
+
+        var tagCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var postsByFolder = new Dictionary<string, List<Post>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var p in Posts)
+        {
+            var folder = string.IsNullOrWhiteSpace(p.FolderName) ? "Coding" : p.FolderName;
+            if (folderCounts.ContainsKey(folder))
+                folderCounts[folder]++;
+            else
+                folderCounts[folder] = 1;
+
+            if (!postsByFolder.TryGetValue(folder, out var fList))
+            {
+                fList = new List<Post>();
+                postsByFolder[folder] = fList;
+            }
+            fList.Add(p);
+
+            foreach (var tag in p.TagList)
+            {
+                if (tagCounts.ContainsKey(tag))
+                    tagCounts[tag]++;
+                else
+                    tagCounts[tag] = 1;
+            }
+        }
 
         foreach (var col in Collections)
         {
@@ -581,24 +765,28 @@ public partial class MainViewModel : ObservableObject
                     folder.Count = 0;
                 }
 
-                // Extract up to 3 media preview paths for this folder
-                var folderPosts = Posts.Where(p => string.Equals(p.FolderName, folder.Name, StringComparison.OrdinalIgnoreCase)).ToList();
+                // Extract up to 3 media preview paths for this folder via O(1) dictionary lookup
+                postsByFolder.TryGetValue(folder.Name, out var folderPosts);
                 var thumbs = new ObservableCollection<string>();
-                foreach (var p in folderPosts)
+                if (folderPosts != null)
                 {
-                    foreach (var media in p.MediaItems)
+                    foreach (var p in folderPosts)
                     {
-                        if (!string.IsNullOrWhiteSpace(media.FilePath) && !thumbs.Contains(media.FilePath))
+                        foreach (var media in p.MediaItems)
                         {
-                            thumbs.Add(media.FilePath);
-                            if (thumbs.Count >= 3) break;
+                            var thumbPath = media.DisplayThumbnail ?? media.FilePath;
+                            if (!string.IsNullOrWhiteSpace(thumbPath) && !thumbs.Contains(thumbPath))
+                            {
+                                thumbs.Add(thumbPath);
+                                if (thumbs.Count >= 3) break;
+                            }
                         }
+                        if (thumbs.Count >= 3) break;
                     }
-                    if (thumbs.Count >= 3) break;
                 }
                 folder.RecentThumbnails = thumbs;
 
-                if (folderPosts.Count > 0)
+                if (folderPosts != null && folderPosts.Count > 0)
                 {
                     var latest = folderPosts.OrderByDescending(p => p.PostDate).FirstOrDefault();
                     if (latest != null)
@@ -623,7 +811,6 @@ public partial class MainViewModel : ObservableObject
             allFolder.LastUpdatedText = Posts.Count > 0 ? $"Active ({Posts.Count} total)" : "0 items";
         }
 
-        var tagCounts = await _dbService.GetTagCountsAsync();
         var tagList = new ObservableCollection<TagCategory>();
         foreach (var kvp in tagCounts.OrderByDescending(k => k.Value))
         {
@@ -635,6 +822,7 @@ public partial class MainViewModel : ObservableObject
             });
         }
         Tags = tagList;
+        UpdateExplorerDisplayFolders();
     }
 
     [RelayCommand]
@@ -643,8 +831,9 @@ public partial class MainViewModel : ObservableObject
         StatusMessage = "Processing clipboard contents...";
         try
         {
-            string targetFolder = (SelectedFolder != null && SelectedFolder.Name != "All Posts") ? SelectedFolder.Name : "Coding";
-            var post = await _clipboardService.ProcessClipboardAsync(targetFolder);
+            string defaultTarget = !string.IsNullOrWhiteSpace(DefaultFolder) ? DefaultFolder : "Coding";
+            string targetFolder = (SelectedFolder != null && SelectedFolder.Name != "All Posts") ? SelectedFolder.Name : defaultTarget;
+            var post = await _clipboardService.ProcessClipboardAsync(targetFolder, AutoExtractHashtags);
 
             if (post != null)
             {
@@ -671,8 +860,9 @@ public partial class MainViewModel : ObservableObject
     {
         if (folder == null) return;
 
+        IsHomeDashboardActive = false;
         IsFoldersViewActive = false;
-        IsCanvasViewActive = false;
+        ActiveRailView = "Feed";
         foreach (var f in Folders) f.IsSelected = false;
         folder.IsSelected = true;
         SelectedFolder = folder;
@@ -703,6 +893,9 @@ public partial class MainViewModel : ObservableObject
         {
             tag.IsSelected = true;
             SelectedTag = tag;
+            IsHomeDashboardActive = false;
+            IsFoldersViewActive = false;
+            ActiveRailView = "Feed";
         }
 
         ApplyFilter();
@@ -743,15 +936,39 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    private System.Threading.CancellationTokenSource? _searchDebounceCts;
+
     partial void OnSearchQueryChanged(string value)
     {
-        ApplyFilter();
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            if (IsHomeDashboardActive || IsFoldersViewActive)
+            {
+                IsHomeDashboardActive = false;
+                IsFoldersViewActive = false;
+                ActiveRailView = "Feed";
+            }
+        }
+
+        _searchDebounceCts?.Cancel();
+        _searchDebounceCts = new System.Threading.CancellationTokenSource();
+        var token = _searchDebounceCts.Token;
+
+        Task.Delay(160, token).ContinueWith(t =>
+        {
+            if (!t.IsCanceled)
+            {
+                Application.Current?.Dispatcher.InvokeAsync(ApplyFilter);
+            }
+        }, TaskScheduler.Default);
     }
 
     [RelayCommand]
     public void ClearSearch()
     {
+        _searchDebounceCts?.Cancel();
         SearchQuery = string.Empty;
+        ApplyFilter();
     }
 
     private void RefreshFilteredCollections()
@@ -830,70 +1047,149 @@ public partial class MainViewModel : ObservableObject
         RefreshFilteredCollections();
 
         IEnumerable<Post> query = Posts;
+
+        // Apply Quick Filter Chips
+        if (string.Equals(ActiveQuickFilter, "Threads", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(p => p.IsPartOfThread);
+        }
+        else if (string.Equals(ActiveQuickFilter, "Media", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(p => p.HasMedia);
+        }
+        else if (string.Equals(ActiveQuickFilter, "Notes", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(p => p.HasComment);
+        }
+        else if (string.Equals(ActiveQuickFilter, "Comments", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(p => p.HasComments);
+        }
+
         string rawSearch = SearchQuery?.Trim() ?? string.Empty;
 
-        bool hasFolderPrefix = rawSearch.StartsWith("folder:", StringComparison.OrdinalIgnoreCase) ||
-                               rawSearch.StartsWith("f:", StringComparison.OrdinalIgnoreCase);
-        bool hasThreadPrefix = rawSearch.StartsWith("thread:", StringComparison.OrdinalIgnoreCase) ||
-                               rawSearch.StartsWith("story:", StringComparison.OrdinalIgnoreCase);
-
-        if (hasThreadPrefix)
+        if (!string.IsNullOrWhiteSpace(rawSearch))
         {
-            string threadQ = rawSearch.Substring(rawSearch.IndexOf(':') + 1).Trim();
-            if (!string.IsNullOrEmpty(threadQ))
-            {
-                query = query.Where(p => string.Equals(p.ThreadId, threadQ, StringComparison.OrdinalIgnoreCase))
-                             .OrderBy(p => p.ThreadIndex);
-            }
-        }
-        else if (hasFolderPrefix)
-        {
-            string folderQ = rawSearch.Substring(rawSearch.IndexOf(':') + 1).Trim().ToLowerInvariant();
-            if (!string.IsNullOrEmpty(folderQ))
-            {
-                query = query.Where(p => !string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(folderQ));
-            }
-        }
-        else if (!string.IsNullOrWhiteSpace(rawSearch))
-        {
-            string q = rawSearch.ToLowerInvariant();
+            var tokens = rawSearch.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var textTokens = new List<string>();
 
-            if (SelectedFolder != null && SelectedFolder.Name != "All Posts")
+            foreach (var token in tokens)
             {
-                var inFolderQuery = query.Where(p => string.Equals(p.FolderName, SelectedFolder.Name, StringComparison.OrdinalIgnoreCase));
-                var inFolderFiltered = inFolderQuery.Where(p =>
-                    (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(q)) ||
-                    (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(q)) ||
-                    (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(q)) ||
-                    (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(q)) ||
-                    p.TagList.Any(t => t.ToLowerInvariant().Contains(q))
-                ).ToList();
-
-                if (inFolderFiltered.Count > 0)
+                if (token.StartsWith("thread:", StringComparison.OrdinalIgnoreCase) || token.StartsWith("story:", StringComparison.OrdinalIgnoreCase))
                 {
-                    query = inFolderFiltered;
+                    string tid = token.Substring(token.IndexOf(':') + 1);
+                    if (!string.IsNullOrEmpty(tid))
+                    {
+                        query = query.Where(p => string.Equals(p.ThreadId, tid, StringComparison.OrdinalIgnoreCase)).OrderBy(p => p.ThreadIndex);
+                    }
+                }
+                else if (token.StartsWith("folder:", StringComparison.OrdinalIgnoreCase) || token.StartsWith("f:", StringComparison.OrdinalIgnoreCase))
+                {
+                    string f = token.Substring(token.IndexOf(':') + 1).ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(f))
+                    {
+                        query = query.Where(p => !string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(f));
+                    }
+                }
+                else if (token.StartsWith("from:", StringComparison.OrdinalIgnoreCase) || token.StartsWith("author:", StringComparison.OrdinalIgnoreCase))
+                {
+                    string author = token.Substring(token.IndexOf(':') + 1).TrimStart('@').ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(author))
+                    {
+                        query = query.Where(p => 
+                            (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(author)) ||
+                            (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(author)));
+                    }
+                }
+                else if (token.StartsWith('@') && token.Length > 1)
+                {
+                    string handle = token.TrimStart('@').ToLowerInvariant();
+                    query = query.Where(p => 
+                        (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(handle)) ||
+                        (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(handle)));
+                }
+                else if (token.Equals("has:media", StringComparison.OrdinalIgnoreCase) || token.Equals("has:image", StringComparison.OrdinalIgnoreCase) || token.Equals("has:images", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => p.HasMedia);
+                }
+                else if (token.Equals("has:video", StringComparison.OrdinalIgnoreCase) || token.Equals("has:videos", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => p.MediaItems.Any(m => m.IsVideo));
+                }
+                else if (token.Equals("has:comment", StringComparison.OrdinalIgnoreCase) || token.Equals("has:note", StringComparison.OrdinalIgnoreCase) || token.Equals("has:notes", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => p.HasComment);
+                }
+                else if (token.Equals("has:comments", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => p.HasComments);
+                }
+                else if (token.Equals("is:thread", StringComparison.OrdinalIgnoreCase) || token.Equals("is:reply", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(p => p.IsPartOfThread);
+                }
+                else if (token.StartsWith("tag:", StringComparison.OrdinalIgnoreCase))
+                {
+                    string t = token.Substring(4).TrimStart('#').ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(t))
+                    {
+                        query = query.Where(p => p.TagList.Any(tag => tag.ToLowerInvariant().Contains(t)));
+                    }
+                }
+                else if (token.StartsWith('#') && token.Length > 1)
+                {
+                    string t = token.TrimStart('#').ToLowerInvariant();
+                    query = query.Where(p => p.TagList.Any(tag => tag.ToLowerInvariant().Contains(t)));
                 }
                 else
                 {
-                    // Search across all folders if none found in current folder
-                    query = query.Where(p =>
-                        (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(q)) ||
-                        (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(q)) ||
-                        (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(q)) ||
-                        (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(q)) ||
-                        p.TagList.Any(t => t.ToLowerInvariant().Contains(q))
-                    );
+                    textTokens.Add(token.ToLowerInvariant());
                 }
             }
-            else
+
+            if (textTokens.Count > 0)
             {
-                query = query.Where(p =>
-                    (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(q)) ||
-                    (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(q)) ||
-                    (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(q)) ||
-                    (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(q)) ||
-                    p.TagList.Any(t => t.ToLowerInvariant().Contains(q))
-                );
+                string textQuery = string.Join(" ", textTokens);
+                if (SelectedFolder != null && SelectedFolder.Name != "All Posts")
+                {
+                    var inFolderQuery = query.Where(p => string.Equals(p.FolderName, SelectedFolder.Name, StringComparison.OrdinalIgnoreCase));
+                    var inFolderFiltered = inFolderQuery.Where(p =>
+                        (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(textQuery)) ||
+                        (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(textQuery)) ||
+                        (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(textQuery)) ||
+                        (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(textQuery)) ||
+                        (p.Comment != null && p.Comment.ToLowerInvariant().Contains(textQuery)) ||
+                        p.TagList.Any(t => t.ToLowerInvariant().Contains(textQuery))
+                    ).ToList();
+
+                    if (inFolderFiltered.Count > 0)
+                    {
+                        query = inFolderFiltered;
+                    }
+                    else
+                    {
+                        query = query.Where(p =>
+                            (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(textQuery)) ||
+                            (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(textQuery)) ||
+                            (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(textQuery)) ||
+                            (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(textQuery)) ||
+                            (p.Comment != null && p.Comment.ToLowerInvariant().Contains(textQuery)) ||
+                            p.TagList.Any(t => t.ToLowerInvariant().Contains(textQuery))
+                        );
+                    }
+                }
+                else
+                {
+                    query = query.Where(p =>
+                        (!string.IsNullOrEmpty(p.Content) && p.Content.ToLowerInvariant().Contains(textQuery)) ||
+                        (!string.IsNullOrEmpty(p.AuthorName) && p.AuthorName.ToLowerInvariant().Contains(textQuery)) ||
+                        (!string.IsNullOrEmpty(p.AuthorHandle) && p.AuthorHandle.ToLowerInvariant().Contains(textQuery)) ||
+                        (!string.IsNullOrEmpty(p.FolderName) && p.FolderName.ToLowerInvariant().Contains(textQuery)) ||
+                        (p.Comment != null && p.Comment.ToLowerInvariant().Contains(textQuery)) ||
+                        p.Comments.Any(c => c.Content.ToLowerInvariant().Contains(textQuery) || c.AuthorHandle.ToLowerInvariant().Contains(textQuery) || c.AuthorName.ToLowerInvariant().Contains(textQuery)) ||
+                        p.TagList.Any(t => t.ToLowerInvariant().Contains(textQuery))
+                    );
+                }
             }
         }
         else
@@ -910,7 +1206,11 @@ public partial class MainViewModel : ObservableObject
             query = query.Where(p => p.TagList.Any(t => string.Equals(t, tagName, StringComparison.OrdinalIgnoreCase)));
         }
 
-        FilteredPosts = new ObservableCollection<Post>(query);
+        var newList = query.ToList();
+        if (FilteredPosts.Count != newList.Count || !FilteredPosts.SequenceEqual(newList))
+        {
+            FilteredPosts = new ObservableCollection<Post>(newList);
+        }
 
         if (SelectedPost == null || !FilteredPosts.Contains(SelectedPost))
         {
@@ -993,6 +1293,11 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void CreateNewFolder(object? parameter)
     {
+        PromptCreateFolder(parameter);
+    }
+
+    public string? PromptCreateFolder(object? parameter = null)
+    {
         string? targetCollectionName = null;
         if (parameter is CollectionGroup cg)
         {
@@ -1016,7 +1321,7 @@ public partial class MainViewModel : ObservableObject
             if (Folders.Any(f => string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase)))
             {
                 MessageBox.Show($"Folder '{name}' already exists.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
+                return name;
             }
 
             var parentCol = Collections.FirstOrDefault(c => string.Equals(c.Name, addVm.CollectionName, StringComparison.OrdinalIgnoreCase))
@@ -1046,7 +1351,9 @@ public partial class MainViewModel : ObservableObject
             SaveHierarchyConfig();
             SelectFolder(newFolder);
             StatusMessage = $"Created folder '{name}' in collection '{parentCol.Name}'.";
+            return name;
         }
+        return null;
     }
 
     [RelayCommand]
@@ -1106,66 +1413,369 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void NavigateHome()
     {
-        // If already on Home view and sidebar is open, clicking Home collapses the extended panel (VS Code behavior)
-        if (ActiveRailView == "Home" && !IsFoldersViewActive && !IsCanvasViewActive && IsSidebarExpanded)
-        {
-            IsSidebarExpanded = false;
-            return;
-        }
-
         ActiveRailView = "Home";
-        IsSidebarExpanded = true;
+        IsHomeDashboardActive = true;
         IsFoldersViewActive = false;
-        IsCanvasViewActive = false;
-
-        if (Folders.Count > 0 && (SelectedFolder == null || SelectedFolder.Name != "All Posts"))
+        if (IsTheaterModeOpen)
         {
-            SelectFolder(Folders[0]);
+            CloseTheaterMode();
         }
-        SearchQuery = string.Empty;
-        SelectedTag = null;
-        foreach (var t in Tags) t.IsSelected = false;
-        ApplyFilter();
+        StatusMessage = "Home Dashboard — Overview of your local social archive.";
+    }
+
+    [RelayCommand]
+    public void NavigateFeed()
+    {
+        ActiveRailView = "Feed";
+        IsHomeDashboardActive = false;
+        IsFoldersViewActive = false;
+
+        if (Folders.Count > 0)
+        {
+            foreach (var f in Folders) f.IsSelected = false;
+            Folders[0].IsSelected = true;
+            SelectedFolder = Folders[0];
+            SelectedFilterDropdownText = "Filter: All Posts";
+        }
+
+        if (SelectedTag != null)
+        {
+            SelectedTag.IsSelected = false;
+            SelectedTag = null;
+        }
+
+        if (!string.IsNullOrEmpty(SearchQuery))
+        {
+            SearchQuery = string.Empty;
+        }
 
         if (IsTheaterModeOpen)
         {
             CloseTheaterMode();
         }
 
+        ApplyFilter();
+
         SelectedPost = FilteredPosts.FirstOrDefault();
-        StatusMessage = "Showing all collections, folders & archived posts.";
+        StatusMessage = "Showing all archived posts feed.";
     }
 
-    // ========== COLLECTIONS HUB SECTION (Collections containing Folders) ==========
+    // ========== COLLECTIONS & FOLDERS EXPLORER SECTION ==========
+    partial void OnExplorerSearchTextChanged(string value)
+    {
+        UpdateExplorerDisplayFolders();
+    }
+
+    partial void OnSelectedExplorerCollectionChanged(string value)
+    {
+        UpdateExplorerDisplayFolders();
+    }
+
+    public void UpdateExplorerDisplayFolders()
+    {
+        // 1. Rebuild ExplorerCollectionPills
+        var allCount = Collections.SelectMany(c => c.Folders).DistinctBy(f => f.Name).Count();
+        var pills = new ObservableCollection<ExplorerPillItem>
+        {
+            new ExplorerPillItem
+            {
+                Name = "All Folders",
+                DisplayText = $"All Folders ({allCount})",
+                IsActive = SelectedExplorerCollection == "All Folders"
+            }
+        };
+
+        foreach (var col in Collections)
+        {
+            if (!string.IsNullOrWhiteSpace(col.Name))
+            {
+                pills.Add(new ExplorerPillItem
+                {
+                    Name = col.Name,
+                    DisplayText = $"{col.Name} ({col.Folders.Count})",
+                    IsActive = string.Equals(col.Name, SelectedExplorerCollection, StringComparison.OrdinalIgnoreCase)
+                });
+            }
+        }
+        ExplorerCollectionPills = pills;
+
+        if (string.IsNullOrWhiteSpace(SelectedExplorerCollection) || !pills.Any(p => p.Name == SelectedExplorerCollection))
+        {
+            SelectedExplorerCollection = "All Folders";
+        }
+
+        // 2. Select folders based on active collection pill
+        IEnumerable<FolderCategory> items;
+        if (SelectedExplorerCollection == "All Folders")
+        {
+            items = Collections.SelectMany(c => c.Folders).DistinctBy(f => f.Name);
+        }
+        else
+        {
+            var matchedCol = Collections.FirstOrDefault(c => string.Equals(c.Name, SelectedExplorerCollection, StringComparison.OrdinalIgnoreCase));
+            items = matchedCol != null ? matchedCol.Folders : Enumerable.Empty<FolderCategory>();
+        }
+
+        // 3. Search query filter
+        if (!string.IsNullOrWhiteSpace(ExplorerSearchText))
+        {
+            string q = ExplorerSearchText.Trim().ToLowerInvariant();
+            items = items.Where(f => (!string.IsNullOrEmpty(f.Name) && f.Name.ToLowerInvariant().Contains(q)) ||
+                                     (!string.IsNullOrEmpty(f.CollectionName) && f.CollectionName.ToLowerInvariant().Contains(q)) ||
+                                     (!string.IsNullOrEmpty(f.Description) && f.Description.ToLowerInvariant().Contains(q)));
+        }
+
+        // 4. Apply sorting
+        items = ExplorerSortMode switch
+        {
+            "Count" => items.OrderByDescending(f => f.Count).ThenBy(f => f.Name),
+            "Recent" => items.OrderByDescending(f => f.LastUpdatedText).ThenBy(f => f.Name),
+            _ => items.OrderBy(f => f.Name)
+        };
+
+        ExplorerDisplayFolders = new ObservableCollection<FolderCategory>(items);
+    }
+
+    [RelayCommand]
+    public void SelectExplorerCollection(object? parameter)
+    {
+        string? colName = parameter switch
+        {
+            ExplorerPillItem pill => pill.Name,
+            string s => s,
+            _ => null
+        };
+        SelectedExplorerCollection = string.IsNullOrWhiteSpace(colName) ? "All Folders" : colName;
+        UpdateExplorerDisplayFolders();
+    }
+
+    [RelayCommand]
+    public void SetExplorerViewMode(string mode)
+    {
+        IsExplorerViewDetails = string.Equals(mode, "Details", StringComparison.OrdinalIgnoreCase);
+    }
+
+    [RelayCommand]
+    public void SetExplorerSort(string sortMode)
+    {
+        ExplorerSortMode = sortMode;
+        UpdateExplorerDisplayFolders();
+    }
+
+    [RelayCommand]
+    public void ClearExplorerSearch()
+    {
+        ExplorerSearchText = string.Empty;
+        UpdateExplorerDisplayFolders();
+    }
+
+    [RelayCommand]
+    public void SelectExplorerFolder(FolderCategory? folder)
+    {
+        SelectedExplorerFolder = folder;
+        foreach (var f in ExplorerDisplayFolders)
+        {
+            f.IsSelected = (folder != null && string.Equals(f.Name, folder.Name, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    [RelayCommand]
+    public void NavigateExplorerUp()
+    {
+        if (SelectedExplorerCollection != "All Folders")
+        {
+            SelectedExplorerCollection = "All Folders";
+            UpdateExplorerDisplayFolders();
+        }
+        else
+        {
+            NavigateHome();
+        }
+    }
+
+    [RelayCommand]
+    public void NavigateExplorerBack()
+    {
+        if (SelectedExplorerCollection != "All Folders")
+        {
+            SelectedExplorerCollection = "All Folders";
+            UpdateExplorerDisplayFolders();
+        }
+        else
+        {
+            NavigateFeed();
+        }
+    }
+
     [RelayCommand]
     public void ShowFoldersHub()
     {
-        // If already on Folders view and sidebar is open, clicking Folders Hub collapses the extended panel (VS Code behavior)
-        if (ActiveRailView == "Folders" && IsFoldersViewActive && IsSidebarExpanded)
-        {
-            IsSidebarExpanded = false;
-            return;
-        }
-
         ActiveRailView = "Folders";
-        IsSidebarExpanded = true;
+        IsHomeDashboardActive = false;
         IsFoldersViewActive = true;
-        IsCanvasViewActive = false;
 
         if (IsTheaterModeOpen)
         {
             CloseTheaterMode();
         }
-        StatusMessage = "Collections Hub — Overview of all top-level collections and their folders.";
+        UpdateExplorerDisplayFolders();
+        StatusMessage = "Collections & Folders Explorer.";
     }
 
     [RelayCommand]
     public void OpenFolderFromHub(FolderCategory? folder)
     {
         if (folder == null) return;
+        IsHomeDashboardActive = false;
         IsFoldersViewActive = false;
-        IsCanvasViewActive = false;
+        ActiveRailView = "Feed";
         SelectFolder(folder);
+    }
+
+    [RelayCommand]
+    public void SetTheme(string themeName)
+    {
+        SelectedThemeName = themeName;
+        StatusMessage = $"Theme set to {themeName}";
+    }
+
+    [RelayCommand]
+    public void NavigateMediaGallery()
+    {
+        ActiveRailView = "Media";
+        IsHomeDashboardActive = false;
+        IsFoldersViewActive = false;
+        IsGridView = true;
+        SearchQuery = string.Empty;
+        SelectedTag = null;
+        SelectedFolder = null;
+        FilteredPosts = new ObservableCollection<Post>(Posts.Where(p => p.HasMedia));
+        SelectedPost = FilteredPosts.FirstOrDefault();
+        if (IsTheaterModeOpen) CloseTheaterMode();
+        StatusMessage = $"Media Gallery — Showing {FilteredPosts.Count} posts with cached media assets.";
+    }
+
+    [RelayCommand]
+    public void NavigateTags()
+    {
+        ActiveRailView = "Tags";
+        IsHomeDashboardActive = false;
+        IsFoldersViewActive = false;
+        if (Tags.Count > 0)
+        {
+            SelectTag(Tags[0]);
+        }
+        else
+        {
+            NavigateFeed();
+        }
+    }
+
+    [RelayCommand]
+    public void OpenImportArchive()
+    {
+        var vm = new ImportArchiveViewModel(_tweetImporterService, this);
+        var win = new Views.ImportArchiveWindow(vm)
+        {
+            Owner = Application.Current.MainWindow
+        };
+        win.ShowDialog();
+    }
+
+    [RelayCommand]
+    public async Task OpenThreadImporterAsync()
+    {
+        var existingFolderNames = Folders.Select(f => f.Name).ToList();
+        var vm = new ImportThreadViewModel(_dbService, existingFolderNames, DefaultFolder);
+        var win = new Views.ImportThreadWindow(vm)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        bool? result = win.ShowDialog();
+        if (result == true && vm.ImportedPosts.Count > 0)
+        {
+            // ⚡ Highly optimized in-memory update (Zero disk re-querying!)
+            foreach (var p in vm.ImportedPosts.AsEnumerable().Reverse())
+            {
+                Posts.Insert(0, p);
+            }
+
+            EnsureFolderExistsInHierarchy(vm.ImportedPosts[0].FolderName);
+            await UpdateCountsAndSizeAsync();
+
+            string threadId = vm.ImportedPosts[0].ThreadId!;
+            SearchQuery = $"thread:{threadId}";
+            SelectedPost = vm.ImportedPosts[0];
+            StatusMessage = $"Imported thread with {vm.ImportedPosts.Count} tweets by {vm.AuthorHandle}!";
+        }
+    }
+
+    public void EnsureFolderExistsInHierarchy(string folderName)
+    {
+        if (string.IsNullOrWhiteSpace(folderName) || string.Equals(folderName, "All Posts", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        bool exists = Collections.Any(c => c.Folders.Any(f => string.Equals(f.Name, folderName, StringComparison.OrdinalIgnoreCase)));
+        if (!exists)
+        {
+            var targetCol = Collections.FirstOrDefault(c => c.Name == "Engineering & Tech") ?? Collections.FirstOrDefault();
+            if (targetCol == null)
+            {
+                targetCol = new CollectionGroup { Name = "General Archive", IconGlyph = "🗂️", AccentColor = "#1D9BF0" };
+                Collections.Add(targetCol);
+            }
+
+            targetCol.Folders.Add(new FolderCategory
+            {
+                Name = folderName,
+                CollectionName = targetCol.Name,
+                IconGlyph = "📁",
+                AccentColor = targetCol.AccentColor
+            });
+
+            RebuildFlatFolders();
+            SaveHierarchyConfig();
+        }
+    }
+
+    [RelayCommand]
+    public void ZoomInGrid()
+    {
+        GridCardWidth = Math.Min(520, GridCardWidth + 35);
+    }
+
+    [RelayCommand]
+    public void ZoomOutGrid()
+    {
+        GridCardWidth = Math.Max(180, GridCardWidth - 35);
+    }
+
+    [RelayCommand]
+    public void SetAppScale(string scaleStr)
+    {
+        if (double.TryParse(scaleStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double s))
+        {
+            AppScale = Math.Clamp(s, 0.75, 2.0);
+        }
+    }
+
+    [RelayCommand]
+    public void ZoomInApp()
+    {
+        AppScale = Math.Min(1.75, Math.Round(AppScale + 0.10, 2));
+    }
+
+    [RelayCommand]
+    public void ZoomOutApp()
+    {
+        AppScale = Math.Max(0.85, Math.Round(AppScale - 0.10, 2));
+    }
+
+    [RelayCommand]
+    public void ResetAppScale()
+    {
+        AppScale = 1.25;
     }
 
     // ========== PANEL TOGGLES ==========
@@ -1197,7 +1807,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void OpenSettings()
     {
-        var settingsVm = new SettingsViewModel(_dbService, _securityService, Folders, IsGridView, IsInspectorVisible, IsTagsVisible);
+        var settingsVm = new SettingsViewModel(_dbService, _securityService, _settingsService, Folders);
         var settingsWin = new Views.SettingsWindow(settingsVm)
         {
             Owner = Application.Current.MainWindow
@@ -1208,6 +1818,8 @@ public partial class MainViewModel : ObservableObject
             IsGridView = settingsVm.PreferGridView;
             IsInspectorVisible = settingsVm.ShowInspectorByDefault;
             IsTagsVisible = settingsVm.ShowTagsByDefault;
+            DefaultFolder = settingsVm.SelectedDefaultFolder;
+            AutoExtractHashtags = settingsVm.AutoExtractHashtags;
             StatusMessage = "Settings updated.";
         }
     }
@@ -1225,18 +1837,21 @@ public partial class MainViewModel : ObservableObject
             if (setPwdWin.ShowDialog() != true) return;
         }
 
-        var unlockWin = new Views.UnlockWindow(_securityService)
-        {
-            Owner = Application.Current.MainWindow
-        };
+        var mainWindow = Application.Current.MainWindow;
+        mainWindow?.Hide();
 
-        if (unlockWin.ShowDialog() != true)
+        var unlockWin = new Views.UnlockWindow(_securityService);
+        bool? result = unlockWin.ShowDialog();
+
+        if (result == true)
         {
-            Application.Current.Shutdown();
+            mainWindow?.Show();
+            mainWindow?.Activate();
+            StatusMessage = "Vault unlocked.";
         }
         else
         {
-            StatusMessage = "Vault unlocked.";
+            Application.Current.Shutdown();
         }
     }
 
@@ -1492,6 +2107,144 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void TogglePostComments(Post? post)
+    {
+        var target = post ?? TheaterPost ?? SelectedPost;
+        if (target == null) return;
+        target.IsCommentsExpanded = !target.IsCommentsExpanded;
+    }
+
+    [RelayCommand]
+    public async Task OpenPasteCommentsWindowAsync(Post? post)
+    {
+        var target = post ?? TheaterPost ?? SelectedPost;
+        if (target == null) return;
+
+        var vm = new PasteCommentsViewModel(target, _dbService);
+        var win = new Views.PasteCommentsWindow(vm)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        if (win.ShowDialog() == true)
+        {
+            target.RefreshCommentCounts();
+            target.IsCommentsExpanded = true;
+            await UpdateCountsAndSizeAsync();
+            ApplyFilter();
+            StatusMessage = $"Saved {target.CommentCount} comments for post by {target.AuthorName}.";
+        }
+    }
+
+    [RelayCommand]
+    public async Task QuickPasteClipboardCommentsAsync(Post? post)
+    {
+        var target = post ?? TheaterPost ?? SelectedPost;
+        if (target == null) return;
+
+        try
+        {
+            if (!Clipboard.ContainsText())
+            {
+                StatusMessage = "No text found in clipboard to paste.";
+                return;
+            }
+
+            string text = Clipboard.GetText();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                StatusMessage = "Clipboard text is empty.";
+                return;
+            }
+
+            var parsed = CommentParserHelper.Parse(text, target.Id);
+            if (parsed.Count == 0)
+            {
+                parsed.Add(new PostComment
+                {
+                    PostId = target.Id,
+                    AuthorHandle = "@commenter",
+                    AuthorName = "Commenter",
+                    Content = text.Trim(),
+                    TimeAgo = "just now"
+                });
+            }
+
+            foreach (var c in parsed)
+            {
+                c.PostId = target.Id;
+                target.Comments.Add(c);
+            }
+
+            target.RefreshCommentCounts();
+            target.IsCommentsExpanded = true;
+            await _dbService.SaveCommentsForPostAsync(target.Id, target.Comments);
+            await UpdateCountsAndSizeAsync();
+            ApplyFilter();
+            StatusMessage = $"Successfully imported {parsed.Count} comments from clipboard!";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Paste Error: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    public async Task AddInlineCommentAsync(object? parameter)
+    {
+        Post? targetPost = null;
+        string? commentText = null;
+
+        if (parameter is object[] arr && arr.Length >= 2)
+        {
+            targetPost = arr[0] as Post;
+            commentText = arr[1]?.ToString();
+        }
+        else if (parameter is Post p)
+        {
+            targetPost = p;
+        }
+
+        targetPost ??= TheaterPost ?? SelectedPost;
+        if (targetPost == null || string.IsNullOrWhiteSpace(commentText)) return;
+
+        var comment = new PostComment
+        {
+            PostId = targetPost.Id,
+            AuthorHandle = "@offline",
+            AuthorName = "Offline User",
+            Content = commentText.Trim(),
+            TimeAgo = "just now"
+        };
+
+        targetPost.Comments.Add(comment);
+        targetPost.RefreshCommentCounts();
+        targetPost.IsCommentsExpanded = true;
+        await _dbService.AddCommentToPostAsync(targetPost.Id, comment);
+        StatusMessage = "Comment added.";
+    }
+
+    [RelayCommand]
+    public async Task DeleteCommentAsync(object? parameter)
+    {
+        if (parameter is PostComment comment)
+        {
+            var parentPost = Posts.FirstOrDefault(p => p.Id == comment.PostId) 
+                             ?? (SelectedPost?.Id == comment.PostId ? SelectedPost : null)
+                             ?? (TheaterPost?.Id == comment.PostId ? TheaterPost : null);
+
+            if (parentPost != null)
+            {
+                parentPost.Comments.Remove(comment);
+                parentPost.RefreshCommentCounts();
+            }
+
+            await _dbService.DeleteCommentAsync(comment.Id);
+            StatusMessage = "Comment deleted.";
+        }
+    }
+
+    [RelayCommand]
     public async Task CreateNewPostAsync()
     {
         string defaultFolder = (SelectedFolder != null && SelectedFolder.Name != "All Posts") ? SelectedFolder.Name : "Coding";
@@ -1551,7 +2304,54 @@ public partial class MainViewModel : ObservableObject
 
         await UpdateCountsAndSizeAsync();
         ApplyFilter();
+        OnPropertyChanged(nameof(SelectedPostStoryParts));
         StatusMessage = $"Moved {count} post(s) to folder '{targetFolder}'.";
+    }
+
+    [RelayCommand]
+    public async Task MoveThreadToFolderAsync(object? parameter)
+    {
+        Post? targetPost = null;
+        string? targetFolder = null;
+
+        if (parameter is object[] arr && arr.Length >= 2)
+        {
+            targetPost = arr[0] as Post;
+            targetFolder = arr[1]?.ToString();
+        }
+        else if (parameter is string folder)
+        {
+            targetFolder = folder;
+        }
+
+        if (targetPost == null) targetPost = SelectedPost ?? TheaterPost;
+        if (targetPost == null || string.IsNullOrWhiteSpace(targetFolder) || targetFolder == "All Posts") return;
+
+        if (!targetPost.IsPartOfThread || string.IsNullOrEmpty(targetPost.ThreadId))
+        {
+            await MovePostToFolderAsync(new object[] { targetPost, targetFolder });
+            return;
+        }
+
+        string threadId = targetPost.ThreadId;
+        var threadPosts = Posts.Where(p => p.ThreadId == threadId).ToList();
+        if (threadPosts.Count == 0) threadPosts.Add(targetPost);
+
+        int movedCount = 0;
+        foreach (var p in threadPosts)
+        {
+            if (!string.Equals(p.FolderName, targetFolder, StringComparison.OrdinalIgnoreCase))
+            {
+                p.FolderName = targetFolder;
+                await _dbService.UpdatePostAsync(p);
+                movedCount++;
+            }
+        }
+
+        await UpdateCountsAndSizeAsync();
+        ApplyFilter();
+        OnPropertyChanged(nameof(SelectedPostStoryParts));
+        StatusMessage = $"Moved entire thread ({threadPosts.Count} parts) by {targetPost.AuthorName} to folder '{targetFolder}'.";
     }
 
     [RelayCommand]
@@ -1560,7 +2360,7 @@ public partial class MainViewModel : ObservableObject
         Post? targetPost = null;
         string? targetFolder = null;
 
-        if (parameter is object[] arr && arr.Length == 2)
+        if (parameter is object[] arr && arr.Length >= 2)
         {
             targetPost = arr[0] as Post;
             targetFolder = arr[1]?.ToString();
@@ -1584,9 +2384,9 @@ public partial class MainViewModel : ObservableObject
         if (targetPost == null) targetPost = SelectedPost ?? TheaterPost;
         if (targetPost == null) return;
 
-        if (string.IsNullOrWhiteSpace(targetFolder))
+        if (string.IsNullOrWhiteSpace(targetFolder) || targetFolder == "All Posts")
         {
-            var available = Folders.Where(f => f.Name != "All Posts" && f.Name != targetPost.FolderName).Select(f => f.Name).ToList();
+            var available = DestinationFolders.Where(f => f.Name != targetPost.FolderName).Select(f => f.Name).ToList();
             if (available.Count == 0) return;
             targetFolder = available[0];
         }
@@ -1595,6 +2395,7 @@ public partial class MainViewModel : ObservableObject
         await _dbService.UpdatePostAsync(targetPost);
         await UpdateCountsAndSizeAsync();
         ApplyFilter();
+        OnPropertyChanged(nameof(SelectedPostStoryParts));
         StatusMessage = $"Moved post by {targetPost.AuthorName} to folder '{targetFolder}'.";
     }
 
@@ -1671,6 +2472,129 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void OpenThreadReader(object? parameter)
+    {
+        Post? target = parameter as Post ?? SelectedPost ?? TheaterPost;
+        if (target == null) return;
+
+        List<Post> threadPosts;
+        if (target.IsPartOfThread && !string.IsNullOrEmpty(target.ThreadId))
+        {
+            threadPosts = Posts.Where(p => p.ThreadId == target.ThreadId)
+                               .OrderBy(p => p.ThreadIndex)
+                               .ToList();
+        }
+        else
+        {
+            threadPosts = new List<Post> { target };
+        }
+
+        if (threadPosts.Count == 0) return;
+
+        var availableFolderNames = DestinationFolders.Select(f => f.Name).ToList();
+        var vm = new ThreadReaderViewModel(threadPosts, availableFolderNames, async (newFolder) =>
+        {
+            await MoveThreadToFolderAsync(new object[] { threadPosts.First(), newFolder });
+        });
+        var win = new Views.ThreadReaderWindow(vm);
+        if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
+        {
+            win.Owner = Application.Current.MainWindow;
+        }
+        win.Show();
+        StatusMessage = $"Opened Thread Reader for {threadPosts.Count} tweets by {vm.AuthorHandle}.";
+    }
+
+    [RelayCommand]
+    public void OpenStoryExport(object? parameter)
+    {
+        Post? target = parameter as Post ?? SelectedPost ?? TheaterPost;
+        List<Post>? threadPosts = null;
+
+        if (target != null)
+        {
+            if (target.IsPartOfThread && !string.IsNullOrEmpty(target.ThreadId))
+            {
+                threadPosts = Posts.Where(p => p.ThreadId == target.ThreadId)
+                                   .OrderBy(p => p.ThreadIndex)
+                                   .ToList();
+            }
+            else
+            {
+                threadPosts = new List<Post> { target };
+            }
+        }
+
+        var vm = new StoryExportViewModel(initialPosts: threadPosts);
+        var win = new Views.StoryExportWindow(vm);
+        if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
+        {
+            win.Owner = Application.Current.MainWindow;
+        }
+        win.ShowDialog();
+    }
+
+    [RelayCommand]
+    public void OpenStoryCanvas(object? parameter)
+    {
+        // When clicked from toolbar or shortcut with no parameter, open a fresh BLANK canvas
+        Post? target = parameter as Post;
+        List<Post>? threadPosts = null;
+
+        if (target != null)
+        {
+            if (target.IsPartOfThread && !string.IsNullOrEmpty(target.ThreadId))
+            {
+                threadPosts = Posts.Where(p => p.ThreadId == target.ThreadId)
+                                   .OrderBy(p => p.ThreadIndex)
+                                   .ToList();
+            }
+            else
+            {
+                threadPosts = new List<Post> { target };
+            }
+        }
+
+        var availableFolderNames = DestinationFolders.Select(f => f.Name).ToList();
+        var vm = new StoryCanvasViewModel(_dbService, availableFolderNames, threadPosts);
+        var win = new Views.StoryCanvasWindow(vm);
+        if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
+        {
+            win.Owner = Application.Current.MainWindow;
+        }
+        win.Show();
+    }
+
+    [RelayCommand]
+    public void OpenDocumentReader(object? parameter)
+    {
+        Post? target = parameter as Post ?? SelectedPost ?? TheaterPost;
+        if (target == null) return;
+
+        List<Post> threadPosts;
+        if (target.IsPartOfThread && !string.IsNullOrEmpty(target.ThreadId))
+        {
+            threadPosts = Posts.Where(p => p.ThreadId == target.ThreadId)
+                               .OrderBy(p => p.ThreadIndex)
+                               .ToList();
+        }
+        else
+        {
+            threadPosts = new List<Post> { target };
+        }
+
+        if (threadPosts.Count == 0) return;
+
+        var vm = new StoryDocumentReaderViewModel(threadPosts);
+        var win = new Views.StoryDocumentReaderWindow(vm);
+        if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
+        {
+            win.Owner = Application.Current.MainWindow;
+        }
+        win.Show();
+    }
+
+    [RelayCommand]
     public void JumpToStoryPart(object? parameter)
     {
         if (parameter is Post targetPost)
@@ -1689,203 +2613,36 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    private ObservableCollection<Post>? _cachedStoryParts;
+    private string? _cachedStoryThreadId;
+
     public ObservableCollection<Post> SelectedPostStoryParts
     {
         get
         {
-            if (SelectedPost == null || !SelectedPost.IsPartOfThread)
+            if (SelectedPost == null || !SelectedPost.IsPartOfThread || string.IsNullOrEmpty(SelectedPost.ThreadId))
+            {
+                _cachedStoryParts = null;
+                _cachedStoryThreadId = null;
                 return new ObservableCollection<Post>();
+            }
+
+            if (_cachedStoryParts != null && _cachedStoryThreadId == SelectedPost.ThreadId)
+            {
+                return _cachedStoryParts;
+            }
 
             var parts = Posts
                 .Where(p => p.ThreadId == SelectedPost.ThreadId)
                 .OrderBy(p => p.ThreadIndex)
                 .ToList();
 
-            return new ObservableCollection<Post>(parts);
+            _cachedStoryParts = new ObservableCollection<Post>(parts);
+            _cachedStoryThreadId = SelectedPost.ThreadId;
+            return _cachedStoryParts;
         }
     }
 
-    [RelayCommand]
-    public void SetCanvasMode(string? mode)
-    {
-        if (string.IsNullOrWhiteSpace(mode)) return;
-        CanvasMode = mode;
-        IsThreadModeActive = string.Equals(mode, "Thread", StringComparison.OrdinalIgnoreCase);
-        StatusMessage = IsThreadModeActive
-            ? "Thread Maker Studio — Step-by-step sequential tweet thread composer."
-            : "Word Document Canvas — Rich formatted document note with media embedding.";
-    }
-
-    [RelayCommand]
-    public void InsertEmojiToNode(object? parameter)
-    {
-        if (parameter is object[] arr && arr.Length == 2 && arr[0] is ThreadNode node && arr[1] is string emoji)
-        {
-            node.Content = (node.Content ?? string.Empty) + emoji;
-        }
-    }
-
-    // ========== THREAD CANVAS STUDIO COMMANDS & LOGIC ==========
-    [RelayCommand]
-    public void ShowThreadCanvas()
-    {
-        // If already on Canvas view and sidebar is open, clicking Canvas collapses the extended panel (VS Code behavior)
-        if (ActiveRailView == "Canvas" && IsCanvasViewActive && IsSidebarExpanded)
-        {
-            IsSidebarExpanded = false;
-            return;
-        }
-
-        ActiveRailView = "Canvas";
-        IsSidebarExpanded = true;
-        IsCanvasViewActive = true;
-        IsFoldersViewActive = false;
-
-        if (IsTheaterModeOpen)
-        {
-            CloseTheaterMode();
-        }
-
-        if (SelectedFolder != null && SelectedFolder.Name != "All Posts")
-        {
-            CanvasSelectedFolder = SelectedFolder.Name;
-        }
-
-        StatusMessage = IsThreadModeActive
-            ? "Thread Maker Studio — Step-by-step sequential tweet thread composer."
-            : "Word Canvas Studio — Hold images, text, GIFs, and videos like Microsoft Word.";
-    }
-
-    public async Task<Post?> ArchiveWordDocumentAsync(string title, string folder, string authorName, string authorHandle, string tags, string content, List<string> mediaPaths)
-    {
-        IsLoading = true;
-        StatusMessage = "Archiving document canvas to ESE database...";
-        try
-        {
-            string targetFolder = string.IsNullOrWhiteSpace(folder) ? "Coding" : folder.Trim();
-            string finalContent = content ?? string.Empty;
-            string cleanTitle = string.IsNullOrWhiteSpace(title) || title == "Untitled Document" || title == "New Twitter / X Thread"
-                ? "Document"
-                : title.Trim();
-
-            if (string.IsNullOrWhiteSpace(finalContent) && (mediaPaths == null || mediaPaths.Count == 0))
-            {
-                MessageBox.Show("Cannot archive an empty document canvas. Add some text, images, or GIFs first!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                return null;
-            }
-
-            // Check if page size overflow split is enabled and content exceeds page limit
-            if (CanvasAutoSplitPages && finalContent.Length > CanvasPageCharacterLimit)
-            {
-                var pages = SplitContentIntoPages(finalContent, CanvasPageCharacterLimit);
-                if (pages.Count > 1)
-                {
-                    string threadId = Guid.NewGuid().ToString("N");
-                    Post? firstPost = null;
-                    int total = pages.Count;
-
-                    for (int i = 0; i < total; i++)
-                    {
-                        int pageNum = i + 1;
-                        string partTitle = $"{cleanTitle} (Doc {pageNum} of {total})";
-                        string partContent = $"# {partTitle}\n\n{pages[i]}";
-                        var partMedia = (i == 0) ? mediaPaths : new List<string>();
-
-                        var partPost = await _clipboardService.CreateManualPostAsync(
-                            string.IsNullOrWhiteSpace(authorName) ? "Offline User" : authorName.Trim(),
-                            string.IsNullOrWhiteSpace(authorHandle) ? "@offline" : authorHandle.Trim(),
-                            partContent,
-                            targetFolder,
-                            tags ?? "#archive",
-                            partMedia,
-                            comment: $"🔗 Doc {pageNum} of {total} (Linked)",
-                            threadId: threadId,
-                            threadIndex: pageNum
-                        );
-
-                        if (partPost != null)
-                        {
-                            Posts.Insert(0, partPost);
-                            if (firstPost == null) firstPost = partPost;
-                        }
-                    }
-
-                    if (firstPost != null)
-                    {
-                        await UpdateCountsAndSizeAsync();
-                        ApplyFilter();
-                        SelectedPost = firstPost;
-                        StatusMessage = $"Document exceeded page size: Generated {total} linked documents (Doc 1 to Doc {total}) in '{targetFolder}'!";
-                        return firstPost;
-                    }
-                }
-            }
-
-            // Standard Single Document
-            string singleContent = cleanTitle != "Document" ? $"# {cleanTitle}\n\n{finalContent}".Trim() : finalContent;
-            var post = await _clipboardService.CreateManualPostAsync(
-                string.IsNullOrWhiteSpace(authorName) ? "Offline User" : authorName.Trim(),
-                string.IsNullOrWhiteSpace(authorHandle) ? "@offline" : authorHandle.Trim(),
-                string.IsNullOrWhiteSpace(singleContent) ? "Archived Canvas Note" : singleContent,
-                targetFolder,
-                tags ?? "#archive",
-                mediaPaths
-            );
-
-            if (post != null)
-            {
-                Posts.Insert(0, post);
-                await UpdateCountsAndSizeAsync();
-                ApplyFilter();
-                SelectedPost = post;
-                StatusMessage = $"Document archived to '{targetFolder}' with {post.MediaItems.Count} media item(s)!";
-                return post;
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Archive Error: {ex.Message}";
-            MessageBox.Show($"Failed to archive document:\n{ex.Message}", "Archive Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-        return null;
-    }
-
-    private static List<string> SplitContentIntoPages(string content, int maxCharsPerPage)
-    {
-        var pages = new List<string>();
-        if (string.IsNullOrWhiteSpace(content)) return pages;
-        if (content.Length <= maxCharsPerPage)
-        {
-            pages.Add(content);
-            return pages;
-        }
-
-        var paragraphs = content.Split(new[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.None);
-        var currentChunk = new StringBuilder();
-
-        foreach (var p in paragraphs)
-        {
-            if (currentChunk.Length > 0 && (currentChunk.Length + p.Length + 2) > maxCharsPerPage)
-            {
-                pages.Add(currentChunk.ToString().Trim());
-                currentChunk.Clear();
-            }
-
-            if (currentChunk.Length > 0) currentChunk.Append("\n\n");
-            currentChunk.Append(p);
-        }
-
-        if (currentChunk.Length > 0)
-        {
-            pages.Add(currentChunk.ToString().Trim());
-        }
-
-        return pages;
-    }
 
     [RelayCommand]
     public void SelectNextLinkedPart()
@@ -1913,579 +2670,8 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    public void AddEmptyCanvasNode()
-    {
-        var node = new ThreadNode
-        {
-            StepNumber = CanvasThreadNodes.Count + 1,
-            AuthorName = string.IsNullOrWhiteSpace(CanvasDefaultAuthor) ? "Offline User" : CanvasDefaultAuthor.Trim(),
-            AuthorHandle = string.IsNullOrWhiteSpace(CanvasDefaultHandle) ? "@offline" : CanvasDefaultHandle.Trim(),
-            Content = string.Empty,
-            Tags = CanvasDefaultTags
-        };
-        CanvasThreadNodes.Add(node);
-        StatusMessage = $"Added Step #{node.StepNumber} to Thread Canvas.";
-    }
 
-    [RelayCommand]
-    public void RemoveCanvasNode(ThreadNode? node)
-    {
-        if (node == null) return;
-        CanvasThreadNodes.Remove(node);
-        RenumberCanvasNodes();
-        StatusMessage = "Removed step from Thread Canvas.";
-    }
 
-    [RelayCommand]
-    public void MoveNodeUp(ThreadNode? node)
-    {
-        if (node == null) return;
-        int idx = CanvasThreadNodes.IndexOf(node);
-        if (idx > 0)
-        {
-            CanvasThreadNodes.Move(idx, idx - 1);
-            RenumberCanvasNodes();
-            StatusMessage = $"Moved Step #{idx + 1} up to #{idx}.";
-        }
-    }
-
-    [RelayCommand]
-    public void MoveNodeDown(ThreadNode? node)
-    {
-        if (node == null) return;
-        int idx = CanvasThreadNodes.IndexOf(node);
-        if (idx >= 0 && idx < CanvasThreadNodes.Count - 1)
-        {
-            CanvasThreadNodes.Move(idx, idx + 1);
-            RenumberCanvasNodes();
-            StatusMessage = $"Moved Step #{idx + 1} down to #{idx + 2}.";
-        }
-    }
-
-    [RelayCommand]
-    public void AddMediaToNode(ThreadNode? node)
-    {
-        if (node == null) return;
-        try
-        {
-            var dlg = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Attach Image or Video to Tweet Step",
-                Filter = "All Supported Media (*.png;*.jpg;*.jpeg;*.webp;*.gif;*.mp4;*.webm)|*.png;*.jpg;*.jpeg;*.webp;*.gif;*.mp4;*.webm|Images (*.png;*.jpg;*.jpeg;*.webp;*.gif)|*.png;*.jpg;*.jpeg;*.webp;*.gif|Videos (*.mp4;*.webm)|*.mp4;*.webm|All Files (*.*)|*.*",
-                Multiselect = true
-            };
-
-            if (dlg.ShowDialog() == true)
-            {
-                foreach (var file in dlg.FileNames)
-                {
-                    if (!node.AttachedImagePaths.Contains(file))
-                    {
-                        node.AttachedImagePaths.Add(file);
-                    }
-                }
-                node.NotifyMediaChanged();
-                StatusMessage = $"Attached {dlg.FileNames.Length} media item(s) to Step #{node.StepNumber}.";
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Media Attachment Error: {ex.Message}";
-        }
-    }
-
-    [RelayCommand]
-    public void RemoveMediaItem(object? parameter)
-    {
-        if (parameter is object[] arr && arr.Length == 2 && arr[0] is ThreadNode node && arr[1] is string filePath)
-        {
-            node.AttachedImagePaths.Remove(filePath);
-            node.NotifyMediaChanged();
-            StatusMessage = "Removed attached media from step.";
-        }
-        else if (parameter is string path)
-        {
-            foreach (var n in CanvasThreadNodes)
-            {
-                if (n.AttachedImagePaths.Contains(path))
-                {
-                    n.AttachedImagePaths.Remove(path);
-                    n.NotifyMediaChanged();
-                    break;
-                }
-            }
-            StatusMessage = "Removed attached media.";
-        }
-    }
-
-    [RelayCommand]
-    public void ClearCanvas()
-    {
-        if (CanvasThreadNodes.Count == 0) return;
-        var res = MessageBox.Show(
-            "Are you sure you want to clear all steps from the Thread Canvas?",
-            "Clear Canvas",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-
-        if (res == MessageBoxResult.Yes)
-        {
-            CanvasThreadNodes.Clear();
-            CanvasThreadTitle = "New Twitter / X Thread";
-            StatusMessage = "Thread Canvas cleared.";
-        }
-    }
-
-    [RelayCommand]
-    public void PasteToCanvas()
-    {
-        try
-        {
-            string? text = null;
-            System.Windows.Media.Imaging.BitmapSource? img = null;
-            List<string>? files = null;
-
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (Clipboard.ContainsFileDropList())
-                {
-                    var drop = Clipboard.GetFileDropList();
-                    files = new List<string>();
-                    foreach (var f in drop)
-                    {
-                        if (!string.IsNullOrWhiteSpace(f)) files.Add(f);
-                    }
-                }
-                if (Clipboard.ContainsImage())
-                {
-                    img = Clipboard.GetImage();
-                }
-                if (Clipboard.ContainsText())
-                {
-                    text = Clipboard.GetText();
-                }
-            });
-
-            if (string.IsNullOrWhiteSpace(text) && img == null && (files == null || files.Count == 0))
-            {
-                StatusMessage = "Clipboard is empty or does not contain valid text, images, or files.";
-                return;
-            }
-
-            var attachedMedia = new List<string>();
-            string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string stagingDir = Path.Combine(userDocs, "LocalSocialArchive", "Media", "CanvasStaging");
-            Directory.CreateDirectory(stagingDir);
-
-            if (img != null)
-            {
-                string imgName = $"canvas_img_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid().ToString("N").Substring(0, 6)}.png";
-                string dest = Path.Combine(stagingDir, imgName);
-                var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
-                encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(img));
-                using (var fs = File.Create(dest))
-                {
-                    encoder.Save(fs);
-                }
-                attachedMedia.Add(dest);
-            }
-
-            if (files != null)
-            {
-                foreach (var f in files)
-                {
-                    if (File.Exists(f))
-                    {
-                        attachedMedia.Add(f);
-                    }
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(text))
-            {
-                // Multi-tweet split check
-                var splits = Regex.Split(text.Trim(), @"(?:\r?\n){2,}---\s*(?:\r?\n)+|(?:\r?\n){2,}(?=\d+/\d+|\(\d+/\d+\)|\d+\.)");
-                if (splits.Length > 1)
-                {
-                    int addedCount = 0;
-                    foreach (var part in splits)
-                    {
-                        if (string.IsNullOrWhiteSpace(part)) continue;
-                        var (author, handle, content, tags) = ParseSocialMetadataHelper(part);
-                        if (CanvasThreadNodes.Count == 0 && addedCount == 0)
-                        {
-                            if (!string.IsNullOrWhiteSpace(author) && author != "Offline User") CanvasDefaultAuthor = author;
-                            if (!string.IsNullOrWhiteSpace(handle) && handle != "@offline") CanvasDefaultHandle = handle;
-                            CanvasThreadTitle = SuggestTitle(content);
-                        }
-
-                        var node = new ThreadNode
-                        {
-                            StepNumber = CanvasThreadNodes.Count + 1,
-                            AuthorName = string.IsNullOrWhiteSpace(author) || author == "Offline User" ? CanvasDefaultAuthor : author,
-                            AuthorHandle = string.IsNullOrWhiteSpace(handle) || handle == "@offline" ? CanvasDefaultHandle : handle,
-                            Content = content,
-                            Tags = string.IsNullOrWhiteSpace(tags) ? CanvasDefaultTags : tags
-                        };
-                        CanvasThreadNodes.Add(node);
-                        addedCount++;
-                    }
-
-                    if (attachedMedia.Count > 0 && CanvasThreadNodes.Count > 0)
-                    {
-                        foreach (var m in attachedMedia)
-                        {
-                            CanvasThreadNodes[CanvasThreadNodes.Count - 1].AttachedImagePaths.Add(m);
-                        }
-                        CanvasThreadNodes[CanvasThreadNodes.Count - 1].NotifyMediaChanged();
-                    }
-
-                    StatusMessage = $"Pasted multi-tweet thread ({addedCount} steps) onto Canvas.";
-                    return;
-                }
-
-                // Single tweet parse
-                var (singleAuthor, singleHandle, singleContent, singleTags) = ParseSocialMetadataHelper(text);
-                if (CanvasThreadNodes.Count == 0)
-                {
-                    if (!string.IsNullOrWhiteSpace(singleAuthor) && singleAuthor != "Offline User") CanvasDefaultAuthor = singleAuthor;
-                    if (!string.IsNullOrWhiteSpace(singleHandle) && singleHandle != "@offline") CanvasDefaultHandle = singleHandle;
-                    CanvasThreadTitle = SuggestTitle(singleContent);
-                }
-
-                var singleNode = new ThreadNode
-                {
-                    StepNumber = CanvasThreadNodes.Count + 1,
-                    AuthorName = string.IsNullOrWhiteSpace(singleAuthor) || singleAuthor == "Offline User" ? CanvasDefaultAuthor : singleAuthor,
-                    AuthorHandle = string.IsNullOrWhiteSpace(singleHandle) || singleHandle == "@offline" ? CanvasDefaultHandle : singleHandle,
-                    Content = singleContent,
-                    Tags = string.IsNullOrWhiteSpace(singleTags) ? CanvasDefaultTags : singleTags,
-                    AttachedImagePaths = new ObservableCollection<string>(attachedMedia)
-                };
-                singleNode.NotifyMediaChanged();
-                CanvasThreadNodes.Add(singleNode);
-                StatusMessage = $"Pasted tweet as Step #{singleNode.StepNumber} on Canvas.";
-            }
-            else if (attachedMedia.Count > 0)
-            {
-                if (CanvasThreadNodes.Count > 0)
-                {
-                    var last = CanvasThreadNodes[CanvasThreadNodes.Count - 1];
-                    foreach (var m in attachedMedia)
-                    {
-                        last.AttachedImagePaths.Add(m);
-                    }
-                    last.NotifyMediaChanged();
-                    StatusMessage = $"Attached {attachedMedia.Count} media item(s) to Step #{last.StepNumber}.";
-                }
-                else
-                {
-                    var node = new ThreadNode
-                    {
-                        StepNumber = 1,
-                        AuthorName = CanvasDefaultAuthor,
-                        AuthorHandle = CanvasDefaultHandle,
-                        Content = "Thread Media Attachment",
-                        Tags = CanvasDefaultTags,
-                        AttachedImagePaths = new ObservableCollection<string>(attachedMedia)
-                    };
-                    node.NotifyMediaChanged();
-                    CanvasThreadNodes.Add(node);
-                    StatusMessage = "Created Step #1 with pasted image/media.";
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Paste Error: {ex.Message}";
-        }
-    }
-
-    [RelayCommand]
-    public async Task ArchiveThreadAsSeriesAsync()
-    {
-        if (CanvasThreadNodes.Count == 0)
-        {
-            MessageBox.Show("Thread Canvas is empty. Add or paste some tweet steps first!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        IsLoading = true;
-        StatusMessage = "Archiving thread series into Windows ESE Database...";
-
-        try
-        {
-            string threadId = Guid.NewGuid().ToString("N");
-            string targetFolder = string.IsNullOrWhiteSpace(CanvasSelectedFolder) ? "Coding" : CanvasSelectedFolder;
-            DateTime baseDate = DateTime.Now.AddMinutes(-CanvasThreadNodes.Count * 2);
-
-            var createdPosts = new List<Post>();
-
-            for (int i = 0; i < CanvasThreadNodes.Count; i++)
-            {
-                var node = CanvasThreadNodes[i];
-                var post = await _clipboardService.CreateManualPostAsync(
-                    string.IsNullOrWhiteSpace(node.AuthorName) ? CanvasDefaultAuthor : node.AuthorName,
-                    string.IsNullOrWhiteSpace(node.AuthorHandle) ? CanvasDefaultHandle : node.AuthorHandle,
-                    node.Content,
-                    targetFolder,
-                    string.IsNullOrWhiteSpace(node.Tags) ? CanvasDefaultTags : node.Tags,
-                    node.AttachedImagePaths
-                );
-
-                if (post != null)
-                {
-                    post.ThreadId = threadId;
-                    post.ThreadIndex = node.StepNumber;
-                    post.PostDate = baseDate.AddMinutes(i * 2);
-                    await _dbService.UpdatePostAsync(post);
-                    createdPosts.Add(post);
-                }
-            }
-
-            foreach (var p in createdPosts.AsEnumerable().Reverse())
-            {
-                Posts.Insert(0, p);
-            }
-
-            await UpdateCountsAndSizeAsync();
-            ApplyFilter();
-            SelectedPost = createdPosts.FirstOrDefault();
-
-            var choice = MessageBox.Show(
-                $"Successfully archived {createdPosts.Count} steps as a connected thread series in '{targetFolder}'!\n\nWould you like to clear the Thread Canvas now?",
-                "Thread Series Archived",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Information);
-
-            if (choice == MessageBoxResult.Yes)
-            {
-                CanvasThreadNodes.Clear();
-                CanvasThreadTitle = "New Twitter / X Thread";
-            }
-
-            IsCanvasViewActive = false;
-            StatusMessage = $"Archived thread series with {createdPosts.Count} posts into '{targetFolder}'.";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Thread Archiving Error: {ex.Message}";
-            MessageBox.Show($"Failed to archive thread series:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    [RelayCommand]
-    public async Task MergeAndArchiveThreadAsync()
-    {
-        if (CanvasThreadNodes.Count == 0)
-        {
-            MessageBox.Show("Thread Canvas is empty. Add or paste some tweet steps first!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        IsLoading = true;
-        StatusMessage = "Merging and archiving thread into single post...";
-
-        try
-        {
-            string targetFolder = string.IsNullOrWhiteSpace(CanvasSelectedFolder) ? "Coding" : CanvasSelectedFolder;
-
-            var sb = new StringBuilder();
-            if (!string.IsNullOrWhiteSpace(CanvasThreadTitle) && CanvasThreadTitle != "New Twitter / X Thread")
-            {
-                sb.AppendLine($"🧵 {CanvasThreadTitle}");
-                sb.AppendLine();
-            }
-
-            for (int i = 0; i < CanvasThreadNodes.Count; i++)
-            {
-                var node = CanvasThreadNodes[i];
-                sb.AppendLine($"[{node.StepNumber}/{CanvasThreadNodes.Count}] {node.Content}");
-                if (i < CanvasThreadNodes.Count - 1)
-                {
-                    sb.AppendLine();
-                    sb.AppendLine("---");
-                    sb.AppendLine();
-                }
-            }
-
-            var allMedia = new List<string>();
-            foreach (var node in CanvasThreadNodes)
-            {
-                foreach (var m in node.AttachedImagePaths)
-                {
-                    if (!allMedia.Contains(m)) allMedia.Add(m);
-                }
-            }
-
-            var allTags = string.Join(" ", CanvasThreadNodes.Select(n => n.Tags).Where(t => !string.IsNullOrWhiteSpace(t)).Distinct());
-            if (string.IsNullOrWhiteSpace(allTags)) allTags = CanvasDefaultTags;
-
-            var post = await _clipboardService.CreateManualPostAsync(
-                CanvasDefaultAuthor,
-                CanvasDefaultHandle,
-                sb.ToString(),
-                targetFolder,
-                allTags,
-                allMedia
-            );
-
-            if (post != null)
-            {
-                Posts.Insert(0, post);
-                await UpdateCountsAndSizeAsync();
-                ApplyFilter();
-                SelectedPost = post;
-
-                var choice = MessageBox.Show(
-                    $"Successfully merged {CanvasThreadNodes.Count} tweet steps into 1 master post in '{targetFolder}'!\n\nWould you like to clear the Thread Canvas now?",
-                    "Merged Thread Archived",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Information);
-
-                if (choice == MessageBoxResult.Yes)
-                {
-                    CanvasThreadNodes.Clear();
-                    CanvasThreadTitle = "New Twitter / X Thread";
-                }
-
-                IsCanvasViewActive = false;
-                StatusMessage = $"Merged and archived thread into '{targetFolder}'.";
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Merge Error: {ex.Message}";
-            MessageBox.Show($"Failed to merge thread:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    [RelayCommand]
-    public void ExportThreadMarkdown()
-    {
-        if (CanvasThreadNodes.Count == 0)
-        {
-            MessageBox.Show("Thread Canvas is empty. Add or paste some tweet steps first!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        var sb = new StringBuilder();
-        sb.AppendLine($"# {CanvasThreadTitle}");
-        sb.AppendLine();
-        sb.AppendLine($"- **Author:** {CanvasDefaultAuthor} ({CanvasDefaultHandle})");
-        sb.AppendLine($"- **Folder:** {CanvasSelectedFolder}");
-        sb.AppendLine($"- **Steps:** {CanvasThreadNodes.Count}");
-        sb.AppendLine($"- **Exported:** {DateTime.Now:yyyy-MM-dd HH:mm}");
-        sb.AppendLine();
-        sb.AppendLine("---");
-        sb.AppendLine();
-
-        foreach (var node in CanvasThreadNodes)
-        {
-            sb.AppendLine($"### 🧵 Step {node.StepNumber}/{CanvasThreadNodes.Count}");
-            if (!string.IsNullOrWhiteSpace(node.AuthorName) && node.AuthorName != CanvasDefaultAuthor)
-            {
-                sb.AppendLine($"*{node.AuthorName} ({node.AuthorHandle})*");
-                sb.AppendLine();
-            }
-            sb.AppendLine(node.Content);
-            if (!string.IsNullOrWhiteSpace(node.Tags))
-            {
-                sb.AppendLine();
-                sb.AppendLine($"*Tags: {node.Tags}*");
-            }
-            if (node.AttachedImagePaths.Count > 0)
-            {
-                sb.AppendLine();
-                foreach (var m in node.AttachedImagePaths)
-                {
-                    var fn = Path.GetFileName(m);
-                    sb.AppendLine($"- ![{fn}]({m})");
-                }
-            }
-            sb.AppendLine();
-            sb.AppendLine("---");
-            sb.AppendLine();
-        }
-
-        try
-        {
-            Clipboard.SetText(sb.ToString());
-            StatusMessage = "Thread exported and copied to clipboard as GitHub Markdown!";
-            MessageBox.Show("Thread exported to clipboard in GitHub Markdown format!", "Export Successful", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Export Error: {ex.Message}";
-        }
-    }
-
-    private void RenumberCanvasNodes()
-    {
-        for (int i = 0; i < CanvasThreadNodes.Count; i++)
-        {
-            CanvasThreadNodes[i].StepNumber = i + 1;
-        }
-    }
-
-    private static string SuggestTitle(string content)
-    {
-        if (string.IsNullOrWhiteSpace(content)) return "New Twitter / X Thread";
-        var firstLine = content.Trim().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-        if (!string.IsNullOrWhiteSpace(firstLine))
-        {
-            if (firstLine.Length > 60) return firstLine.Substring(0, 57) + "...";
-            return firstLine;
-        }
-        return "New Twitter / X Thread";
-    }
-
-    private static (string authorName, string authorHandle, string content, string tags) ParseSocialMetadataHelper(string? rawText)
-    {
-        if (string.IsNullOrWhiteSpace(rawText))
-        {
-            return ("Offline User", "@offline", string.Empty, string.Empty);
-        }
-
-        rawText = rawText.Trim();
-        var lines = rawText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-        string authorName = "Offline User";
-        string authorHandle = "@offline";
-        string content = rawText;
-
-        if (lines.Length >= 2 && lines[1].Trim().StartsWith("@"))
-        {
-            authorName = lines[0].Trim();
-            var handleMatch = Regex.Match(lines[1].Trim(), @"(@[A-Za-z0-9_]+)");
-            if (handleMatch.Success) authorHandle = handleMatch.Value;
-            content = string.Join(Environment.NewLine, lines.Skip(2)).Trim();
-            if (string.IsNullOrWhiteSpace(content)) content = rawText;
-        }
-        else
-        {
-            var handleMatch = Regex.Match(rawText, @"(@[A-Za-z0-9_]+)");
-            if (handleMatch.Success)
-            {
-                authorHandle = handleMatch.Value;
-                var clean = authorHandle.TrimStart('@');
-                authorName = char.ToUpperInvariant(clean[0]) + (clean.Length > 1 ? clean.Substring(1) : "");
-            }
-        }
-
-        var tagMatches = Regex.Matches(rawText, @"#([a-zA-Z0-9_\-]+)");
-        var tags = string.Join(" ", tagMatches.Select(m => m.Value));
-
-        return (authorName, authorHandle, content, tags);
-    }
 }
 
 // ========== CONFIG DTOs ==========

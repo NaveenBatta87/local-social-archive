@@ -4,8 +4,8 @@ namespace LocalSocialArchive.Services;
 
 public interface IClipboardService
 {
-    Task<Post?> ProcessClipboardAsync(string targetFolder = "Coding");
-    Task<Post?> ProcessFilesAsync(IEnumerable<string> filePaths, string? customContent = null, string targetFolder = "Coding");
+    Task<Post?> ProcessClipboardAsync(string targetFolder = "Coding", bool autoExtractHashtags = true);
+    Task<Post?> ProcessFilesAsync(IEnumerable<string> filePaths, string? customContent = null, string targetFolder = "Coding", bool autoExtractHashtags = true);
     Task<Post?> CreateManualPostAsync(
         string authorName,
         string authorHandle,

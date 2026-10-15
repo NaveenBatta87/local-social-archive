@@ -8,18 +8,21 @@
         <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
         <converters:InverseBooleanConverter x:Key="InverseBool"/>
         <converters:NullToVisibilityConverter x:Key="NullToVis"/>
+        <converters:NullToVisibilityConverter x:Key="InverseNullToVis" Invert="True"/>
         <converters:FileSizeFormatterConverter x:Key="FileSizeFormatter"/>
         <converters:BoolToLockToggleTextConverter x:Key="BoolToLockToggleTextConverter"/>
         <converters:CodiconGlyphConverter x:Key="CodiconGlyphConverter"/>
+        <converters:ThumbnailImageConverter x:Key="ThumbImageConverter"/>
+        <converters:HexToBrushConverter x:Key="HexToBrush"/>
 
-        <!-- Global Dark Theme Color Palette -->
-        <SolidColorBrush x:Key="AppBgBrush" Color="#0C1017"/>
-        <SolidColorBrush x:Key="CardBgBrush" Color="#161B22"/>
-        <SolidColorBrush x:Key="CardBorderBrush" Color="#2F3336"/>
-        <SolidColorBrush x:Key="CardBorderHoverBrush" Color="#3F464E"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#1D9BF0"/>
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E7E9EA"/>
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8B949E"/>
+        <!-- Global Windows 11 Fluent Dark Theme Color Palette -->
+        <SolidColorBrush x:Key="AppBgBrush" Color="#1C2028"/>
+        <SolidColorBrush x:Key="CardBgBrush" Color="#202530"/>
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#2F3644"/>
+        <SolidColorBrush x:Key="CardBorderHoverBrush" Color="#3B4456"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#4CC2FF"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9DA5B4"/>
 
         <!-- Default UI Font Family (system fonts for icons and chrome) -->
         <FontFamily x:Key="DefaultAppFontFamily">Segoe UI Variable Text, Segoe UI, Segoe UI Emoji, sans-serif</FontFamily>
@@ -32,8 +35,8 @@
 
         <!-- Universal Dark ComboBox Item Style -->
         <Style x:Key="UniversalDarkComboBoxItem" TargetType="ComboBoxItem">
-            <Setter Property="Background" Value="#161B22"/>
-            <Setter Property="Foreground" Value="#E7E9EA"/>
+            <Setter Property="Background" Value="#202530"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
             <Setter Property="Padding" Value="12,8"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -47,11 +50,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="itemBorder" Property="Background" Value="#212836"/>
-                                <Setter Property="Foreground" Value="#1D9BF0"/>
+                                <Setter TargetName="itemBorder" Property="Background" Value="#282E3B"/>
+                                <Setter Property="Foreground" Value="#4CC2FF"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="itemBorder" Property="Background" Value="#1A3B5C"/>
+                                <Setter TargetName="itemBorder" Property="Background" Value="#1A2D42"/>
                                 <Setter Property="Foreground" Value="#FFFFFF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -62,20 +65,20 @@
 
         <!-- Universal Dark ComboBox Toggle Button -->
         <ControlTemplate x:Key="UniversalDarkComboBoxToggleButton" TargetType="ToggleButton">
-            <Border x:Name="border" Background="#161B22" BorderBrush="#2F3336" BorderThickness="1" CornerRadius="8">
+            <Border x:Name="border" Background="#202530" BorderBrush="#2F3644" BorderThickness="1" CornerRadius="8">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="32"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="1" Text="⌵" FontSize="11" Foreground="#8B949E"
+                    <TextBlock Grid.Column="1" Text="⌵" FontSize="11" Foreground="#9DA5B4"
                                HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
                 </Grid>
             </Border>
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="border" Property="BorderBrush" Value="#1D9BF0"/>
-                    <Setter TargetName="border" Property="Background" Value="#1C232E"/>
+                    <Setter TargetName="border" Property="BorderBrush" Value="#4CC2FF"/>
+                    <Setter TargetName="border" Property="Background" Value="#252A36"/>
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -109,8 +112,8 @@
                                    AllowsTransparency="true"
                                    Focusable="false"
                                    PopupAnimation="Slide">
-                                <Border Background="#161B22"
-                                        BorderBrush="#2F3336"
+                                <Border Background="#202530"
+                                        BorderBrush="#2F3644"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         MinWidth="{TemplateBinding ActualWidth}"

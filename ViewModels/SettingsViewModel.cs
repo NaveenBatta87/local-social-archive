@@ -14,6 +14,7 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly IEseDatabaseService _dbService;
     private readonly ISecurityService _securityService;
+    private readonly ISettingsService _settingsService;
     private readonly string _baseDirectory;
     private readonly string _mediaDirectory;
 
@@ -71,13 +72,12 @@ public partial class SettingsViewModel : ObservableObject
     public SettingsViewModel(
         IEseDatabaseService dbService,
         ISecurityService securityService,
-        ObservableCollection<FolderCategory> currentFolders,
-        bool isGridView,
-        bool isInspectorVisible,
-        bool isTagsVisible)
+        ISettingsService settingsService,
+        ObservableCollection<FolderCategory> currentFolders)
     {
         _dbService = dbService;
         _securityService = securityService;
+        _settingsService = settingsService;
 
         string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         _baseDirectory = Path.Combine(userDocs, "LocalSocialArchive");
@@ -85,9 +85,11 @@ public partial class SettingsViewModel : ObservableObject
 
         DatabasePath = _dbService.DatabasePath;
         MediaStoragePath = _mediaDirectory;
-        PreferGridView = isGridView;
-        ShowInspectorByDefault = isInspectorVisible;
-        ShowTagsByDefault = isTagsVisible;
+        PreferGridView = _settingsService.IsGridView;
+        ShowInspectorByDefault = _settingsService.IsInspectorVisible;
+        ShowTagsByDefault = _settingsService.IsTagsVisible;
+        SelectedDefaultFolder = _settingsService.DefaultFolder;
+        AutoExtractHashtags = _settingsService.AutoExtractHashtags;
 
         AvailableFolders = new ObservableCollection<string>();
         foreach (var f in currentFolders)
@@ -100,6 +102,10 @@ public partial class SettingsViewModel : ObservableObject
         if (AvailableFolders.Count == 0)
         {
             AvailableFolders.Add("Coding");
+        }
+        if (!AvailableFolders.Contains(SelectedDefaultFolder))
+        {
+            AvailableFolders.Insert(0, SelectedDefaultFolder);
         }
 
         RefreshSecurityState();
@@ -258,27 +264,16 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void BackupDatabase()
+    public async Task BackupDatabaseAsync()
     {
         try
         {
-            if (!File.Exists(DatabasePath))
-            {
-                MessageBox.Show("Database file does not exist to back up.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
             string backupFolder = Path.Combine(_baseDirectory, "Backups");
-            Directory.CreateDirectory(backupFolder);
+            string backupPath = await _dbService.BackupDatabaseAsync(backupFolder);
 
-            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            string backupPath = Path.Combine(backupFolder, $"ArchiveData_backup_{timestamp}.edb");
-
-            File.Copy(DatabasePath, backupPath, overwrite: true);
-
-            StatusNotification = $"Database backed up to Backups/ folder!";
+            StatusNotification = "Clean database backup created in Backups/ folder!";
             MessageBox.Show(
-                $"Database backup successfully created at:\n\n{backupPath}",
+                $"Database backup successfully created at:\n\n{backupPath}\n\nNote: All transactions are cleanly committed in this .edb file. EseLogs are safely excluded.",
                 "Backup Succeeded",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
@@ -300,6 +295,13 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     public void SaveSettings(Window? window)
     {
+        _settingsService.DefaultFolder = SelectedDefaultFolder;
+        _settingsService.AutoExtractHashtags = AutoExtractHashtags;
+        _settingsService.IsGridView = PreferGridView;
+        _settingsService.IsInspectorVisible = ShowInspectorByDefault;
+        _settingsService.IsTagsVisible = ShowTagsByDefault;
+        _settingsService.Save();
+
         if (window != null)
         {
             window.DialogResult = true;

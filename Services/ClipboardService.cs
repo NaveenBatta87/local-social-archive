@@ -18,12 +18,11 @@ public class ClipboardService : IClipboardService
     public ClipboardService(IEseDatabaseService dbService)
     {
         _dbService = dbService;
-        string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        _mediaBaseDirectory = Path.Combine(userDocs, "LocalSocialArchive", "Media");
+        _mediaBaseDirectory = LocalSocialArchive.Helpers.StoragePathHelper.MediaDirectory;
         Directory.CreateDirectory(_mediaBaseDirectory);
     }
 
-    public async Task<Post?> ProcessClipboardAsync(string targetFolder = "Coding")
+    public async Task<Post?> ProcessClipboardAsync(string targetFolder = "Coding", bool autoExtractHashtags = true)
     {
         string? textContent = null;
         string? htmlContent = null;
@@ -218,7 +217,7 @@ public class ClipboardService : IClipboardService
         }
 
         // 3. Parse Metadata & Content
-        var (authorName, authorHandle, parsedContent, tags) = ParseSocialMetadata(textContent, mediaItems.Count);
+        var (authorName, authorHandle, parsedContent, tags) = ParseSocialMetadata(textContent, mediaItems.Count, autoExtractHashtags);
 
         var post = new Post
         {
@@ -243,7 +242,7 @@ public class ClipboardService : IClipboardService
         return post;
     }
 
-    public async Task<Post?> ProcessFilesAsync(IEnumerable<string> filePaths, string? customContent = null, string targetFolder = "Coding")
+    public async Task<Post?> ProcessFilesAsync(IEnumerable<string> filePaths, string? customContent = null, string targetFolder = "Coding", bool autoExtractHashtags = true)
     {
         string postId = Guid.NewGuid().ToString("N");
         string folderDatePrefix = DateTime.Now.ToString("yyyyMMdd");
@@ -347,7 +346,7 @@ public class ClipboardService : IClipboardService
         }
 
         string rawText = customContent ?? textFromFile ?? string.Empty;
-        var (authorName, authorHandle, parsedContent, tags) = ParseSocialMetadata(rawText, mediaItems.Count);
+        var (authorName, authorHandle, parsedContent, tags) = ParseSocialMetadata(rawText, mediaItems.Count, autoExtractHashtags);
 
         var post = new Post
         {
@@ -446,7 +445,7 @@ public class ClipboardService : IClipboardService
         return post;
     }
 
-    private static (string authorName, string authorHandle, string content, string tags) ParseSocialMetadata(string? rawText, int mediaCount)
+    private static (string authorName, string authorHandle, string content, string tags) ParseSocialMetadata(string? rawText, int mediaCount, bool autoExtractHashtags = true)
     {
         if (string.IsNullOrWhiteSpace(rawText))
         {
@@ -487,8 +486,12 @@ public class ClipboardService : IClipboardService
             }
         }
 
-        var tagMatches = Regex.Matches(rawText, @"#([a-zA-Z0-9_\-]+)");
-        var tags = string.Join(" ", tagMatches.Select(m => m.Value));
+        string tags = "";
+        if (autoExtractHashtags)
+        {
+            var tagMatches = Regex.Matches(rawText, @"#([a-zA-Z0-9_\-]+)");
+            tags = string.Join(" ", tagMatches.Select(m => m.Value));
+        }
 
         return (authorName, authorHandle, content, tags);
     }
